@@ -430,6 +430,10 @@ $("[data-product-form]").addEventListener("submit", async event => {
   const form = event.currentTarget;
   const id = form.elements.id.value;
   try {
+    if (!form.elements.category.value ||
+        !categories.some(category => category.id === form.elements.category.value)) {
+      throw new Error("Elegí una categoría válida para el producto.");
+    }
     let imageUrl = form.elements.image_url.value;
     const productImage = editedImages.get(form.elements.image) || form.elements.image.files[0];
     if (productImage) imageUrl = await uploadImage(productImage);
