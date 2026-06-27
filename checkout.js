@@ -52,7 +52,7 @@ function buildReceipt(form, orderNumber) {
     ? `\nDescuento por transferencia: -${money(Math.round(subtotal * .1))}`
     : "";
   const delivery = form.get("delivery");
-  const deliveryDetails = delivery !== "Retiro en el local [Chiclana 120]"
+  const deliveryDetails = delivery !== "Retiro en el local [Castelli 695]"
     ? `${delivery}: ${form.get("address")}, ${form.get("city")} (${form.get("postal_code")})`
     : delivery;
   return `PANDORA.DUP — COMPROBANTE DE PEDIDO
@@ -92,9 +92,9 @@ async function saveOrder(form, orderNumber) {
     phone: form.get("phone"),
     document: form.get("document"),
     delivery_method: delivery,
-    address: delivery !== "Retiro en el local [Chiclana 120]" ? form.get("address") : null,
-    city: delivery !== "Retiro en el local [Chiclana 120]" ? form.get("city") : null,
-    postal_code: delivery !== "Retiro en el local [Chiclana 120]" ? form.get("postal_code") : null,
+    address: delivery !== "Retiro en el local [Castelli 695]" ? form.get("address") : null,
+    city: delivery !== "Retiro en el local [Castelli 695]" ? form.get("city") : null,
+    postal_code: delivery !== "Retiro en el local [Castelli 695]" ? form.get("postal_code") : null,
     payment_method: selectedPayment,
     notes: form.get("notes") || null,
     subtotal,
@@ -161,7 +161,7 @@ document.querySelector("[data-order-form]").addEventListener("change", updateSte
 
 document.querySelectorAll('input[name="delivery"]').forEach(input => {
   input.addEventListener("change", () => {
-    const needsAddress = input.value !== "Retiro en el local [Chiclana 120]";
+    const needsAddress = input.value !== "Retiro en el local [Castelli 695]";
     const isAndreani = input.value === "Envío por correo Andreani";
     document.querySelector("[data-address-fields]").classList.toggle("hidden", !needsAddress);
     document.querySelector("[data-andreani-tools]").classList.toggle("hidden", !isAndreani);
