@@ -22,29 +22,29 @@ button { color: inherit; cursor: pointer; }
 .announcement-track i { color: var(--rose); }
 @keyframes marquee { to { transform: translateX(-50%); } }
 
-.header { height: 84px; padding: 0 4vw; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; border-bottom: 1px solid var(--line); position: relative; z-index: 20; background: rgba(251,250,246,.94); }
+.header { height: 130px; padding: 0 4vw; position: relative; z-index: 20; border-bottom: 1px solid var(--line); background: rgba(251,250,246,.98); }
 .brand, .footer-brand { display: flex; flex-direction: column; align-items: center; line-height: 1; }
-.brand { position: relative; top: -8px; grid-column: 2; }
-.brand-logo { width: 250px; height: 58px; display: block; background: url("pandora-dup-logo.png?v=2") center 50% / 270px auto no-repeat; }
+.brand { position: absolute; top: 0; left: 50%; transform: translateX(-50%); }
+.brand-logo { width: 280px; height: 62px; display: block; background: url("pandora-dup-logo.png?v=2") center 50% / 300px auto no-repeat; mix-blend-mode: multiply; }
 .brand span, .footer-brand span { font: 500 30px/1 "Montserrat", Arial, sans-serif; letter-spacing: 3px; }
 .brand small, .footer-brand small { margin-top: 6px; font-size: 8px; letter-spacing: 4px; }
-.nav { position: relative; top: 9px; grid-column: 1; grid-row: 1; display: flex; gap: 25px; align-items: center; }
+.nav { position: absolute; left: 4vw; bottom: 18px; display: flex; gap: 25px; align-items: center; }
 .nav a { font-size: 11px; letter-spacing: 1px; text-transform: uppercase; }
 .nav a:hover { opacity: .55; }
-.header-actions { grid-column: 3; grid-row: 1; justify-self: end; display: flex; gap: 14px; }
+.header-actions { position: absolute; right: 4vw; bottom: 11px; display: flex; gap: 14px; }
 .icon-button, .bag-button { border: 0; background: none; padding: 6px; }
 .icon-button svg, .bag-button svg { width: 21px; height: 21px; fill: none; stroke: currentColor; stroke-width: 1.5; }
 .bag-button { position: relative; }
 .bag-button span { position: absolute; top: -2px; right: -2px; width: 17px; height: 17px; display: grid; place-items: center; border-radius: 50%; background: var(--rose); font-size: 9px; }
 .mobile-menu { display: none; }
-.search-panel { position: fixed; z-index: 18; top: 115px; left: 0; right: 0; padding: 28px 6vw; background: var(--paper); border-bottom: 1px solid var(--line); opacity: 0; visibility: hidden; pointer-events: none; transform: translateY(-18px); transition: opacity .25s ease, transform .25s ease, visibility 0s linear .25s; }
+.search-panel { position: fixed; z-index: 18; top: 161px; left: 0; right: 0; padding: 28px 6vw; background: var(--paper); border-bottom: 1px solid var(--line); opacity: 0; visibility: hidden; pointer-events: none; transform: translateY(-18px); transition: opacity .25s ease, transform .25s ease, visibility 0s linear .25s; }
 .search-panel.open { opacity: 1; visibility: visible; pointer-events: auto; transform: translateY(0); transition-delay: 0s; }
 .search-panel label { display: block; margin-bottom: 8px; font: 500 22px "Montserrat", Arial, sans-serif; }
 .search-panel div { display: flex; border-bottom: 1px solid var(--ink); }
 .search-panel input { width: 100%; border: 0; outline: 0; background: none; padding: 12px 0; }
 .search-submit { padding: 0 18px; border: 0; background: var(--ink); color: white; font-size: 9px; letter-spacing: 1px; }
 
-.hero { min-height: 560px; height: calc(100vh - 115px); max-height: 720px; position: relative; display: grid; grid-template-columns: 57% 43%; background: var(--cream); overflow: hidden; }
+.hero { min-height: 560px; height: calc(100vh - 161px); max-height: 720px; position: relative; display: grid; grid-template-columns: 57% 43%; background: var(--cream); overflow: hidden; }
 .hero-image { background: var(--cream) center/cover no-repeat; }
 .hero-copy { align-self: center; padding: clamp(42px, 5vw, 72px); max-width: 620px; }
 .eyebrow { margin: 0 0 18px; font-size: 10px; font-weight: 600; letter-spacing: 2.4px; }
@@ -90,7 +90,7 @@ h1 em, h2 em { font-weight: 400; color: #8f726a; }
 .catalog-view .categories,
 .catalog-view .story,
 .catalog-view .newsletter { display: none; }
-.catalog-view .products-section { min-height: calc(100vh - 115px); padding-top: 75px; }
+.catalog-view .products-section { min-height: calc(100vh - 161px); padding-top: 75px; }
 .catalog-view .products-section .section-heading { align-items: flex-start; }
 
 .product-detail-overlay { position: fixed; z-index: 80; inset: 0; background: rgba(24,22,19,.55); opacity: 0; visibility: hidden; transition: .25s; }
@@ -187,10 +187,13 @@ footer a { color: #bdb8ae; font-size: 11px; }
 
 @media (max-width: 1000px) {
   .product-detail { inset: 2vh 2vw; grid-template-columns: 1fr 1fr; gap: 28px; }
-  .header { grid-template-columns: 1fr auto 1fr; }
-  .mobile-menu { display: block; justify-self: start; width: 32px; }
+  .header { height: 84px; }
+  .brand { top: 11px; }
+  .header-actions { bottom: 22px; }
+  .search-panel { top: 115px; }
+  .mobile-menu { position: absolute; left: 4vw; bottom: 25px; display: block; width: 32px; }
   .mobile-menu span { display: block; margin: 6px 0; width: 20px; height: 1px; background: var(--ink); }
-  .nav { position: absolute; top: 84px; left: 0; right: 0; padding: 28px 5vw; flex-direction: column; align-items: flex-start; background: var(--paper); border-bottom: 1px solid var(--line); transform: translateY(-140%); transition: .3s; }
+  .nav { position: absolute; top: 84px; bottom: auto; left: 0; right: 0; padding: 28px 5vw; flex-direction: column; align-items: flex-start; background: var(--paper); border-bottom: 1px solid var(--line); transform: translateY(-140%); transition: .3s; }
   .nav.open { transform: translateY(0); }
   .product-grid { grid-template-columns: repeat(2, 1fr); }
   .category { min-height: 430px; }
@@ -202,7 +205,9 @@ footer a { color: #bdb8ae; font-size: 11px; }
   .product-detail-main { height: 52vh; }
   .product-detail-info { padding: 30px 0; }
   .header { height: 68px; }
-  .brand { top: 0; }
+  .brand { top: 8px; }
+  .header-actions { bottom: 14px; }
+  .mobile-menu { bottom: 17px; }
   .nav { top: 68px; }
   .search-panel { top: 99px; }
   .brand span { font-size: 24px; }
