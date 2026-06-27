@@ -155,13 +155,15 @@ footer a { color: #bdb8ae; font-size: 11px; }
 .cart-body { min-height: 0; padding: 16px 18px; flex: 1; overflow-y: auto; }
 .cart-items { display: grid; gap: 12px; }
 .cart-empty { min-height: 100%; display: grid; place-content: center; justify-items: center; position: relative; text-align: center; overflow: hidden; }
-.empty-pattern { position: absolute; z-index: 0; top: 50%; left: 50%; width: 290px; color: #f7dce5; font-size: 28px; font-weight: 700; line-height: 1.45; transform: translate(-50%, -58%); opacity: .75; }
+.empty-pattern { display: none; }
 .empty-pattern span { display: block; white-space: nowrap; }
 .empty-pattern span:nth-child(2) { color: transparent; -webkit-text-stroke: 1px #eecbd7; }
-.empty-cart-icon { z-index: 1; width: 88px; height: 88px; display: grid; place-items: center; color: white; background: #9adcf7; border-radius: 50%; font-size: 38px; transform: rotate(-7deg); }
-.cart-empty h3 { z-index: 1; margin: 22px 0 3px; padding: 4px 7px; background: white; font-size: 17px; font-weight: 500; }
-.cart-empty p { z-index: 1; margin: 0 0 60px; padding: 4px 7px; color: #111; background: #8eddfc; font-size: 12px; font-weight: 600; }
-.cart-empty .button { z-index: 1; min-width: 245px; }
+.empty-cart-icon { z-index: 1; width: 68px; height: 68px; display: grid; place-items: center; color: var(--ink); background: transparent; border: 1px solid #cec9c1; border-radius: 50%; }
+.empty-cart-icon svg { width: 31px; height: 31px; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
+.cart-empty h3 { z-index: 1; margin: 25px 0 8px; padding: 0; background: none; font-size: 18px; font-weight: 400; letter-spacing: -.2px; }
+.cart-empty p { z-index: 1; margin: 0 0 45px; padding: 0; color: #858078; background: none; font-size: 11px; font-weight: 400; }
+.cart-empty .button { z-index: 1; min-width: 245px; min-height: 50px; justify-content: center; border: 1px solid var(--ink); background: transparent; color: var(--ink); font-size: 9px; letter-spacing: 1.5px; }
+.cart-empty .button:hover { color: white; background: var(--ink); }
 .cart-item { padding: 18px; display: grid; grid-template-columns: 82px 1fr; gap: 16px; position: relative; background: white; border-radius: 4px; box-shadow: 0 6px 18px rgba(25, 22, 20, .04); }
 .cart-item img { width: 82px; height: 105px; align-self: start; object-fit: cover; }
 .cart-item-info { min-width: 0; padding-right: 5px; }
