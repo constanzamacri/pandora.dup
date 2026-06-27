@@ -62,6 +62,17 @@ function toggleCart(open) {
   document.body.classList.toggle("no-scroll", open);
 }
 
+function showCheckout(show) {
+  document.querySelector("[data-cart-items]").classList.toggle("hidden", show);
+  document.querySelector("[data-cart-footer]").classList.toggle("hidden", show);
+  document.querySelector("[data-checkout-form]").classList.toggle("hidden", !show);
+  if (show) {
+    document.querySelector("[data-checkout-total]").textContent =
+      money(cart.reduce((sum, item) => sum + item.price, 0));
+    document.querySelector("#checkout-phone").focus();
+  }
+}
+
 document.addEventListener("click", event => {
   const add = event.target.closest("[data-add]");
   if (add) {
@@ -80,6 +91,25 @@ document.addEventListener("click", event => {
 document.querySelectorAll("[data-filter]").forEach(button => button.addEventListener("click", () => setFilter(button.dataset.filter)));
 document.querySelector("[data-cart-button]").addEventListener("click", () => toggleCart(true));
 document.querySelectorAll("[data-cart-close]").forEach(button => button.addEventListener("click", () => toggleCart(false)));
+document.querySelector("[data-checkout-start]").addEventListener("click", () => showCheckout(true));
+document.querySelector("[data-checkout-back]").addEventListener("click", () => showCheckout(false));
+document.querySelector("[data-checkout-close]").addEventListener("click", () => {
+  document.querySelector("[data-checkout-success]").classList.add("hidden");
+  document.querySelector("[data-cart-items]").classList.remove("hidden");
+  cart = [];
+  updateCart();
+  toggleCart(false);
+});
+document.querySelector("[data-checkout-form]").addEventListener("submit", event => {
+  event.preventDefault();
+  const data = new FormData(event.currentTarget);
+  const phone = data.get("phone").trim();
+  const payment = data.get("payment");
+  document.querySelector("[data-checkout-summary]").textContent =
+    `Teléfono de contacto: ${phone}. Medio de pago: ${payment}.`;
+  event.currentTarget.classList.add("hidden");
+  document.querySelector("[data-checkout-success]").classList.remove("hidden");
+});
 document.querySelector("[data-overlay]").addEventListener("click", () => toggleCart(false));
 document.querySelector("[data-menu-button]").addEventListener("click", () => document.querySelector("[data-nav]").classList.toggle("open"));
 document.querySelector("[data-search-button]").addEventListener("click", () => document.querySelector("[data-search-panel]").classList.add("open"));
