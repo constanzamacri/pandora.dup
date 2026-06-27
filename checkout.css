@@ -7,6 +7,7 @@ a { color: inherit; }
 .checkout-header { height: 86px; padding: 0 5vw; display: flex; align-items: center; justify-content: space-between; background: white; border-bottom: 1px solid var(--line); }
 .checkout-header > span { color: var(--muted); font-size: 9px; letter-spacing: 1.5px; }
 .checkout-brand { display: flex; flex-direction: column; font-size: 28px; font-weight: 500; letter-spacing: 3px; text-decoration: none; }
+.checkout-brand-logo { width: 250px; height: 58px; display: block; background: url("pandora-dup-logo.png?v=2") center 50% / 270px auto no-repeat; }
 .checkout-brand small { margin-top: 5px; font-size: 7px; letter-spacing: 4px; text-align: center; }
 .checkout-layout { min-height: calc(100vh - 86px); display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(340px, .8fr); }
 .checkout-data { padding: 50px 7vw 80px; }
