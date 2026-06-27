@@ -455,7 +455,8 @@ for each row execute function public.decrease_stock_for_order();
 insert into public.site_content (key, value) values
   ('announcement', '3 CUOTAS SIN INTERÉS'),
   ('hero_kicker', 'NUEVA COLECCIÓN · 2026'),
-  ('hero_title', 'Lo simple se vuelve único.'),
+  ('hero_title', 'Armá tu pulsera'),
+  ('hero_subtitle', 'Combiná tus charms favoritos'),
   ('hero_description', 'Accesorios creados para acompañarte todos los días y hacer especial cada momento.'),
   ('story_title', '“Creemos que los pequeños detalles tienen el poder de cambiarlo todo.”'),
   ('story_description', 'pandora.dup nació para crear accesorios que se sientan tan personales como los recuerdos que llevamos con ellos.'),

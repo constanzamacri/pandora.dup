@@ -251,6 +251,13 @@ async function loadStoreData() {
       : {};
     if (!contentError) {
       content.forEach(item => {
+        if (item.key === "hero_title" && item.value.includes(",")) {
+          const [title, ...subtitleParts] = item.value.split(",");
+          document.querySelector('[data-content="hero_title"]').textContent = title.trim();
+          document.querySelector('[data-content="hero_subtitle"]').textContent =
+            subtitleParts.join(" ").trim().replace(/[.,]$/, "");
+          return;
+        }
         const element = document.querySelector(`[data-content="${item.key}"]`);
         if (element) element.textContent = item.value;
         const image = document.querySelector(`[data-content-image="${item.key}"]`);
