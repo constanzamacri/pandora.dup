@@ -24,7 +24,6 @@ form label { margin-bottom: 18px; display: flex; flex-direction: column; gap: 8p
 input { width: 100%; padding: 14px; color: var(--ink); background: white; border: 1px solid var(--line); outline: none; }
 input:focus { border-color: var(--ink); }
 .submit-button, .admin-link, .store-link { width: 100%; padding: 15px; display: block; color: white; background: var(--ink); border: 0; font-size: 10px; font-weight: 600; letter-spacing: 1px; text-align: center; text-decoration: none; cursor: pointer; }
-.favorites-link { width: 100%; margin-bottom: 12px; padding: 15px; display: block; color: var(--ink); background: white; border: 1px solid var(--ink); font-size: 10px; font-weight: 600; letter-spacing: 1px; text-align: center; text-decoration: none; }
 .form-message { min-height: 18px; color: var(--muted); font-size: 10px; line-height: 1.5; }
 .form-message.error { color: var(--danger); }
 .profile-card { text-align: center; }
