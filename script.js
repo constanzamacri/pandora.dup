@@ -83,15 +83,37 @@ function setFilter(filter) {
 function updateCart() {
   document.querySelectorAll("[data-cart-count]").forEach(el => el.textContent = cart.length);
   const items = document.querySelector("[data-cart-items]");
-  items.innerHTML = cart.map((item, index) => `
-    <div class="cart-item">
-      <img src="${item.image}" alt="">
-      <div><h4>${item.name}</h4><p>${money(item.price)}</p></div>
-      <button data-remove="${index}" aria-label="Quitar ${item.name}">×</button>
-    </div>`).join("");
+  const grouped = Object.values(cart.reduce((result, item) => {
+    const key = String(item.id);
+    if (!result[key]) result[key] = { ...item, quantity: 0 };
+    result[key].quantity += 1;
+    return result;
+  }, {}));
+  items.innerHTML = grouped.map(item => `
+    <article class="cart-item">
+      <img src="${item.image || item.image_url}" alt="${item.name}">
+      <div class="cart-item-info">
+        ${item.badge ? `<span class="cart-item-badge">${item.badge}</span>` : ""}
+        <h4>${item.name}</h4>
+        <p>${item.category || "Accesorios"}</p>
+        <button class="remove-item" type="button" data-remove-product="${item.id}" aria-label="Eliminar ${item.name}">
+          <span aria-hidden="true">⌫</span> Eliminar producto
+        </button>
+      </div>
+      <div class="cart-item-actions">
+        <strong>${money(item.price * item.quantity)}</strong>
+        <div class="quantity-control" aria-label="Cantidad de ${item.name}">
+          <button type="button" data-decrease="${item.id}" aria-label="Restar uno">−</button>
+          <span>${item.quantity} UN.</span>
+          <button type="button" data-increase="${item.id}" aria-label="Sumar uno">+</button>
+        </div>
+      </div>
+    </article>`).join("");
   document.querySelector("[data-cart-empty]").classList.toggle("hidden", cart.length > 0);
   document.querySelector("[data-cart-footer]").classList.toggle("hidden", cart.length === 0);
-  document.querySelector("[data-cart-total]").textContent = money(cart.reduce((sum, item) => sum + item.price, 0));
+  const total = cart.reduce((sum, item) => sum + Number(item.price), 0);
+  document.querySelector("[data-cart-subtotal]").textContent = money(total);
+  document.querySelector("[data-cart-total]").textContent = money(total);
   localStorage.setItem("pandoraCart", JSON.stringify(cart));
 }
 
@@ -110,8 +132,26 @@ document.addEventListener("click", event => {
     toast.classList.add("show");
     setTimeout(() => toast.classList.remove("show"), 1800);
   }
-  const remove = event.target.closest("[data-remove]");
-  if (remove) { cart.splice(Number(remove.dataset.remove), 1); updateCart(); }
+  const decrease = event.target.closest("[data-decrease]");
+  if (decrease) {
+    const index = cart.findIndex(item => item.id === Number(decrease.dataset.decrease));
+    if (index >= 0) cart.splice(index, 1);
+    updateCart();
+  }
+  const increase = event.target.closest("[data-increase]");
+  if (increase) {
+    const productId = Number(increase.dataset.increase);
+    const product = cart.find(item => item.id === productId);
+    const quantity = cart.filter(item => item.id === productId).length;
+    if (product && (product.stock == null || quantity < product.stock)) cart.push({ ...product });
+    updateCart();
+  }
+  const remove = event.target.closest("[data-remove-product]");
+  if (remove) {
+    const productId = Number(remove.dataset.removeProduct);
+    cart = cart.filter(item => item.id !== productId);
+    updateCart();
+  }
   const filterLink = event.target.closest("[data-filter-link]");
   if (filterLink) setFilter(filterLink.dataset.filterLink);
 });
@@ -122,6 +162,10 @@ document.querySelectorAll("[data-cart-close]").forEach(button => button.addEvent
 document.querySelector("[data-checkout-start]").addEventListener("click", () => {
   localStorage.setItem("pandoraCart", JSON.stringify(cart));
   window.open("checkout.html", "_blank", "noopener");
+});
+document.querySelector("[data-clear-cart]").addEventListener("click", () => {
+  cart = [];
+  updateCart();
 });
 document.querySelector("[data-overlay]").addEventListener("click", () => toggleCart(false));
 document.querySelector("[data-menu-button]").addEventListener("click", () => document.querySelector("[data-nav]").classList.toggle("open"));

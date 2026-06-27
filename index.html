@@ -144,13 +144,28 @@
 
   <div class="overlay" data-overlay></div>
   <aside class="cart" data-cart aria-label="Carrito de compras">
-    <div class="cart-header"><div><p class="eyebrow">TU SELECCIÓN</p><h2>Mi bolsa <span data-cart-count>0</span></h2></div><button data-cart-close>×</button></div>
-    <div class="cart-items" data-cart-items></div>
-    <div class="cart-empty" data-cart-empty><span>◇</span><p>Tu bolsa está esperando algo lindo.</p><button class="button button-dark" data-cart-close>SEGUIR COMPRANDO</button></div>
+    <div class="cart-header">
+      <h2>Mi carrito <span>(<span data-cart-count>0</span>)</span></h2>
+      <button type="button" data-cart-close aria-label="Cerrar carrito">×</button>
+    </div>
+    <div class="cart-body">
+      <div class="cart-items" data-cart-items></div>
+      <div class="cart-empty" data-cart-empty>
+        <div class="empty-pattern" aria-hidden="true">
+          <span>CARRITO VACÍO</span><span>CARRITO VACÍO</span><span>CARRITO VACÍO</span>
+        </div>
+        <div class="empty-cart-icon" aria-hidden="true">🛒</div>
+        <h3>No hay productos</h3>
+        <p>en tu carrito</p>
+        <button class="button button-dark" type="button" data-cart-close>AGREGAR PRODUCTOS</button>
+      </div>
+    </div>
     <div class="cart-footer" data-cart-footer>
-      <div><span>Subtotal</span><strong data-cart-total>$0</strong></div>
-      <small>Envío calculado al finalizar la compra.</small>
+      <div><span>Subtotal</span><strong data-cart-subtotal>$0</strong></div>
+      <div><span>Envío</span><span>A coordinar</span></div>
+      <div class="cart-total"><span>TOTAL</span><strong data-cart-total>$0</strong></div>
       <button class="button button-dark" data-checkout-start>FINALIZAR COMPRA →</button>
+      <button class="clear-cart" type="button" data-clear-cart>Vaciar carrito</button>
     </div>
   </aside>
   <div class="toast" data-toast>Agregado a tu bolsa ♡</div>
