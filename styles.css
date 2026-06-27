@@ -28,7 +28,7 @@ button { color: inherit; cursor: pointer; }
 .brand-logo { width: 280px; height: 62px; display: block; background: url("pandora-dup-logo.png?v=2") center 50% / 300px auto no-repeat; mix-blend-mode: multiply; }
 .brand span, .footer-brand span { font: 500 30px/1 "Montserrat", Arial, sans-serif; letter-spacing: 3px; }
 .brand small, .footer-brand small { margin-top: 6px; font-size: 8px; letter-spacing: 4px; }
-.nav { position: absolute; left: 4vw; bottom: 18px; display: flex; gap: 25px; align-items: center; }
+.nav { position: absolute; left: 4vw; bottom: 37px; display: flex; gap: 25px; align-items: center; }
 .nav a { font-size: 11px; letter-spacing: 1px; text-transform: uppercase; }
 .nav a:hover { opacity: .55; }
 .header-actions { position: absolute; right: 4vw; bottom: 11px; display: flex; gap: 14px; }
