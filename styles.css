@@ -25,7 +25,7 @@ button { color: inherit; cursor: pointer; }
 .header { height: 130px; padding: 0 4vw; position: relative; z-index: 20; border-bottom: 1px solid var(--line); background: rgba(251,250,246,.98); }
 .brand, .footer-brand { display: flex; flex-direction: column; align-items: center; line-height: 1; }
 .brand { position: absolute; top: 0; left: 50%; transform: translateX(-50%); }
-.brand-logo { width: 280px; height: 62px; display: block; background: url("pandora-dup-logo.png?v=2") center 50% / 300px auto no-repeat; mix-blend-mode: multiply; }
+.brand-logo { width: 280px; height: 62px; display: block; background: url("pandora-dup-logo.png?v=3") center 50% / 300px auto no-repeat; mix-blend-mode: multiply; }
 .brand span, .footer-brand span { font: 500 30px/1 "Montserrat", Arial, sans-serif; letter-spacing: 3px; }
 .brand small, .footer-brand small { margin-top: 6px; font-size: 8px; letter-spacing: 4px; }
 .nav { position: absolute; left: 4vw; bottom: 37px; display: flex; gap: 25px; align-items: center; }
@@ -144,7 +144,7 @@ h1 em, h2 em { font-weight: 400; color: #8f726a; }
 
 footer { padding: 70px 5vw 25px; display: grid; grid-template-columns: 2fr repeat(4, 1fr); gap: 50px; color: #eeeae0; background: var(--ink); }
 .footer-brand { align-items: flex-start; }
-.footer-brand-logo { width: 290px; height: 72px; display: block; background: url("pandora-dup-logo.png?v=2") center 50% / 310px auto no-repeat; filter: invert(1); mix-blend-mode: screen; }
+.footer-brand-logo { width: 290px; height: 72px; display: block; background: url("pandora-dup-logo.png?v=3") center 50% / 310px auto no-repeat; filter: invert(1); mix-blend-mode: screen; }
 footer div:not(.footer-brand) { display: flex; flex-direction: column; gap: 12px; }
 footer strong { margin-bottom: 9px; font-size: 9px; letter-spacing: 1.5px; }
 footer a { color: #bdb8ae; font-size: 11px; }
