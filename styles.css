@@ -130,7 +130,6 @@ h1 em, h2 em { font-weight: 400; color: #8f726a; }
 .editorial { display: grid; grid-template-columns: .9fr 1.1fr; grid-template-rows: 500px 240px; background: #d9d0c2; }
 .editorial-image { background-size: cover; background-position: center; }
 .editorial-main { grid-row: 1 / 3; position: relative; }
-.editorial-main span { position: absolute; left: 25px; bottom: 25px; color: white; font: 500 18px "Montserrat", Arial, sans-serif; }
 .editorial-copy { max-width: 760px; padding: 70px clamp(6vw, 8vw, 130px); align-self: center; }
 .editorial-copy h2 { margin-bottom: 32px; font-size: clamp(40px, 4.5vw, 66px); letter-spacing: -.02em; }
 .editorial-copy > p:not(.eyebrow) { max-width: 610px; margin: 0 0 20px; color: #5c5750; font-size: 14px; line-height: 1.85; }
