@@ -42,6 +42,7 @@ button { color: inherit; cursor: pointer; }
 .search-panel label { display: block; margin-bottom: 8px; font: 500 22px "Montserrat", Arial, sans-serif; }
 .search-panel div { display: flex; border-bottom: 1px solid var(--ink); }
 .search-panel input { width: 100%; border: 0; outline: 0; background: none; padding: 12px 0; }
+.search-submit { padding: 0 18px; border: 0; background: var(--ink); color: white; font-size: 9px; letter-spacing: 1px; }
 
 .hero { min-height: 560px; height: calc(100vh - 115px); max-height: 720px; position: relative; display: grid; grid-template-columns: 57% 43%; background: var(--cream); overflow: hidden; }
 .hero-image { background: var(--cream) center/cover no-repeat; }
@@ -83,6 +84,14 @@ h1 em, h2 em { font-weight: 400; color: #8f726a; }
 .transfer { margin-top: 6px; color: #82726c; font-size: 9px; }
 .empty-state { display: none; padding: 50px; text-align: center; }
 .empty-state.visible { display: block; }
+.catalog-view .hero,
+.catalog-view .benefits,
+.catalog-view .editorial,
+.catalog-view .categories,
+.catalog-view .story,
+.catalog-view .newsletter { display: none; }
+.catalog-view .products-section { min-height: calc(100vh - 115px); padding-top: 75px; }
+.catalog-view .products-section .section-heading { align-items: flex-start; }
 
 .product-detail-overlay { position: fixed; z-index: 80; inset: 0; background: rgba(24,22,19,.55); opacity: 0; visibility: hidden; transition: .25s; }
 .product-detail-overlay.open { opacity: 1; visibility: visible; }

@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=20260627-8">
+  <link rel="stylesheet" href="styles.css?v=20260627-9">
 </head>
 <body class="content-loading">
   <div class="announcement">
@@ -31,9 +31,9 @@
     <nav class="nav" data-nav>
       <a href="#novedades">Novedades</a>
       <a href="#productos">Promos</a>
-      <a href="#productos">Dijes</a>
-      <a href="#productos" data-filter-link="pulseras">Pulseras</a>
-      <a href="#productos">Combos</a>
+      <a href="index.html?category=dijes" data-category-route="dijes">Dijes</a>
+      <a href="index.html?category=pulseras" data-category-route="pulseras">Pulseras</a>
+      <a href="index.html?category=combos" data-category-route="combos">Combos</a>
       <a href="#nosotras">Nosotras</a>
     </nav>
     <div class="header-actions">
@@ -54,6 +54,7 @@
     <label for="search">¿Qué estás buscando?</label>
     <div>
       <input id="search" type="search" placeholder="Buscar aros, collares, anillos..." data-search-input>
+      <button class="search-submit" type="button" data-search-submit>BUSCAR</button>
       <button class="icon-button" data-search-close aria-label="Cerrar búsqueda">×</button>
     </div>
   </div>
@@ -79,8 +80,8 @@
     <section class="section products-section" id="productos">
       <div class="section-heading">
         <div>
-          <p class="eyebrow">NUESTROS FAVORITOS</p>
-          <h2>Elegidos para vos</h2>
+          <p class="eyebrow" data-catalog-eyebrow>NUESTROS FAVORITOS</p>
+          <h2 data-catalog-title>Elegidos para vos</h2>
         </div>
         <div class="filters" role="group" aria-label="Filtrar productos" data-category-filters>
           <button class="active" data-filter="todos">Todo</button>
@@ -187,6 +188,6 @@
   </aside>
   <div class="toast" data-toast>Agregado a tu bolsa ♡</div>
 
-  <script src="script.js?v=20260627-7"></script>
+  <script src="script.js?v=20260627-9"></script>
 </body>
 </html>

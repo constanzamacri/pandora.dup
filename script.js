@@ -14,6 +14,22 @@ let activeFilter = "todos";
 let searchTerm = "";
 let cart = [];
 let detailProduct = null;
+const catalogParams = new URLSearchParams(window.location.search);
+const requestedCategory = catalogParams.get("category");
+const requestedSearch = catalogParams.get("search");
+
+if (requestedCategory || requestedSearch) {
+  document.body.classList.add("catalog-view");
+  activeFilter = requestedCategory || "todos";
+  searchTerm = requestedSearch || "";
+  document.querySelector("[data-catalog-eyebrow]").textContent =
+    requestedSearch ? "RESULTADOS DE BÚSQUEDA" : "CATÁLOGO";
+  document.querySelector("[data-catalog-title]").textContent =
+    requestedSearch
+      ? `Resultados para “${requestedSearch}”`
+      : requestedCategory === "todos" ? "Todos los productos" : requestedCategory;
+  document.querySelector("[data-search-input]").value = searchTerm;
+}
 try {
   cart = JSON.parse(localStorage.getItem("pandoraCart")) || [];
 } catch {
@@ -136,8 +152,15 @@ async function loadStoreData() {
           </a>`;
       }).join("");
       document.querySelectorAll("[data-filter]").forEach(button =>
-        button.addEventListener("click", () => setFilter(button.dataset.filter))
+        button.addEventListener("click", () => openCategoryView(button.dataset.filter))
       );
+      document.querySelectorAll("[data-filter]").forEach(button =>
+        button.classList.toggle("active", button.dataset.filter === activeFilter)
+      );
+      if (requestedCategory) {
+        const category = categories.find(item => item.id === requestedCategory);
+        if (category) document.querySelector("[data-catalog-title]").textContent = category.name;
+      }
     }
   } catch (error) {
     console.warn("No se pudo cargar el catálogo administrable.", error);
@@ -150,6 +173,20 @@ function setFilter(filter) {
   activeFilter = filter;
   document.querySelectorAll("[data-filter]").forEach(button => button.classList.toggle("active", button.dataset.filter === filter));
   renderProducts();
+}
+
+function openCategoryView(category) {
+  if (category === "todos") {
+    window.location.href = "index.html?category=todos";
+    return;
+  }
+  window.location.href = `index.html?category=${encodeURIComponent(category)}`;
+}
+
+function openSearchView() {
+  const term = document.querySelector("[data-search-input]").value.trim();
+  if (!term) return;
+  window.location.href = `index.html?search=${encodeURIComponent(term)}`;
 }
 
 function updateCart() {
@@ -226,7 +263,10 @@ document.addEventListener("click", event => {
     updateCart();
   }
   const filterLink = event.target.closest("[data-filter-link]");
-  if (filterLink) setFilter(filterLink.dataset.filterLink);
+  if (filterLink) {
+    event.preventDefault();
+    openCategoryView(filterLink.dataset.filterLink);
+  }
   const productOpen = event.target.closest("[data-product-open]");
   if (productOpen && !event.target.closest("[data-add]")) {
     const product = products.find(item => item.id === Number(productOpen.dataset.productOpen));
@@ -247,7 +287,7 @@ document.querySelector("[data-product-detail-add]").addEventListener("click", ()
 document.querySelector("[data-product-detail-close]").addEventListener("click", closeProductDetail);
 document.querySelector("[data-product-detail-overlay]").addEventListener("click", closeProductDetail);
 
-document.querySelectorAll("[data-filter]").forEach(button => button.addEventListener("click", () => setFilter(button.dataset.filter)));
+document.querySelectorAll("[data-filter]").forEach(button => button.addEventListener("click", () => openCategoryView(button.dataset.filter)));
 document.querySelector("[data-cart-button]").addEventListener("click", () => toggleCart(true));
 document.querySelectorAll("[data-cart-close]").forEach(button => button.addEventListener("click", () => toggleCart(false)));
 document.querySelector("[data-checkout-start]").addEventListener("click", () => {
@@ -275,7 +315,10 @@ document.addEventListener("keydown", event => {
     closeProductDetail();
   }
 });
-document.querySelector("[data-search-input]").addEventListener("input", event => { searchTerm = event.target.value; renderProducts(); });
+document.querySelector("[data-search-submit]").addEventListener("click", openSearchView);
+document.querySelector("[data-search-input]").addEventListener("keydown", event => {
+  if (event.key === "Enter") openSearchView();
+});
 document.querySelector("[data-newsletter]").addEventListener("submit", event => {
   event.preventDefault();
   event.currentTarget.reset();
