@@ -136,6 +136,41 @@ to authenticated
 using (public.is_admin())
 with check (public.is_admin());
 
+create or replace function public.decrease_stock_for_order()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  item jsonb;
+  item_id bigint;
+  item_quantity integer;
+begin
+  for item in select * from jsonb_array_elements(new.items)
+  loop
+    item_id := (item->>'id')::bigint;
+    item_quantity := (item->>'quantity')::integer;
+    if item_quantity is null or item_quantity <= 0 then
+      raise exception 'Cantidad inválida para el producto %', item_id;
+    end if;
+    update public.products
+    set stock = stock - item_quantity,
+        updated_at = now()
+    where id = item_id and stock >= item_quantity;
+    if not found then
+      raise exception 'Stock insuficiente para el producto %', item_id;
+    end if;
+  end loop;
+  return new;
+end;
+$$;
+
+drop trigger if exists decrease_stock_after_order on public.orders;
+create trigger decrease_stock_after_order
+before insert on public.orders
+for each row execute function public.decrease_stock_for_order();
+
 insert into public.site_content (key, value) values
   ('announcement', '3 CUOTAS SIN INTERÉS'),
   ('hero_kicker', 'NUEVA COLECCIÓN · 2026'),
