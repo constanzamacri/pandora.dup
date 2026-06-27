@@ -182,6 +182,7 @@ function openProduct(product = null) {
   form.elements.stock.value = product?.stock ?? 0;
   form.elements.sort_order.value = product?.sort_order ?? 0;
   form.elements.image_url.value = product?.image_url || "";
+  form.elements.gallery_urls.value = JSON.stringify(product?.gallery_urls || []);
   form.elements.published.checked = product?.published ?? true;
   $("[data-product-form-title]").textContent = product ? "Editar producto" : "Nuevo producto";
   $("[data-delete-product]").classList.toggle("hidden", !product);
@@ -275,7 +276,7 @@ function openImageEditor(input, file) {
   image.src = objectUrl;
 }
 
-document.querySelectorAll('input[type="file"][accept*="image"]').forEach(input => {
+document.querySelectorAll('input[type="file"][accept*="image"]:not([data-no-editor])').forEach(input => {
   input.addEventListener("change", () => {
     const file = input.files[0];
     if (file) openImageEditor(input, file);
@@ -438,6 +439,13 @@ $("[data-product-form]").addEventListener("submit", async event => {
     const productImage = editedImages.get(form.elements.image) || form.elements.image.files[0];
     if (productImage) imageUrl = await uploadImage(productImage);
     if (!imageUrl) throw new Error("Subí una foto o ingresá la URL de una imagen.");
+    let galleryUrls = JSON.parse(form.elements.gallery_urls.value || "[]");
+    if (form.elements.gallery.files.length) {
+      const uploadedGallery = await Promise.all(
+        [...form.elements.gallery.files].map(file => uploadImage(file))
+      );
+      galleryUrls = [...galleryUrls, ...uploadedGallery];
+    }
     const record = {
       name: form.elements.name.value.trim(),
       category: form.elements.category.value,
@@ -447,6 +455,7 @@ $("[data-product-form]").addEventListener("submit", async event => {
       stock: Number(form.elements.stock.value),
       sort_order: Number(form.elements.sort_order.value || 0),
       image_url: imageUrl,
+      gallery_urls: galleryUrls,
       published: form.elements.published.checked,
       updated_at: new Date().toISOString()
     };

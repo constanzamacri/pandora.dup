@@ -147,6 +147,11 @@
         </div>
         <label>Foto del producto<input name="image" type="file" accept="image/jpeg,image/png,image/webp"></label>
         <input name="image_url" type="hidden">
+        <label>Fotos adicionales
+          <input name="gallery" type="file" accept="image/jpeg,image/png,image/webp" multiple data-no-editor>
+          <small>Podés seleccionar varias fotos juntas.</small>
+        </label>
+        <input name="gallery_urls" type="hidden">
         <label class="check-field"><input name="published" type="checkbox" checked> Producto publicado</label>
         <div class="form-actions">
           <button class="danger-action hidden" type="button" data-delete-product>ELIMINAR</button>
@@ -180,6 +185,6 @@
     </section>
   </div>
 
-  <script type="module" src="admin.js?v=20260627-4"></script>
+  <script type="module" src="admin.js?v=20260627-5"></script>
 </body>
 </html>

@@ -13,6 +13,7 @@ let products = [];
 let activeFilter = "todos";
 let searchTerm = "";
 let cart = [];
+let detailProduct = null;
 try {
   cart = JSON.parse(localStorage.getItem("pandoraCart")) || [];
 } catch {
@@ -28,20 +29,62 @@ function renderProducts() {
   );
   grid.innerHTML = visible.map(product => `
     <article class="product-card">
-      <div class="product-image">
+      <div class="product-image" data-product-open="${product.id}">
         <img src="${product.image}" alt="${product.name}" loading="lazy">
         ${product.badge ? `<span class="product-badge">${product.badge}</span>` : ""}
         <button class="quick-add" data-add="${product.id}" ${product.stock === 0 ? "disabled" : ""}>
           ${product.stock === 0 ? "SIN STOCK" : "AGREGAR A LA BOLSA +"}
         </button>
       </div>
-      <div class="product-info">
+      <div class="product-info" data-product-open="${product.id}">
         <h3>${product.name}</h3>
         <div class="product-price">${product.old ? `<del>${money(product.old)}</del>` : ""}<span>${money(product.price)}</span></div>
         <div class="transfer">${money(Math.round(product.price * .9))} con transferencia</div>
       </div>
     </article>`).join("");
   document.querySelector("[data-empty]").classList.toggle("visible", visible.length === 0);
+}
+
+function showProductImage(url, selectedButton) {
+  const image = document.querySelector("[data-product-detail-image]");
+  image.src = url;
+  document.querySelectorAll("[data-product-thumbnail]").forEach(button =>
+    button.classList.toggle("active", button === selectedButton)
+  );
+}
+
+function openProductDetail(product) {
+  detailProduct = product;
+  const photos = [...new Set([product.image, ...(product.gallery_urls || [])].filter(Boolean))];
+  document.querySelector("[data-product-detail-image]").src = photos[0];
+  document.querySelector("[data-product-detail-image]").alt = product.name;
+  document.querySelector("[data-product-detail-name]").textContent = product.name;
+  document.querySelector("[data-product-detail-category]").textContent = product.category;
+  document.querySelector("[data-product-detail-price]").innerHTML =
+    `${product.old ? `<del>${money(product.old)}</del>` : ""}<span>${money(product.price)}</span>`;
+  document.querySelector("[data-product-detail-transfer]").textContent =
+    `${money(Math.round(product.price * .9))} pagando por transferencia`;
+  document.querySelector("[data-product-detail-stock]").textContent =
+    product.stock > 0 ? `${product.stock} unidades disponibles` : "Sin stock";
+  const addButton = document.querySelector("[data-product-detail-add]");
+  addButton.disabled = product.stock === 0;
+  addButton.firstChild.textContent = product.stock === 0 ? "SIN STOCK " : "AGREGAR AL CARRITO ";
+  document.querySelector("[data-product-thumbnails]").innerHTML = photos.map((url, index) => `
+    <button type="button" class="${index === 0 ? "active" : ""}" data-product-thumbnail="${url}" aria-label="Ver foto ${index + 1}">
+      <img src="${url}" alt="">
+    </button>`).join("");
+  document.querySelector("[data-product-detail]").classList.add("open");
+  document.querySelector("[data-product-detail]").setAttribute("aria-hidden", "false");
+  document.querySelector("[data-product-detail-overlay]").classList.add("open");
+  document.body.classList.add("no-scroll");
+}
+
+function closeProductDetail() {
+  document.querySelector("[data-product-detail]").classList.remove("open");
+  document.querySelector("[data-product-detail]").setAttribute("aria-hidden", "true");
+  document.querySelector("[data-product-detail-overlay]").classList.remove("open");
+  document.body.classList.remove("no-scroll");
+  detailProduct = null;
 }
 
 async function loadStoreData() {
@@ -145,6 +188,7 @@ function toggleCart(open) {
 document.addEventListener("click", event => {
   const add = event.target.closest("[data-add]");
   if (add) {
+    event.stopPropagation();
     cart.push(products.find(product => product.id === Number(add.dataset.add)));
     updateCart();
     const toast = document.querySelector("[data-toast]");
@@ -173,7 +217,25 @@ document.addEventListener("click", event => {
   }
   const filterLink = event.target.closest("[data-filter-link]");
   if (filterLink) setFilter(filterLink.dataset.filterLink);
+  const productOpen = event.target.closest("[data-product-open]");
+  if (productOpen && !event.target.closest("[data-add]")) {
+    const product = products.find(item => item.id === Number(productOpen.dataset.productOpen));
+    if (product) openProductDetail(product);
+  }
+  const thumbnail = event.target.closest("[data-product-thumbnail]");
+  if (thumbnail) showProductImage(thumbnail.dataset.productThumbnail, thumbnail);
 });
+
+document.querySelector("[data-product-detail-add]").addEventListener("click", () => {
+  if (!detailProduct || detailProduct.stock === 0) return;
+  const quantity = cart.filter(item => item.id === detailProduct.id).length;
+  if (quantity < detailProduct.stock) {
+    cart.push({ ...detailProduct });
+    updateCart();
+  }
+});
+document.querySelector("[data-product-detail-close]").addEventListener("click", closeProductDetail);
+document.querySelector("[data-product-detail-overlay]").addEventListener("click", closeProductDetail);
 
 document.querySelectorAll("[data-filter]").forEach(button => button.addEventListener("click", () => setFilter(button.dataset.filter)));
 document.querySelector("[data-cart-button]").addEventListener("click", () => toggleCart(true));
@@ -198,7 +260,10 @@ function toggleSearch(open) {
 searchButton.addEventListener("click", () => toggleSearch(true));
 document.querySelector("[data-search-close]").addEventListener("click", () => toggleSearch(false));
 document.addEventListener("keydown", event => {
-  if (event.key === "Escape") toggleSearch(false);
+  if (event.key === "Escape") {
+    toggleSearch(false);
+    closeProductDetail();
+  }
 });
 document.querySelector("[data-search-input]").addEventListener("input", event => { searchTerm = event.target.value; renderProducts(); });
 document.querySelector("[data-newsletter]").addEventListener("submit", event => {

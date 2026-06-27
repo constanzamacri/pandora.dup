@@ -20,6 +20,9 @@ create table if not exists public.products (
   updated_at timestamptz not null default now()
 );
 
+alter table public.products
+  add column if not exists gallery_urls text[] not null default '{}';
+
 create table if not exists public.site_content (
   key text primary key,
   value text not null,

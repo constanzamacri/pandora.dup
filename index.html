@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=20260627-2">
+  <link rel="stylesheet" href="styles.css?v=20260627-5">
 </head>
 <body class="content-loading">
   <div class="announcement">
@@ -137,6 +137,23 @@
     </section>
   </main>
 
+  <div class="product-detail-overlay" data-product-detail-overlay></div>
+  <section class="product-detail" data-product-detail aria-hidden="true" role="dialog" aria-modal="true" aria-label="Detalle del producto">
+    <button class="product-detail-close" type="button" data-product-detail-close aria-label="Cerrar">×</button>
+    <div class="product-gallery">
+      <div class="product-detail-main"><img data-product-detail-image alt=""></div>
+      <div class="product-thumbnails" data-product-thumbnails></div>
+    </div>
+    <div class="product-detail-info">
+      <p class="eyebrow" data-product-detail-category></p>
+      <h2 data-product-detail-name></h2>
+      <div class="product-detail-price" data-product-detail-price></div>
+      <p class="product-detail-transfer" data-product-detail-transfer></p>
+      <p class="product-detail-stock" data-product-detail-stock></p>
+      <button class="button button-dark product-detail-add" type="button" data-product-detail-add>AGREGAR AL CARRITO <span>+</span></button>
+    </div>
+  </section>
+
   <footer>
     <div class="footer-brand"><span>pandora.dup</span><small>ACCESORIOS</small></div>
     <div><strong>TIENDA</strong><a href="#novedades">Novedades</a><a href="#productos">Productos</a><a href="#">Gift cards</a></div>
@@ -173,6 +190,6 @@
   </aside>
   <div class="toast" data-toast>Agregado a tu bolsa ♡</div>
 
-  <script src="script.js?v=20260627-3"></script>
+  <script src="script.js?v=20260627-5"></script>
 </body>
 </html>
