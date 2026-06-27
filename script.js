@@ -1,4 +1,4 @@
-const products = [
+const fallbackProducts = [
   { id: 1, name: "Aros Aura", category: "aros", price: 28900, old: 32000, badge: "NUEVO", image: "https://images.unsplash.com/photo-1635767798638-3e25273a8236?auto=format&fit=crop&w=700&q=85" },
   { id: 2, name: "Collar Selene", category: "collares", price: 36500, badge: "MÁS VENDIDO", image: "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=700&q=85" },
   { id: 3, name: "Anillo Nudo", category: "anillos", price: 24400, image: "https://images.unsplash.com/photo-1605100804763-247f67b3557e?auto=format&fit=crop&w=700&q=85" },
@@ -9,6 +9,7 @@ const products = [
   { id: 8, name: "Pulsera Roma", category: "pulseras", price: 29500, image: "https://images.unsplash.com/photo-1573408301185-9146fe634ad0?auto=format&fit=crop&w=700&q=85" }
 ];
 
+let products = [...fallbackProducts];
 let activeFilter = "todos";
 let searchTerm = "";
 let cart = [];
@@ -25,7 +26,9 @@ function renderProducts() {
       <div class="product-image">
         <img src="${product.image}" alt="${product.name}" loading="lazy">
         ${product.badge ? `<span class="product-badge">${product.badge}</span>` : ""}
-        <button class="quick-add" data-add="${product.id}">AGREGAR A LA BOLSA +</button>
+        <button class="quick-add" data-add="${product.id}" ${product.stock === 0 ? "disabled" : ""}>
+          ${product.stock === 0 ? "SIN STOCK" : "AGREGAR A LA BOLSA +"}
+        </button>
       </div>
       <div class="product-info">
         <h3>${product.name}</h3>
@@ -34,6 +37,36 @@ function renderProducts() {
       </div>
     </article>`).join("");
   document.querySelector("[data-empty]").classList.toggle("visible", visible.length === 0);
+}
+
+async function loadStoreData() {
+  try {
+    const config = await import("./supabase-config.js");
+    if (!config.isSupabaseConfigured) return;
+    const { createClient } = await import("https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm");
+    const client = createClient(config.SUPABASE_URL, config.SUPABASE_PUBLISHABLE_KEY);
+    const [{ data: remoteProducts, error: productsError }, { data: content, error: contentError }] =
+      await Promise.all([
+        client.from("products").select("*").eq("published", true).order("sort_order").order("id"),
+        client.from("site_content").select("key,value")
+      ]);
+    if (!productsError && remoteProducts?.length) {
+      products = remoteProducts.map(product => ({
+        ...product,
+        old: product.old_price,
+        image: product.image_url
+      }));
+      renderProducts();
+    }
+    if (!contentError) {
+      content.forEach(item => {
+        const element = document.querySelector(`[data-content="${item.key}"]`);
+        if (element) element.textContent = item.value;
+      });
+    }
+  } catch (error) {
+    console.warn("No se pudo cargar el catálogo administrable.", error);
+  }
 }
 
 function setFilter(filter) {
@@ -123,3 +156,4 @@ document.querySelector("[data-newsletter]").addEventListener("submit", event => 
 
 renderProducts();
 updateCart();
+loadStoreData();

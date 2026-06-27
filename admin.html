@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Administración — pandora.dup</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+  <main class="admin-shell">
+    <section class="login-card" data-login-view>
+      <a class="admin-brand" href="index.html">pandora.dup <small>ADMINISTRACIÓN</small></a>
+      <p class="eyebrow">ACCESO PRIVADO</p>
+      <h1>Iniciar sesión</h1>
+      <p class="muted">Ingresá con tu cuenta de administradora.</p>
+      <div class="setup-warning hidden" data-setup-warning>
+        El panel está listo, pero todavía falta conectar Supabase.
+      </div>
+      <form data-login-form>
+        <label for="admin-email">Correo electrónico</label>
+        <input id="admin-email" name="email" type="email" autocomplete="email" required>
+        <label for="admin-password">Contraseña</label>
+        <input id="admin-password" name="password" type="password" autocomplete="current-password" minlength="8" required>
+        <button type="submit">ENTRAR</button>
+        <p class="form-message" data-login-message></p>
+      </form>
+    </section>
+
+    <section class="dashboard hidden" data-dashboard>
+      <header class="dashboard-header">
+        <div>
+          <a class="admin-brand" href="index.html">pandora.dup <small>ADMINISTRACIÓN</small></a>
+          <p data-admin-email></p>
+        </div>
+        <div class="header-actions">
+          <a href="index.html" target="_blank" rel="noopener">VER TIENDA ↗</a>
+          <button type="button" data-logout>SALIR</button>
+        </div>
+      </header>
+
+      <nav class="admin-tabs" aria-label="Secciones del panel">
+        <button class="active" type="button" data-tab="products">Productos</button>
+        <button type="button" data-tab="content">Textos de la web</button>
+      </nav>
+
+      <div class="tab-panel" data-panel="products">
+        <div class="panel-heading">
+          <div><p class="eyebrow">CATÁLOGO</p><h2>Productos</h2></div>
+          <button class="primary-action" type="button" data-new-product>+ NUEVO PRODUCTO</button>
+        </div>
+        <div class="metrics">
+          <article><span>Publicados</span><strong data-metric-published>0</strong></article>
+          <article><span>Sin stock</span><strong data-metric-empty>0</strong></article>
+          <article><span>Unidades totales</span><strong data-metric-stock>0</strong></article>
+        </div>
+        <div class="product-admin-list" data-product-list></div>
+        <p class="empty-admin hidden" data-products-empty>No hay productos cargados.</p>
+      </div>
+
+      <div class="tab-panel hidden" data-panel="content">
+        <div class="panel-heading">
+          <div><p class="eyebrow">CONTENIDO</p><h2>Textos principales</h2></div>
+        </div>
+        <form class="content-form" data-content-form>
+          <label>Texto promocional superior<input name="announcement" required></label>
+          <label>Etiqueta principal<input name="hero_kicker" required></label>
+          <label>Título principal<textarea name="hero_title" rows="2" required></textarea></label>
+          <label>Descripción principal<textarea name="hero_description" rows="3" required></textarea></label>
+          <label>Título de nuestra esencia<textarea name="story_title" rows="2" required></textarea></label>
+          <label>Descripción de nuestra esencia<textarea name="story_description" rows="3" required></textarea></label>
+          <button type="submit">GUARDAR TEXTOS</button>
+          <p class="form-message" data-content-message></p>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <div class="modal hidden" data-product-modal>
+    <div class="modal-backdrop" data-close-product></div>
+    <section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="product-form-title">
+      <div class="modal-heading">
+        <div><p class="eyebrow">CATÁLOGO</p><h2 id="product-form-title" data-product-form-title>Nuevo producto</h2></div>
+        <button type="button" data-close-product aria-label="Cerrar">×</button>
+      </div>
+      <form class="product-form" data-product-form>
+        <input name="id" type="hidden">
+        <label>Nombre<input name="name" required></label>
+        <div class="form-grid">
+          <label>Categoría
+            <select name="category" required>
+              <option value="dijes">Dijes</option>
+              <option value="pulseras">Pulseras</option>
+              <option value="combos">Combos</option>
+              <option value="aros">Aros</option>
+              <option value="collares">Collares</option>
+              <option value="anillos">Anillos</option>
+            </select>
+          </label>
+          <label>Etiqueta<input name="badge" placeholder="NUEVO, PROMO..."></label>
+          <label>Precio<input name="price" type="number" min="0" step="1" required></label>
+          <label>Precio anterior<input name="old_price" type="number" min="0" step="1"></label>
+          <label>Stock<input name="stock" type="number" min="0" step="1" required></label>
+          <label>Orden<input name="sort_order" type="number" min="0" step="1" value="0"></label>
+        </div>
+        <label>Foto del producto<input name="image" type="file" accept="image/jpeg,image/png,image/webp"></label>
+        <label>URL actual de la foto<input name="image_url" type="url" placeholder="Se completa al subir una foto"></label>
+        <label class="check-field"><input name="published" type="checkbox" checked> Producto publicado</label>
+        <div class="form-actions">
+          <button class="danger-action hidden" type="button" data-delete-product>ELIMINAR</button>
+          <button type="submit">GUARDAR PRODUCTO</button>
+        </div>
+        <p class="form-message" data-product-message></p>
+      </form>
+    </section>
+  </div>
+
+  <script type="module" src="admin.js"></script>
+</body>
+</html>
