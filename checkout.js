@@ -52,15 +52,20 @@ function buildReceipt(form) {
   const discountLine = selectedPayment === "Transferencia"
     ? `\nDescuento por transferencia: -${money(Math.round(subtotal * .1))}`
     : "";
+  const delivery = form.get("delivery");
+  const deliveryDetails = delivery === "Envío a domicilio"
+    ? `${delivery}: ${form.get("address")}, ${form.get("city")} (${form.get("postal_code")})`
+    : delivery;
   return `PANDORA.DUP — COMPROBANTE DE PEDIDO
 Pedido: ${orderNumber}
 Fecha: ${new Date().toLocaleString("es-AR")}
 
 CLIENTE
 Nombre: ${form.get("name")} ${form.get("surname")}
+Documento: ${form.get("document")}
 Teléfono: ${form.get("phone")}
 Email: ${form.get("email")}
-Dirección: ${form.get("address")}, ${form.get("city")} (${form.get("postal_code")})
+Entrega: ${deliveryDetails}
 
 PRODUCTOS
 ${itemLines}
@@ -84,6 +89,60 @@ if (!cart.length) {
 
 document.querySelectorAll('input[name="payment"]').forEach(input => {
   input.addEventListener("change", () => updatePayment(input.value));
+});
+
+function openStep(stepNumber) {
+  document.querySelectorAll("[data-step-content]").forEach(content => {
+    content.classList.toggle("hidden", content.dataset.stepContent !== String(stepNumber));
+  });
+  document.querySelectorAll("[data-step]").forEach(step => {
+    step.classList.toggle("active", step.dataset.step === String(stepNumber));
+  });
+}
+
+function validateStep(step) {
+  const controls = [...step.querySelectorAll("input, select, textarea")]
+    .filter(control => !control.closest(".hidden"));
+  const invalid = controls.find(control => !control.checkValidity());
+  if (invalid) {
+    invalid.reportValidity();
+    return false;
+  }
+  return true;
+}
+
+document.querySelectorAll('input[name="delivery"]').forEach(input => {
+  input.addEventListener("change", () => {
+    const needsAddress = input.value === "Envío a domicilio";
+    document.querySelector("[data-address-fields]").classList.toggle("hidden", !needsAddress);
+    ["address", "city", "postal_code"].forEach(name => {
+      document.querySelector(`[name="${name}"]`).required = needsAddress;
+    });
+  });
+});
+
+document.querySelectorAll("[data-next-step]").forEach(button => {
+  button.addEventListener("click", () => {
+    const currentStep = button.closest("[data-step]");
+    if (!validateStep(currentStep)) return;
+    const form = document.querySelector("[data-order-form]");
+    const number = currentStep.dataset.step;
+    if (number === "1") {
+      document.querySelector('[data-step-summary="1"]').textContent =
+        `${form.elements.name.value} ${form.elements.surname.value} · ${form.elements.email.value}`;
+    }
+    if (number === "2") {
+      document.querySelector('[data-step-summary="2"]').textContent =
+        form.elements.delivery.value;
+    }
+    currentStep.classList.add("completed");
+    currentStep.querySelector("[data-edit-step]")?.classList.remove("hidden");
+    openStep(button.dataset.nextStep);
+  });
+});
+
+document.querySelectorAll("[data-edit-step]").forEach(button => {
+  button.addEventListener("click", () => openStep(button.dataset.editStep));
 });
 
 document.querySelector("[data-order-form]").addEventListener("submit", event => {

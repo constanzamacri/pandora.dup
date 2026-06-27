@@ -15,6 +15,15 @@ a { color: inherit; }
 h1 { margin: 0 0 35px; font-size: clamp(36px, 5vw, 58px); font-weight: 500; }
 h2 { margin: 0; font-size: 30px; font-weight: 500; }
 form { max-width: 720px; }
+.checkout-step { margin-bottom: 16px; background: white; border: 1px solid #efc9d5; border-radius: 4px; }
+.step-heading { min-height: 112px; padding: 22px 28px; display: grid; grid-template-columns: 44px 1fr auto; align-items: start; gap: 16px; }
+.step-number { width: 40px; height: 40px; display: grid; place-items: center; position: relative; background: #f5d8e2; border-radius: 50%; font-size: 14px; font-weight: 600; }
+.step-number::after { content: ""; position: absolute; inset: -5px; border: 2px dotted #f0c7d5; border-radius: 50%; }
+.step-heading h2 { margin: 3px 0 10px; font-size: 19px; }
+.step-heading p { margin: 0; color: var(--muted); font-size: 11px; line-height: 1.5; }
+.modify-step { padding: 8px 0; color: #4f4a45; background: none; border: 0; font-size: 9px; font-weight: 600; text-decoration: underline; }
+.checkout-step.completed:not(.active) .step-number { color: white; background: var(--ink); }
+.step-content { padding: 0 28px 28px 88px; }
 .field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 16px; }
 form label { margin-bottom: 18px; display: flex; flex-direction: column; gap: 8px; font-size: 10px; font-weight: 600; }
 input, textarea { width: 100%; padding: 14px; color: var(--ink); background: white; border: 1px solid var(--line); outline: none; }
@@ -28,6 +37,7 @@ legend { margin-bottom: 12px; font-size: 13px; font-weight: 600; }
 .payment-card span { display: flex; flex-direction: column; gap: 5px; }
 .payment-card small { color: var(--muted); font-weight: 400; line-height: 1.5; }
 .confirm-button { width: 100%; padding: 16px; color: white; background: var(--ink); border: 0; font-size: 10px; font-weight: 600; letter-spacing: 1px; cursor: pointer; }
+.continue-button { width: 100%; padding: 15px; color: white; background: #626262; border: 0; font-size: 10px; font-weight: 600; letter-spacing: .5px; cursor: pointer; }
 .legal-note { color: var(--muted); font-size: 9px; text-align: center; }
 .order-summary { padding: 55px 5vw; background: white; border-left: 1px solid var(--line); }
 .summary-items { margin: 30px 0; display: grid; gap: 15px; }
@@ -59,5 +69,8 @@ legend { margin-bottom: 12px; font-size: 13px; font-weight: 600; }
   .checkout-header > span { display: none; }
   .checkout-brand { font-size: 23px; }
   .field-grid { grid-template-columns: 1fr; }
+  .step-heading { padding: 20px; grid-template-columns: 40px 1fr; }
+  .modify-step { grid-column: 2; justify-self: start; }
+  .step-content { padding: 0 20px 24px; }
   .receipt-actions { flex-direction: column; gap: 0; }
 }

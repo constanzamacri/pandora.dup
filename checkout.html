@@ -20,37 +20,77 @@
     <section class="checkout-data" data-checkout-data>
       <a class="back-link" href="index.html">← VOLVER A LA TIENDA</a>
       <p class="eyebrow">FINALIZAR COMPRA</p>
-      <h1>Tus datos</h1>
+      <h1>Completá tu compra</h1>
       <form data-order-form>
-        <div class="field-grid">
-          <label>Nombre<input name="name" autocomplete="given-name" required></label>
-          <label>Apellido<input name="surname" autocomplete="family-name" required></label>
-          <label>Teléfono<input name="phone" type="tel" inputmode="tel" autocomplete="tel" pattern="[0-9+() -]{8,20}" required></label>
-          <label>Correo electrónico<input name="email" type="email" autocomplete="email" required></label>
-        </div>
-        <label>Dirección de entrega<input name="address" autocomplete="street-address" required></label>
-        <div class="field-grid">
-          <label>Ciudad<input name="city" autocomplete="address-level2" required></label>
-          <label>Código postal<input name="postal_code" autocomplete="postal-code" required></label>
-        </div>
+        <section class="checkout-step active" data-step="1">
+          <header class="step-heading">
+            <span class="step-number">1</span>
+            <div><h2>Datos personales</h2><p data-step-summary="1">Te pediremos únicamente la información necesaria para concretar tu compra.</p></div>
+            <button class="modify-step hidden" type="button" data-edit-step="1">Modificar</button>
+          </header>
+          <div class="step-content" data-step-content="1">
+            <label>Correo electrónico<input name="email" type="email" autocomplete="email" required></label>
+            <div class="field-grid">
+              <label>Nombre<input name="name" autocomplete="given-name" required></label>
+              <label>Apellido<input name="surname" autocomplete="family-name" required></label>
+              <label>Documento<input name="document" inputmode="numeric" pattern="[0-9]{7,11}" required></label>
+              <label>Teléfono<input name="phone" type="tel" inputmode="tel" autocomplete="tel" pattern="[0-9+() -]{8,20}" required></label>
+            </div>
+            <button class="continue-button" type="button" data-next-step="2">CONTINUAR A MÉTODO DE ENTREGA</button>
+          </div>
+        </section>
 
-        <fieldset>
-          <legend>Elegí cómo pagar</legend>
-          <label class="payment-card">
-            <input type="radio" name="payment" value="Efectivo" required>
-            <span><strong>Efectivo</strong><small>Abonás al recibir o retirar tu compra.</small></span>
-          </label>
-          <label class="payment-card">
-            <input type="radio" name="payment" value="Transferencia" required>
-            <span><strong>Transferencia bancaria</strong><small>Tenés 10% de descuento. Recibirás los datos para transferir.</small></span>
-          </label>
-        </fieldset>
+        <section class="checkout-step" data-step="2">
+          <header class="step-heading">
+            <span class="step-number">2</span>
+            <div><h2>Método de entrega</h2><p data-step-summary="2">Elegí cómo querés recibir tu compra.</p></div>
+            <button class="modify-step hidden" type="button" data-edit-step="2">Modificar</button>
+          </header>
+          <div class="step-content hidden" data-step-content="2">
+            <fieldset>
+              <label class="payment-card">
+                <input type="radio" name="delivery" value="Retiro en Bahía Blanca [Chiclana 120]" required>
+                <span><strong>Retiro en Bahía Blanca</strong><small>Chiclana 120 · Gratis</small></span>
+              </label>
+              <label class="payment-card">
+                <input type="radio" name="delivery" value="Envío a domicilio" required>
+                <span><strong>Envío a domicilio</strong><small>Coordinaremos el costo y horario de entrega.</small></span>
+              </label>
+            </fieldset>
+            <div class="address-fields hidden" data-address-fields>
+              <label>Dirección de entrega<input name="address" autocomplete="street-address"></label>
+              <div class="field-grid">
+                <label>Ciudad<input name="city" autocomplete="address-level2"></label>
+                <label>Código postal<input name="postal_code" autocomplete="postal-code"></label>
+              </div>
+            </div>
+            <button class="continue-button" type="button" data-next-step="3">CONTINUAR A PAGO</button>
+          </div>
+        </section>
 
-        <label class="notes-field">Comentarios sobre el pedido
-          <textarea name="notes" rows="3" placeholder="Indicaciones de entrega, horarios, etc."></textarea>
-        </label>
-        <button class="confirm-button" type="submit">CONFIRMAR COMPRA →</button>
-        <p class="legal-note">Al confirmar, verificá que tus datos sean correctos.</p>
+        <section class="checkout-step" data-step="3">
+          <header class="step-heading">
+            <span class="step-number">3</span>
+            <div><h2>Pago</h2><p data-step-summary="3">Elegí cómo querés pagar.</p></div>
+          </header>
+          <div class="step-content hidden" data-step-content="3">
+            <fieldset>
+              <label class="payment-card">
+                <input type="radio" name="payment" value="Efectivo" required>
+                <span><strong>Efectivo</strong><small>Abonás al recibir o retirar tu compra.</small></span>
+              </label>
+              <label class="payment-card">
+                <input type="radio" name="payment" value="Transferencia" required>
+                <span><strong>Transferencia bancaria</strong><small>Tenés 10% de descuento. Recibirás los datos para transferir.</small></span>
+              </label>
+            </fieldset>
+            <label class="notes-field">Comentarios sobre el pedido
+              <textarea name="notes" rows="3" placeholder="Indicaciones de entrega, horarios, etc."></textarea>
+            </label>
+            <button class="confirm-button" type="submit">CONFIRMAR COMPRA →</button>
+            <p class="legal-note">Al confirmar, verificá que tus datos sean correctos.</p>
+          </div>
+        </section>
       </form>
     </section>
 
