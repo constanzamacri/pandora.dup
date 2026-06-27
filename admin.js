@@ -15,6 +15,7 @@ const money = value => new Intl.NumberFormat("es-AR", {
 let supabase;
 let products = [];
 let orders = [];
+let categories = [];
 
 const escapeHtml = value => String(value ?? "").replace(/[&<>"']/g, character => ({
   "&": "&amp;",
@@ -122,6 +123,25 @@ async function loadProducts() {
   renderProducts();
 }
 
+function renderCategories() {
+  $("[data-category-list]").innerHTML = categories.map(category => `
+    <article class="admin-product">
+      <div><h3>${escapeHtml(category.name)}</h3><p>${escapeHtml(category.id)} · Orden ${category.sort_order}</p></div>
+      <span class="status ${category.published ? "" : "draft"}">${category.published ? "Publicada" : "Oculta"}</span>
+      <button type="button" data-edit-category="${category.id}">EDITAR</button>
+    </article>`).join("");
+  const select = $("[data-product-form]").elements.category;
+  select.innerHTML = categories.map(category =>
+    `<option value="${escapeHtml(category.id)}">${escapeHtml(category.name)}</option>`).join("");
+}
+
+async function loadCategories() {
+  const { data, error } = await supabase.from("categories").select("*").order("sort_order");
+  if (error) throw error;
+  categories = data;
+  renderCategories();
+}
+
 async function loadContent() {
   const { data, error } = await supabase.from("site_content").select("key,value");
   if (error) throw error;
@@ -154,15 +174,15 @@ function closeProduct() {
   $("[data-product-modal]").classList.add("hidden");
 }
 
-async function uploadImage(file) {
+async function uploadImage(file, bucket = "products") {
   const extension = file.name.split(".").pop().toLowerCase();
   const path = `${crypto.randomUUID()}.${extension}`;
-  const { error } = await supabase.storage.from("products").upload(path, file, {
+  const { error } = await supabase.storage.from(bucket).upload(path, file, {
     cacheControl: "3600",
     upsert: false
   });
   if (error) throw error;
-  return supabase.storage.from("products").getPublicUrl(path).data.publicUrl;
+  return supabase.storage.from(bucket).getPublicUrl(path).data.publicUrl;
 }
 
 async function verifyAdmin(user) {
@@ -187,7 +207,7 @@ if (!isSupabaseConfigured) {
     try {
       await verifyAdmin(session.user);
       showDashboard(session.user.email);
-      await Promise.all([loadOrders(), loadProducts(), loadContent()]);
+      await Promise.all([loadOrders(), loadCategories(), loadProducts(), loadContent()]);
     } catch (error) {
       showLogin();
       message("[data-login-message]", error.message, true);
@@ -207,7 +227,7 @@ $("[data-login-form]").addEventListener("submit", async event => {
   try {
     await verifyAdmin(data.user);
     showDashboard(data.user.email);
-    await Promise.all([loadOrders(), loadProducts(), loadContent()]);
+    await Promise.all([loadOrders(), loadCategories(), loadProducts(), loadContent()]);
   } catch (adminError) {
     message("[data-login-message]", adminError.message, true);
   }
@@ -255,6 +275,31 @@ $("[data-product-list]").addEventListener("click", event => {
 });
 document.querySelectorAll("[data-close-product]").forEach(button => button.addEventListener("click", closeProduct));
 
+$("[data-category-form]").addEventListener("submit", async event => {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const record = {
+    id: form.elements.id.value.trim().toLowerCase(),
+    name: form.elements.name.value.trim(),
+    sort_order: Number(form.elements.sort_order.value),
+    published: form.elements.published.checked
+  };
+  const { error } = await supabase.from("categories").upsert(record);
+  message("[data-category-message]", error ? error.message : "Categoría guardada.", Boolean(error));
+  if (!error) { form.reset(); await loadCategories(); }
+});
+
+$("[data-category-list]").addEventListener("click", event => {
+  const button = event.target.closest("[data-edit-category]");
+  if (!button) return;
+  const category = categories.find(item => item.id === button.dataset.editCategory);
+  const form = $("[data-category-form]");
+  form.elements.id.value = category.id;
+  form.elements.name.value = category.name;
+  form.elements.sort_order.value = category.sort_order;
+  form.elements.published.checked = category.published;
+});
+
 $("[data-product-form]").addEventListener("submit", async event => {
   event.preventDefault();
   message("[data-product-message]", "Guardando...");
@@ -300,8 +345,19 @@ $("[data-delete-product]").addEventListener("click", async () => {
 $("[data-content-form]").addEventListener("submit", async event => {
   event.preventDefault();
   message("[data-content-message]", "Guardando...");
-  const values = new FormData(event.currentTarget);
-  const records = [...values.entries()].map(([key, value]) => ({ key, value: value.trim() }));
+  const form = event.currentTarget;
+  const imageKeys = ["hero_image","editorial_main_image","editorial_small_image","category_1_image","category_2_image","category_3_image"];
+  try {
+    for (const key of imageKeys) {
+      const file = form.elements[`${key}_file`].files[0];
+      if (file) form.elements[key].value = await uploadImage(file, "site");
+    }
+  } catch (error) {
+    return message("[data-content-message]", error.message, true);
+  }
+  const records = [...form.elements]
+    .filter(element => element.name && !element.name.endsWith("_file") && element.type !== "submit")
+    .map(element => ({ key: element.name, value: element.value.trim() }));
   const { error } = await supabase.from("site_content").upsert(records);
   message(
     "[data-content-message]",

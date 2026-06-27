@@ -50,10 +50,11 @@ async function loadStoreData() {
     if (!config.isSupabaseConfigured) return;
     const { createClient } = await import("https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm");
     const client = createClient(config.SUPABASE_URL, config.SUPABASE_PUBLISHABLE_KEY);
-    const [{ data: remoteProducts, error: productsError }, { data: content, error: contentError }] =
+    const [{ data: remoteProducts, error: productsError }, { data: content, error: contentError }, { data: categories }] =
       await Promise.all([
         client.from("products").select("*").eq("published", true).order("sort_order").order("id"),
-        client.from("site_content").select("key,value")
+        client.from("site_content").select("key,value"),
+        client.from("categories").select("*").eq("published", true).order("sort_order")
       ]);
     if (!productsError && remoteProducts?.length) {
       products = remoteProducts.map(product => ({
@@ -67,7 +68,17 @@ async function loadStoreData() {
       content.forEach(item => {
         const element = document.querySelector(`[data-content="${item.key}"]`);
         if (element) element.textContent = item.value;
+        const image = document.querySelector(`[data-content-image="${item.key}"]`);
+        if (image) image.style.backgroundImage = `url("${item.value}")`;
       });
+    }
+    if (categories?.length) {
+      document.querySelector("[data-category-filters]").innerHTML =
+        `<button class="active" data-filter="todos">Todo</button>` +
+        categories.map(category => `<button data-filter="${category.id}">${category.name}</button>`).join("");
+      document.querySelectorAll("[data-filter]").forEach(button =>
+        button.addEventListener("click", () => setFilter(button.dataset.filter))
+      );
     }
   } catch (error) {
     console.warn("No se pudo cargar el catálogo administrable.", error);
