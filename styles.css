@@ -113,8 +113,8 @@ h1 em, h2 em { font-weight: 400; color: #8f726a; }
 .product-detail.open { opacity: 1; visibility: visible; transform: none; }
 .product-detail-close { position: absolute; z-index: 2; top: 16px; right: 20px; padding: 4px 10px; border: 0; background: none; font-size: 34px; }
 .product-gallery { min-width: 0; }
-.product-detail-main { height: min(66vh, 650px); padding: clamp(12px, 2vw, 28px); display: grid; place-items: center; overflow: hidden; background: #fff; }
-.product-detail-main img { display: block; width: auto; height: auto; max-width: 100%; max-height: 100%; object-fit: contain; object-position: center; }
+.product-detail-main { height: min(66vh, 650px); position: relative; overflow: hidden; background: #fff; }
+.product-detail-main img { position: absolute; inset: 0; display: block; width: 100%; height: 100%; padding: clamp(12px, 2vw, 28px); object-fit: contain; object-position: center; }
 .product-thumbnails { margin-top: 14px; display: flex; gap: 10px; overflow-x: auto; }
 .product-thumbnails button { width: 72px; height: 82px; flex: 0 0 auto; padding: 5px; overflow: hidden; border: 1px solid transparent; background: #fff; }
 .product-thumbnails button.active { border-color: var(--ink); }
@@ -229,7 +229,8 @@ footer a { color: #bdb8ae; font-size: 11px; }
 }
 @media (max-width: 680px) {
   .product-detail { inset: 0; padding: 55px 18px 30px; display: block; }
-  .product-detail-main { height: min(52vh, 520px); min-height: 300px; padding: 12px; }
+  .product-detail-main { height: min(52vh, 520px); min-height: 300px; }
+  .product-detail-main img { padding: 12px; }
   .product-detail-info { padding: 30px 0; }
   .header { height: 110px; }
   .brand { top: 0; }
