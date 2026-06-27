@@ -14,18 +14,24 @@ let activeFilter = "todos";
 let searchTerm = "";
 let cart = [];
 let detailProduct = null;
+let storeClient = null;
+let currentUser = null;
+const favoriteIds = new Set();
 const catalogParams = new URLSearchParams(window.location.search);
 const requestedCategory = catalogParams.get("category");
 const requestedSearch = catalogParams.get("search");
+const requestedFavorites = catalogParams.get("favorites") === "1";
 
-if (requestedCategory || requestedSearch) {
+if (requestedCategory || requestedSearch || requestedFavorites) {
   document.body.classList.add("catalog-view");
   activeFilter = requestedCategory || "todos";
   searchTerm = requestedSearch || "";
-  document.querySelector("[data-catalog-eyebrow]").textContent =
-    requestedSearch ? "RESULTADOS DE BÚSQUEDA" : "CATÁLOGO";
-  document.querySelector("[data-catalog-title]").textContent =
-    requestedSearch
+  document.querySelector("[data-catalog-eyebrow]").textContent = requestedFavorites
+    ? "TU SELECCIÓN"
+    : requestedSearch ? "RESULTADOS DE BÚSQUEDA" : "CATÁLOGO";
+  document.querySelector("[data-catalog-title]").textContent = requestedFavorites
+    ? "Mis favoritos"
+    : requestedSearch
       ? `Resultados para “${requestedSearch}”`
       : requestedCategory === "todos" ? "Todos los productos" : requestedCategory;
   document.querySelector("[data-search-input]").value = searchTerm;
@@ -41,13 +47,18 @@ const grid = document.querySelector("[data-products]");
 function renderProducts() {
   const visible = products.filter(product =>
     (activeFilter === "todos" || product.category === activeFilter) &&
-    product.name.toLowerCase().includes(searchTerm.toLowerCase())
+    product.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
+    (!requestedFavorites || favoriteIds.has(product.id))
   );
   grid.innerHTML = visible.map(product => `
     <article class="product-card">
       <div class="product-image" data-product-open="${product.id}">
         <img src="${product.image}" alt="${product.name}" loading="lazy">
         ${product.badge ? `<span class="product-badge">${product.badge}</span>` : ""}
+        <button class="favorite-button ${favoriteIds.has(product.id) ? "active" : ""}"
+          type="button" data-favorite="${product.id}" aria-label="${favoriteIds.has(product.id) ? "Quitar de" : "Agregar a"} favoritos">
+          <span aria-hidden="true">${favoriteIds.has(product.id) ? "♥" : "♡"}</span>
+        </button>
         <button class="quick-add" data-add="${product.id}" ${product.stock === 0 ? "disabled" : ""}>
           ${product.stock === 0 ? "SIN STOCK" : "AGREGAR A LA BOLSA +"}
         </button>
@@ -109,6 +120,20 @@ async function loadStoreData() {
     if (!config.isSupabaseConfigured) return;
     const { createClient } = await import("https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm");
     const client = createClient(config.SUPABASE_URL, config.SUPABASE_PUBLISHABLE_KEY);
+    storeClient = client;
+    const { data: { session } } = await client.auth.getSession();
+    currentUser = session?.user || null;
+    if (requestedFavorites && !currentUser) {
+      window.location.href = "account.html?v=20260627-15";
+      return;
+    }
+    if (currentUser) {
+      const { data: savedFavorites } = await client
+        .from("favorites")
+        .select("product_id")
+        .eq("user_id", currentUser.id);
+      (savedFavorites || []).forEach(item => favoriteIds.add(Number(item.product_id)));
+    }
     const [{ data: remoteProducts, error: productsError }, { data: content, error: contentError }, { data: categories }] =
       await Promise.all([
         client.from("products").select("*").eq("published", true).order("sort_order").order("id"),
@@ -189,6 +214,27 @@ function openSearchView() {
   window.location.href = `index.html?search=${encodeURIComponent(term)}`;
 }
 
+async function toggleFavorite(productId) {
+  if (!currentUser || !storeClient) {
+    window.location.href = "account.html?v=20260627-15";
+    return;
+  }
+  if (favoriteIds.has(productId)) {
+    const { error } = await storeClient
+      .from("favorites")
+      .delete()
+      .eq("user_id", currentUser.id)
+      .eq("product_id", productId);
+    if (!error) favoriteIds.delete(productId);
+  } else {
+    const { error } = await storeClient
+      .from("favorites")
+      .insert({ user_id: currentUser.id, product_id: productId });
+    if (!error) favoriteIds.add(productId);
+  }
+  renderProducts();
+}
+
 function updateCart() {
   document.querySelectorAll("[data-cart-count]").forEach(el => el.textContent = cart.length);
   const items = document.querySelector("[data-cart-items]");
@@ -233,6 +279,13 @@ function toggleCart(open) {
 }
 
 document.addEventListener("click", event => {
+  const favorite = event.target.closest("[data-favorite]");
+  if (favorite) {
+    event.preventDefault();
+    event.stopPropagation();
+    toggleFavorite(Number(favorite.dataset.favorite));
+    return;
+  }
   const add = event.target.closest("[data-add]");
   if (add) {
     event.stopPropagation();

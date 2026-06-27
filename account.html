@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="account.css?v=20260627-11">
+  <link rel="stylesheet" href="account.css?v=20260627-15">
 </head>
 <body>
   <header class="account-header">
@@ -26,6 +26,10 @@
         <button class="active" type="button" data-auth-tab="login">Iniciar sesión</button>
         <button type="button" data-auth-tab="register">Registrarme</button>
       </div>
+      <button class="google-button" type="button" data-google-login>
+        <span aria-hidden="true">G</span> CONTINUAR CON GOOGLE
+      </button>
+      <div class="auth-divider"><span>o continuar con correo</span></div>
 
       <form data-login-form>
         <label>Correo electrónico<input name="email" type="email" autocomplete="email" required></label>
@@ -48,12 +52,13 @@
       <p class="eyebrow">MI CUENTA</p>
       <h1>Sesión iniciada</h1>
       <p class="profile-email" data-profile-email></p>
+      <a class="favorites-link" href="index.html?favorites=1">♡ MIS FAVORITOS</a>
       <a class="admin-link hidden" href="admin.html" data-admin-link>ABRIR PANEL DE ADMINISTRACIÓN →</a>
       <a class="store-link" href="index.html">VOLVER A LA TIENDA</a>
       <button type="button" data-logout>CERRAR SESIÓN</button>
     </section>
   </main>
 
-  <script type="module" src="account.js"></script>
+  <script type="module" src="account.js?v=20260627-15"></script>
 </body>
 </html>

@@ -82,11 +82,19 @@ create table if not exists public.orders (
   created_at timestamptz not null default now()
 );
 
+create table if not exists public.favorites (
+  user_id uuid not null references auth.users(id) on delete cascade,
+  product_id bigint not null references public.products(id) on delete cascade,
+  created_at timestamptz not null default now(),
+  primary key (user_id, product_id)
+);
+
 alter table public.admins enable row level security;
 alter table public.products enable row level security;
 alter table public.site_content enable row level security;
 alter table public.categories enable row level security;
 alter table public.orders enable row level security;
+alter table public.favorites enable row level security;
 
 create or replace function public.is_admin()
 returns boolean
@@ -160,6 +168,24 @@ on public.orders for update
 to authenticated
 using (public.is_admin())
 with check (public.is_admin());
+
+drop policy if exists "Usuarios ven sus favoritos" on public.favorites;
+create policy "Usuarios ven sus favoritos"
+on public.favorites for select
+to authenticated
+using (user_id = (select auth.uid()));
+
+drop policy if exists "Usuarios agregan favoritos" on public.favorites;
+create policy "Usuarios agregan favoritos"
+on public.favorites for insert
+to authenticated
+with check (user_id = (select auth.uid()));
+
+drop policy if exists "Usuarios eliminan favoritos" on public.favorites;
+create policy "Usuarios eliminan favoritos"
+on public.favorites for delete
+to authenticated
+using (user_id = (select auth.uid()));
 
 create or replace function public.decrease_stock_for_order()
 returns trigger
