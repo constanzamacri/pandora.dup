@@ -14,6 +14,15 @@ const money = value => new Intl.NumberFormat("es-AR", {
 
 let supabase;
 let products = [];
+let orders = [];
+
+const escapeHtml = value => String(value ?? "").replace(/[&<>"']/g, character => ({
+  "&": "&amp;",
+  "<": "&lt;",
+  ">": "&gt;",
+  '"': "&quot;",
+  "'": "&#039;"
+})[character]);
 
 function message(selector, text, error = false) {
   const element = $(selector);
@@ -49,6 +58,57 @@ function renderProducts() {
   $("[data-metric-published]").textContent = products.filter(product => product.published).length;
   $("[data-metric-empty]").textContent = products.filter(product => product.stock === 0).length;
   $("[data-metric-stock]").textContent = products.reduce((total, product) => total + product.stock, 0);
+}
+
+function renderOrders() {
+  const activeOrders = orders.filter(order => ["pending", "contacted"].includes(order.status));
+  const labels = { pending: "Sin contactar", contacted: "Contactado", completed: "Completado" };
+  $("[data-order-list]").innerHTML = activeOrders.map(order => {
+    const items = Array.isArray(order.items) ? order.items : [];
+    const phoneLink = String(order.phone).replace(/\D/g, "");
+    return `
+      <article class="admin-order">
+        <div class="order-top">
+          <div>
+            <h3>${escapeHtml(order.order_number)} · ${escapeHtml(order.customer_name)}</h3>
+            <p>${new Date(order.created_at).toLocaleString("es-AR")}</p>
+          </div>
+          <span class="order-status ${order.status}">${labels[order.status] || order.status}</span>
+        </div>
+        <div class="order-details">
+          <div><span>Teléfono</span><strong>${escapeHtml(order.phone)}</strong></div>
+          <div><span>Pago</span><strong>${escapeHtml(order.payment_method)}</strong></div>
+          <div><span>Entrega</span><strong>${escapeHtml(order.delivery_method)}</strong></div>
+          <div><span>Total</span><strong>${money(order.total)}</strong></div>
+        </div>
+        <ul class="order-products">
+          ${items.map(item => `<li>${escapeHtml(item.name)} × ${Number(item.quantity) || 1}</li>`).join("")}
+        </ul>
+        <div class="order-actions">
+          <a href="https://wa.me/${phoneLink}" target="_blank" rel="noopener">CONTACTAR POR WHATSAPP ↗</a>
+          ${order.status === "pending"
+            ? `<button class="primary-order-action" type="button" data-order-status="contacted" data-order-id="${order.id}">MARCAR CONTACTADO</button>`
+            : ""}
+          <button type="button" data-order-status="completed" data-order-id="${order.id}">MARCAR COMPLETADO</button>
+        </div>
+      </article>
+    `;
+  }).join("");
+  $("[data-orders-empty]").classList.toggle("hidden", activeOrders.length > 0);
+  $("[data-metric-pending]").textContent = orders.filter(order => order.status === "pending").length;
+  $("[data-metric-contacted]").textContent = orders.filter(order => order.status === "contacted").length;
+  $("[data-metric-completed]").textContent = orders.filter(order => order.status === "completed").length;
+}
+
+async function loadOrders() {
+  const { data, error } = await supabase
+    .from("orders")
+    .select("*")
+    .order("created_at", { ascending: false })
+    .limit(100);
+  if (error) throw error;
+  orders = data;
+  renderOrders();
 }
 
 async function loadProducts() {
@@ -127,7 +187,7 @@ if (!isSupabaseConfigured) {
     try {
       await verifyAdmin(session.user);
       showDashboard(session.user.email);
-      await Promise.all([loadProducts(), loadContent()]);
+      await Promise.all([loadOrders(), loadProducts(), loadContent()]);
     } catch (error) {
       showLogin();
       message("[data-login-message]", error.message, true);
@@ -147,7 +207,7 @@ $("[data-login-form]").addEventListener("submit", async event => {
   try {
     await verifyAdmin(data.user);
     showDashboard(data.user.email);
-    await Promise.all([loadProducts(), loadContent()]);
+    await Promise.all([loadOrders(), loadProducts(), loadContent()]);
   } catch (adminError) {
     message("[data-login-message]", adminError.message, true);
   }
@@ -165,6 +225,27 @@ document.querySelectorAll("[data-tab]").forEach(button => {
       panel.classList.toggle("hidden", panel.dataset.panel !== button.dataset.tab)
     );
   });
+});
+
+$("[data-refresh-orders]").addEventListener("click", loadOrders);
+$("[data-order-list]").addEventListener("click", async event => {
+  const button = event.target.closest("[data-order-status]");
+  if (!button) return;
+  button.disabled = true;
+  const status = button.dataset.orderStatus;
+  const update = { status };
+  if (status === "contacted") update.contacted_at = new Date().toISOString();
+  if (status === "completed") update.completed_at = new Date().toISOString();
+  const { error } = await supabase
+    .from("orders")
+    .update(update)
+    .eq("id", Number(button.dataset.orderId));
+  if (error) {
+    button.disabled = false;
+    alert(error.message);
+    return;
+  }
+  await loadOrders();
 });
 
 $("[data-new-product]").addEventListener("click", () => openProduct());

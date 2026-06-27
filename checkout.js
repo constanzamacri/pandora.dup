@@ -44,8 +44,7 @@ function updatePayment(payment) {
   document.querySelector("[data-total]").textContent = money(total);
 }
 
-function buildReceipt(form) {
-  const orderNumber = `PD-${Date.now().toString().slice(-8)}`;
+function buildReceipt(form, orderNumber) {
   const itemLines = groupedItems
     .map(item => `- ${item.name} x${item.quantity}: ${money(item.price * item.quantity)}`)
     .join("\n");
@@ -77,6 +76,39 @@ Forma de pago: ${selectedPayment}
 Comentarios: ${form.get("notes") || "Sin comentarios"}
 
 Este texto confirma la solicitud del pedido.`;
+}
+
+async function saveOrder(form, orderNumber) {
+  const config = await import("./supabase-config.js");
+  if (!config.isSupabaseConfigured) return;
+  const { createClient } = await import("https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm");
+  const client = createClient(config.SUPABASE_URL, config.SUPABASE_PUBLISHABLE_KEY);
+  const delivery = form.get("delivery");
+  const discount = selectedPayment === "Transferencia" ? Math.round(subtotal * .1) : 0;
+  const { error } = await client.from("orders").insert({
+    order_number: orderNumber,
+    customer_name: `${form.get("name")} ${form.get("surname")}`.trim(),
+    email: form.get("email"),
+    phone: form.get("phone"),
+    document: form.get("document"),
+    delivery_method: delivery,
+    address: delivery === "Envío a domicilio" ? form.get("address") : null,
+    city: delivery === "Envío a domicilio" ? form.get("city") : null,
+    postal_code: delivery === "Envío a domicilio" ? form.get("postal_code") : null,
+    payment_method: selectedPayment,
+    notes: form.get("notes") || null,
+    subtotal,
+    discount,
+    total,
+    items: groupedItems.map(item => ({
+      id: item.id,
+      name: item.name,
+      price: Number(item.price),
+      quantity: item.quantity
+    })),
+    status: "pending"
+  });
+  if (error) throw error;
 }
 
 if (!cart.length) {
@@ -145,11 +177,23 @@ document.querySelectorAll("[data-edit-step]").forEach(button => {
   button.addEventListener("click", () => openStep(button.dataset.editStep));
 });
 
-document.querySelector("[data-order-form]").addEventListener("submit", event => {
+document.querySelector("[data-order-form]").addEventListener("submit", async event => {
   event.preventDefault();
   const form = new FormData(event.currentTarget);
   updatePayment(form.get("payment"));
-  document.querySelector("[data-receipt-text]").value = buildReceipt(form);
+  const orderNumber = `PD-${Date.now().toString().slice(-8)}`;
+  const submitButton = event.currentTarget.querySelector('[type="submit"]');
+  submitButton.disabled = true;
+  document.querySelector("[data-order-message]").textContent = "Registrando pedido...";
+  try {
+    await saveOrder(form, orderNumber);
+  } catch (error) {
+    submitButton.disabled = false;
+    document.querySelector("[data-order-message]").textContent =
+      "No pudimos registrar el pedido. Revisá tu conexión e intentá nuevamente.";
+    return;
+  }
+  document.querySelector("[data-receipt-text]").value = buildReceipt(form, orderNumber);
   document.querySelector("[data-checkout-data]").classList.add("hidden");
   document.querySelector(".order-summary").classList.add("hidden");
   document.querySelector("[data-receipt]").classList.remove("hidden");

@@ -43,11 +43,26 @@
       </header>
 
       <nav class="admin-tabs" aria-label="Secciones del panel">
-        <button class="active" type="button" data-tab="products">Productos</button>
+        <button class="active" type="button" data-tab="orders">Pedidos</button>
+        <button type="button" data-tab="products">Productos</button>
         <button type="button" data-tab="content">Textos de la web</button>
       </nav>
 
-      <div class="tab-panel" data-panel="products">
+      <div class="tab-panel" data-panel="orders">
+        <div class="panel-heading">
+          <div><p class="eyebrow">VENTAS</p><h2>Pedidos pendientes</h2></div>
+          <button class="secondary-action" type="button" data-refresh-orders>ACTUALIZAR</button>
+        </div>
+        <div class="metrics">
+          <article><span>Sin contactar</span><strong data-metric-pending>0</strong></article>
+          <article><span>Contactados</span><strong data-metric-contacted>0</strong></article>
+          <article><span>Completados</span><strong data-metric-completed>0</strong></article>
+        </div>
+        <div class="order-admin-list" data-order-list></div>
+        <p class="empty-admin hidden" data-orders-empty>No hay pedidos pendientes.</p>
+      </div>
+
+      <div class="tab-panel hidden" data-panel="products">
         <div class="panel-heading">
           <div><p class="eyebrow">CATÁLOGO</p><h2>Productos</h2></div>
           <button class="primary-action" type="button" data-new-product>+ NUEVO PRODUCTO</button>

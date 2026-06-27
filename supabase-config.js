@@ -1,5 +1,5 @@
-export const SUPABASE_URL = "YOUR_SUPABASE_URL";
-export const SUPABASE_PUBLISHABLE_KEY = "YOUR_SUPABASE_PUBLISHABLE_KEY";
+export const SUPABASE_URL = "https://hsahgureabomaahbikng.supabase.co";
+export const SUPABASE_PUBLISHABLE_KEY = "sb_publishable__mZN456uPQYcrLeWJFV1AQ_54Fadejn";
 
 export const isSupabaseConfigured =
   SUPABASE_URL.startsWith("https://") &&
