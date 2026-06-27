@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="checkout.css?v=20260627-24">
+  <link rel="stylesheet" href="checkout.css?v=20260627-25">
 </head>
 <body>
   <header class="checkout-header">
@@ -50,12 +50,16 @@
           <div class="step-content hidden" data-step-content="2">
             <fieldset>
               <label class="payment-card">
-                <input type="radio" name="delivery" value="Retiro en Bahía Blanca [Chiclana 120]" required>
-                <span><strong>Retiro en Bahía Blanca</strong><small>Chiclana 120 · Gratis</small></span>
+                <input type="radio" name="delivery" value="Retiro en el local [Chiclana 120]" required>
+                <span><strong>Retiro en el local</strong><small>Chiclana 120 · Sin costo</small></span>
               </label>
               <label class="payment-card">
-                <input type="radio" name="delivery" value="Envío a domicilio" required>
-                <span><strong>Envío a domicilio</strong><small>Coordinaremos el costo y horario de entrega.</small></span>
+                <input type="radio" name="delivery" value="Envío por motomensajería" required>
+                <span><strong>Envío por motomensajería</strong><small>Disponible en Bahía Blanca. Coordinaremos costo y horario.</small></span>
+              </label>
+              <label class="payment-card">
+                <input type="radio" name="delivery" value="Envío por correo Andreani" required>
+                <span><strong>Envío por correo</strong><small>Entrega mediante Andreani a todo el país.</small></span>
               </label>
             </fieldset>
             <div class="address-fields hidden" data-address-fields>
@@ -64,6 +68,10 @@
                 <label>Ciudad<input name="city" autocomplete="address-level2"></label>
                 <label>Código postal<input name="postal_code" autocomplete="postal-code"></label>
               </div>
+            </div>
+            <div class="andreani-tools hidden" data-andreani-tools>
+              <p>Usá tu código postal y los datos del paquete para consultar el valor actualizado en el cotizador oficial.</p>
+              <a href="https://www.andreani.com/?tab=cotizar-envio" target="_blank" rel="noopener">CALCULAR ENVÍO EN ANDREANI ↗</a>
             </div>
             <button class="continue-button" type="button" data-next-step="3" disabled>CONTINUAR A PAGO</button>
           </div>
@@ -128,6 +136,6 @@
     </section>
   </main>
 
-  <script src="checkout.js?v=20260627-24"></script>
+  <script src="checkout.js?v=20260627-25"></script>
 </body>
 </html>

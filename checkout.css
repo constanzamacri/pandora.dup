@@ -42,6 +42,9 @@ legend { margin-bottom: 12px; font-size: 13px; font-weight: 600; }
 .order-message { min-height: 16px; margin: 10px 0 0; color: #9a3028; font-size: 10px; text-align: center; }
 .continue-button { width: 100%; padding: 15px; color: white; background: var(--ink); border: 0; font-size: 10px; font-weight: 600; letter-spacing: .5px; cursor: pointer; transition: background .25s, opacity .25s; }
 .continue-button:disabled { color: #f5f5f5; background: #a9a9a9; cursor: not-allowed; }
+.andreani-tools { margin: -5px 0 24px; padding: 18px; background: #f5f2ed; border: 1px solid var(--line); }
+.andreani-tools p { margin: 0 0 13px; color: var(--muted); font-size: 10px; line-height: 1.6; }
+.andreani-tools a { display: inline-flex; padding-bottom: 5px; color: var(--ink); border-bottom: 1px solid var(--ink); font-size: 9px; font-weight: 600; letter-spacing: .8px; text-decoration: none; }
 .legal-note { color: var(--muted); font-size: 9px; text-align: center; }
 .order-summary { padding: 55px 5vw; background: white; border-left: 1px solid var(--line); }
 .summary-items { margin: 30px 0; display: grid; gap: 15px; }
