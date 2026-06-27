@@ -41,6 +41,8 @@ form button, .primary-action { padding: 14px 20px; color: white; background: var
 .category-admin-list { margin-top: 22px; display: grid; gap: 10px; }
 .category-admin-list .admin-product { grid-template-columns: 1fr auto auto; }
 .content-form h3 { margin: 35px 0 20px; font-size: 18px; }
+.upload-help { margin: -10px 0 22px; color: var(--muted); font-size: 10px; line-height: 1.5; }
+input[type="file"] { padding: 12px; background: #f7f5f1; cursor: pointer; }
 .order-admin-list { display: grid; gap: 12px; }
 .admin-order { padding: 22px; background: white; border: 1px solid var(--line); }
 .order-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; }
