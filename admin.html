@@ -157,6 +157,29 @@
     </section>
   </div>
 
+  <div class="modal image-editor hidden" data-image-editor>
+    <div class="modal-backdrop" data-image-cancel></div>
+    <section class="modal-card image-editor-card" role="dialog" aria-modal="true" aria-labelledby="image-editor-title">
+      <div class="modal-heading">
+        <div><p class="eyebrow">EDITAR FOTO</p><h2 id="image-editor-title">Ajustar imagen</h2></div>
+        <button type="button" data-image-cancel aria-label="Cerrar">×</button>
+      </div>
+      <p class="upload-help">Usá el zoom y los controles para elegir exactamente qué parte de la foto se verá.</p>
+      <div class="crop-stage" data-crop-stage>
+        <canvas data-crop-canvas></canvas>
+      </div>
+      <div class="crop-controls">
+        <label>Zoom<input type="range" min="1" max="3" step="0.01" value="1" data-crop-zoom></label>
+        <label>Horizontal<input type="range" min="-100" max="100" step="1" value="0" data-crop-x></label>
+        <label>Vertical<input type="range" min="-100" max="100" step="1" value="0" data-crop-y></label>
+      </div>
+      <div class="form-actions">
+        <button class="secondary-action" type="button" data-image-cancel>CANCELAR</button>
+        <button type="button" data-image-apply>USAR ESTA FOTO</button>
+      </div>
+    </section>
+  </div>
+
   <script type="module" src="admin.js"></script>
 </body>
 </html>

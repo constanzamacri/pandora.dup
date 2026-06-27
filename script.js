@@ -9,7 +9,7 @@ const fallbackProducts = [
   { id: 8, name: "Pulsera Roma", category: "pulseras", price: 29500, image: "https://images.unsplash.com/photo-1573408301185-9146fe634ad0?auto=format&fit=crop&w=700&q=85" }
 ];
 
-let products = [...fallbackProducts];
+let products = [];
 let activeFilter = "todos";
 let searchTerm = "";
 let cart = [];
@@ -82,6 +82,8 @@ async function loadStoreData() {
     }
   } catch (error) {
     console.warn("No se pudo cargar el catálogo administrable.", error);
+  } finally {
+    document.body.classList.remove("content-loading");
   }
 }
 

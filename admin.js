@@ -16,6 +16,8 @@ let supabase;
 let products = [];
 let orders = [];
 let categories = [];
+const editedImages = new WeakMap();
+let cropState = null;
 
 const escapeHtml = value => String(value ?? "").replace(/[&<>"']/g, character => ({
   "&": "&amp;",
@@ -185,6 +187,100 @@ async function uploadImage(file, bucket = "products") {
   return supabase.storage.from(bucket).getPublicUrl(path).data.publicUrl;
 }
 
+const cropRatios = {
+  hero_image_file: 1.25,
+  editorial_main_image_file: 0.82,
+  editorial_small_image_file: 1.5,
+  category_1_image_file: 0.78,
+  category_2_image_file: 0.78,
+  category_3_image_file: 0.78,
+  image: 0.78
+};
+
+function drawCrop() {
+  if (!cropState) return;
+  const canvas = $("[data-crop-canvas]");
+  const context = canvas.getContext("2d");
+  const { image, ratio } = cropState;
+  const outputWidth = ratio >= 1 ? 1200 : Math.round(1200 * ratio);
+  const outputHeight = Math.round(outputWidth / ratio);
+  canvas.width = outputWidth;
+  canvas.height = outputHeight;
+
+  const coverScale = Math.max(outputWidth / image.naturalWidth, outputHeight / image.naturalHeight);
+  const scale = coverScale * Number($("[data-crop-zoom]").value);
+  const width = image.naturalWidth * scale;
+  const height = image.naturalHeight * scale;
+  const availableX = Math.max(0, (width - outputWidth) / 2);
+  const availableY = Math.max(0, (height - outputHeight) / 2);
+  const offsetX = Number($("[data-crop-x]").value) / 100 * availableX;
+  const offsetY = Number($("[data-crop-y]").value) / 100 * availableY;
+
+  context.fillStyle = "#f5f1e8";
+  context.fillRect(0, 0, outputWidth, outputHeight);
+  context.drawImage(
+    image,
+    (outputWidth - width) / 2 + offsetX,
+    (outputHeight - height) / 2 + offsetY,
+    width,
+    height
+  );
+}
+
+function closeImageEditor(resetInput = false) {
+  if (resetInput && cropState?.input) cropState.input.value = "";
+  if (cropState?.objectUrl) URL.revokeObjectURL(cropState.objectUrl);
+  cropState = null;
+  $("[data-image-editor]").classList.add("hidden");
+}
+
+function openImageEditor(input, file) {
+  const objectUrl = URL.createObjectURL(file);
+  const image = new Image();
+  image.onload = () => {
+    cropState = {
+      input,
+      image,
+      objectUrl,
+      ratio: cropRatios[input.name] || 1
+    };
+    $("[data-crop-zoom]").value = "1";
+    $("[data-crop-x]").value = "0";
+    $("[data-crop-y]").value = "0";
+    $("[data-image-editor]").classList.remove("hidden");
+    drawCrop();
+  };
+  image.onerror = () => {
+    URL.revokeObjectURL(objectUrl);
+    input.value = "";
+    alert("No se pudo abrir esa imagen.");
+  };
+  image.src = objectUrl;
+}
+
+document.querySelectorAll('input[type="file"][accept*="image"]').forEach(input => {
+  input.addEventListener("change", () => {
+    const file = input.files[0];
+    if (file) openImageEditor(input, file);
+  });
+});
+
+document.querySelectorAll("[data-crop-zoom],[data-crop-x],[data-crop-y]")
+  .forEach(control => control.addEventListener("input", drawCrop));
+document.querySelectorAll("[data-image-cancel]")
+  .forEach(button => button.addEventListener("click", () => closeImageEditor(true)));
+$("[data-image-apply]").addEventListener("click", () => {
+  if (!cropState) return;
+  const { input } = cropState;
+  $("[data-crop-canvas]").toBlob(blob => {
+    if (!blob) return;
+    const file = new File([blob], `${crypto.randomUUID()}.webp`, { type: "image/webp" });
+    editedImages.set(input, file);
+    input.closest("label").classList.add("image-ready");
+    closeImageEditor();
+  }, "image/webp", 0.9);
+});
+
 async function verifyAdmin(user) {
   const { data, error } = await supabase
     .from("admins")
@@ -307,7 +403,8 @@ $("[data-product-form]").addEventListener("submit", async event => {
   const id = form.elements.id.value;
   try {
     let imageUrl = form.elements.image_url.value;
-    if (form.elements.image.files[0]) imageUrl = await uploadImage(form.elements.image.files[0]);
+    const productImage = editedImages.get(form.elements.image) || form.elements.image.files[0];
+    if (productImage) imageUrl = await uploadImage(productImage);
     if (!imageUrl) throw new Error("Subí una foto o ingresá la URL de una imagen.");
     const record = {
       name: form.elements.name.value.trim(),
@@ -349,7 +446,8 @@ $("[data-content-form]").addEventListener("submit", async event => {
   const imageKeys = ["hero_image","editorial_main_image","editorial_small_image","category_1_image","category_2_image","category_3_image"];
   try {
     for (const key of imageKeys) {
-      const file = form.elements[`${key}_file`].files[0];
+      const input = form.elements[`${key}_file`];
+      const file = editedImages.get(input) || input.files[0];
       if (file) form.elements[key].value = await uploadImage(file, "site");
     }
   } catch (error) {
