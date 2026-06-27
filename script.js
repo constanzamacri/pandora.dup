@@ -107,8 +107,10 @@ async function loadStoreData() {
       }));
       renderProducts();
     }
+    const contentValues = !contentError
+      ? Object.fromEntries(content.map(item => [item.key, item.value]))
+      : {};
     if (!contentError) {
-      const contentValues = Object.fromEntries(content.map(item => [item.key, item.value]));
       content.forEach(item => {
         const element = document.querySelector(`[data-content="${item.key}"]`);
         if (element) element.textContent = item.value;
@@ -125,6 +127,14 @@ async function loadStoreData() {
       document.querySelector("[data-category-filters]").innerHTML =
         `<button class="active" data-filter="todos">Todo</button>` +
         categories.map(category => `<button data-filter="${category.id}">${category.name}</button>`).join("");
+      document.querySelector("[data-store-categories]").innerHTML = categories.map((category, index) => {
+        const imageUrl = category.image_url || contentValues[`category_${index + 1}_image`] || "";
+        return `
+          <a href="#productos" data-filter-link="${category.id}" class="category"
+            ${imageUrl ? `style="background-image:url('${imageUrl}')"` : ""}>
+            <span>${category.name}</span>
+          </a>`;
+      }).join("");
       document.querySelectorAll("[data-filter]").forEach(button =>
         button.addEventListener("click", () => setFilter(button.dataset.filter))
       );

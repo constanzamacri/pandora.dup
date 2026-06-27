@@ -32,9 +32,13 @@ create table if not exists public.site_content (
 create table if not exists public.categories (
   id text primary key,
   name text not null,
+  image_url text,
   sort_order integer not null default 0,
   published boolean not null default true
 );
+
+alter table public.categories
+  add column if not exists image_url text;
 
 do $$
 begin

@@ -85,6 +85,8 @@
             <label>Identificador<input name="id" placeholder="ej: dijes" pattern="[a-z0-9-]+" required></label>
             <label>Nombre visible<input name="name" required></label>
             <label>Orden<input name="sort_order" type="number" min="0" value="0" required></label>
+            <label>Foto de la categoría<input name="image" type="file" accept="image/jpeg,image/png,image/webp"></label>
+            <input name="image_url" type="hidden">
             <label class="check-field"><input name="published" type="checkbox" checked> Publicada</label>
           </div>
           <button type="submit">GUARDAR CATEGORÍA</button>
@@ -186,6 +188,6 @@
     </section>
   </div>
 
-  <script type="module" src="admin.js?v=20260627-5"></script>
+  <script type="module" src="admin.js?v=20260627-7"></script>
 </body>
 </html>

@@ -403,15 +403,26 @@ document.querySelectorAll("[data-close-product]").forEach(button => button.addEv
 $("[data-category-form]").addEventListener("submit", async event => {
   event.preventDefault();
   const form = event.currentTarget;
-  const record = {
-    id: form.elements.id.value.trim().toLowerCase(),
-    name: form.elements.name.value.trim(),
-    sort_order: Number(form.elements.sort_order.value),
-    published: form.elements.published.checked
-  };
-  const { error } = await supabase.from("categories").upsert(record);
-  message("[data-category-message]", error ? error.message : "Categoría guardada.", Boolean(error));
-  if (!error) { form.reset(); await loadCategories(); }
+  try {
+    let imageUrl = form.elements.image_url.value;
+    const categoryImage = editedImages.get(form.elements.image) || form.elements.image.files[0];
+    if (categoryImage) imageUrl = await uploadImage(categoryImage, "site");
+    const record = {
+      id: form.elements.id.value.trim().toLowerCase(),
+      name: form.elements.name.value.trim(),
+      image_url: imageUrl || null,
+      sort_order: Number(form.elements.sort_order.value),
+      published: form.elements.published.checked
+    };
+    const { error } = await supabase.from("categories").upsert(record);
+    if (error) throw error;
+    editedImages.delete(form.elements.image);
+    message("[data-category-message]", "Categoría guardada.");
+    form.reset();
+    await loadCategories();
+  } catch (error) {
+    message("[data-category-message]", error.message, true);
+  }
 });
 
 $("[data-category-list]").addEventListener("click", event => {
@@ -421,6 +432,7 @@ $("[data-category-list]").addEventListener("click", event => {
   const form = $("[data-category-form]");
   form.elements.id.value = category.id;
   form.elements.name.value = category.name;
+  form.elements.image_url.value = category.image_url || "";
   form.elements.sort_order.value = category.sort_order;
   form.elements.published.checked = category.published;
 });
