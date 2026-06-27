@@ -88,7 +88,7 @@ document.querySelector("[data-search-input]").addEventListener("input", event =>
 document.querySelector("[data-newsletter]").addEventListener("submit", event => {
   event.preventDefault();
   event.currentTarget.reset();
-  document.querySelector("[data-newsletter-message]").textContent = "¡Listo! Ya sos parte del Club Alma ♡";
+  document.querySelector("[data-newsletter-message]").textContent = "¡Listo! Ya sos parte del Club pandora.dup ♡";
 });
 
 renderProducts();
