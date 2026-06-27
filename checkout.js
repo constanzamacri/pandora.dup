@@ -143,6 +143,22 @@ function validateStep(step) {
   return true;
 }
 
+function isStepComplete(step) {
+  const controls = [...step.querySelectorAll("input, select, textarea")]
+    .filter(control => !control.closest(".hidden"));
+  return controls.every(control => control.checkValidity());
+}
+
+function updateStepButtons() {
+  document.querySelectorAll("[data-step]").forEach(step => {
+    const button = step.querySelector("[data-next-step], .confirm-button");
+    if (button) button.disabled = !isStepComplete(step);
+  });
+}
+
+document.querySelector("[data-order-form]").addEventListener("input", updateStepButtons);
+document.querySelector("[data-order-form]").addEventListener("change", updateStepButtons);
+
 document.querySelectorAll('input[name="delivery"]').forEach(input => {
   input.addEventListener("change", () => {
     const needsAddress = input.value === "Envío a domicilio";
@@ -150,8 +166,14 @@ document.querySelectorAll('input[name="delivery"]').forEach(input => {
     ["address", "city", "postal_code"].forEach(name => {
       document.querySelector(`[name="${name}"]`).required = needsAddress;
     });
+    updateStepButtons();
   });
 });
+
+updateStepButtons();
+setTimeout(updateStepButtons, 400);
+setTimeout(updateStepButtons, 1200);
+window.addEventListener("pageshow", updateStepButtons);
 
 document.querySelectorAll("[data-next-step]").forEach(button => {
   button.addEventListener("click", () => {
