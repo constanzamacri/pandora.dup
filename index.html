@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=20260627-23">
+  <link rel="stylesheet" href="styles.css?v=20260627-32">
 </head>
 <body class="content-loading">
   <div class="announcement">
@@ -25,14 +25,11 @@
     <button class="icon-button mobile-menu" aria-label="Abrir menú" data-menu-button>
       <span></span><span></span>
     </button>
-    <a class="brand" href="#inicio" aria-label="pandora.dup, inicio">
+    <a class="brand" href="index.html" data-home-logo aria-label="pandora.dup, inicio">
       <span class="brand-logo" aria-hidden="true"></span>
     </a>
     <nav class="nav" data-nav>
-      <a href="#novedades">Novedades</a>
-      <a href="#productos">Promos</a>
-      <span data-category-nav></span>
-      <a href="#nosotras">Nosotras</a>
+      <span data-main-menu></span>
     </nav>
     <div class="header-actions">
       <a class="icon-button favorites-header-button" href="index.html?favorites=1" aria-label="Ver mis favoritos">
@@ -54,7 +51,7 @@
   <div class="search-panel" data-search-panel>
     <label for="search">¿Qué estás buscando?</label>
     <div>
-      <input id="search" type="search" placeholder="Buscar aros, collares, anillos..." data-search-input>
+      <input id="search" type="search" placeholder="Buscar charms, pulseras..." data-search-input>
       <button class="search-submit" type="button" data-search-submit>BUSCAR</button>
       <button class="icon-button" data-search-close aria-label="Cerrar búsqueda">×</button>
     </div>
@@ -92,7 +89,11 @@
           <button data-filter="pulseras">Pulseras</button>
         </div>
       </div>
-      <div class="product-grid" data-products></div>
+      <div class="product-carousel">
+        <button class="carousel-arrow carousel-arrow-prev" type="button" data-carousel-prev aria-label="Ver productos anteriores">←</button>
+        <div class="product-grid" data-products></div>
+        <button class="carousel-arrow carousel-arrow-next" type="button" data-carousel-next aria-label="Ver más productos">→</button>
+      </div>
       <p class="empty-state" data-empty>No encontramos productos con esa búsqueda.</p>
     </section>
 
@@ -100,7 +101,11 @@
       <div class="section-heading">
         <div><p class="eyebrow">ENCONTRÁ TU ESTILO</p><h2>Comprá por categoría</h2></div>
       </div>
-      <div class="category-grid" data-store-categories></div>
+      <div class="category-carousel">
+        <button class="carousel-arrow carousel-arrow-prev" type="button" data-category-prev aria-label="Ver categorías anteriores">←</button>
+        <div class="category-grid" data-store-categories></div>
+        <button class="carousel-arrow carousel-arrow-next" type="button" data-category-next aria-label="Ver más categorías">→</button>
+      </div>
     </section>
 
     <section class="editorial" id="novedades">
@@ -108,19 +113,22 @@
         <span>Hecho para durar</span>
       </div>
       <div class="editorial-copy">
-        <p class="eyebrow">MÁS QUE UN ACCESORIO</p>
-        <h2>Tu historia,<br><em>tu manera.</em></h2>
-        <p>Cada pieza está pensada para combinarse, mezclarse y convertirse en parte de vos.</p>
-        <a class="text-link" href="#productos">DESCUBRIR LA COLECCIÓN <span>→</span></a>
+        <h2>HECHO PARA VOS</h2>
+        <p>Nuestros artículos están elaborados en aleación con terminación plateada, seleccionados para crear pulseras únicas y personalizadas.</p>
+        <p>Para conservar mejor su brillo y acabado, recomendamos evitar el contacto con agua, perfumes o productos químicos.</p>
       </div>
       <div class="editorial-image editorial-small" data-content-image="editorial_small_image"></div>
     </section>
 
     <section class="story" id="nosotras">
-      <p class="eyebrow">NUESTRA ESENCIA</p>
-      <blockquote data-content="story_title">“Creemos que los pequeños detalles tienen el poder de cambiarlo todo.”</blockquote>
-      <p data-content="story_description">pandora.dup nació para crear accesorios que se sientan tan personales como los recuerdos que llevamos con ellos.</p>
-      <a class="text-link" href="#">CONOCÉ NUESTRA HISTORIA <span>→</span></a>
+      <p class="eyebrow">IDEAL PARA REGALAR</p>
+      <h2 data-content="gift_title">Un detalle especial para cada ocasión</h2>
+      <div class="story-copy">
+        <p data-content="gift_description_1">Nuestros accesorios son una opción especial para regalar algo lindo, personal y con significado.</p>
+        <p data-content="gift_description_2">Realizamos ventas minoristas y también preparamos pedidos para eventos especiales como cumpleaños de 15, celebraciones, souvenirs o detalles para invitados.</p>
+        <p data-content="gift_description_3">Podés elegir pulseras, charms y combinaciones personalizadas para crear un regalo único.</p>
+      </div>
+      <a class="text-link" href="https://wa.me/5492915072517?text=Hola%2C%20quiero%20consultar%20por%20accesorios%20para%20un%20evento" target="_blank" rel="noopener">CONSULTAR POR EVENTOS <span>→</span></a>
     </section>
 
     <section class="newsletter">
@@ -155,7 +163,7 @@
   </section>
 
   <footer>
-    <div class="footer-brand"><span class="footer-brand-logo" aria-label="Pandora Dup"></span></div>
+    <a class="footer-brand" href="index.html" data-home-logo aria-label="Pandora Dup, volver al inicio"><span class="footer-brand-logo"></span></a>
     <div><strong>TIENDA</strong><a href="#novedades">Novedades</a><a href="#productos">Productos</a><a href="#">Gift cards</a></div>
     <div><strong>AYUDA</strong><a href="#">Cómo comprar</a><a href="#">Envíos y cambios</a><a href="#">Preguntas frecuentes</a></div>
     <div><strong>SEGUINOS</strong><a href="https://www.instagram.com/" target="_blank" rel="noopener">Instagram ↗</a></div>
@@ -192,6 +200,6 @@
   </aside>
   <div class="toast" data-toast>Agregado a tu bolsa ♡</div>
 
-  <script src="script.js?v=20260627-17"></script>
+  <script src="script.js?v=20260627-32"></script>
 </body>
 </html>

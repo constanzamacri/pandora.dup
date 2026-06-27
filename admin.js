@@ -16,6 +16,7 @@ let supabase;
 let products = [];
 let orders = [];
 let categories = [];
+let menuItems = [];
 const editedImages = new WeakMap();
 let cropState = null;
 
@@ -51,7 +52,7 @@ function renderProducts() {
       <img src="${product.image_url}" alt="">
       <div>
         <h3>${product.name}</h3>
-        <p>${product.category} · ${money(product.price)} · Stock: ${product.stock}</p>
+        <p>${product.category} · ${money(product.price)} · Stock: ${getAdminAvailableStock(product)}${product.product_type === "composite" ? " calculado" : ""}</p>
       </div>
       <span class="status ${product.published ? "" : "draft"}">${product.published ? "Publicado" : "Oculto"}</span>
       <button type="button" data-edit-product="${product.id}">EDITAR</button>
@@ -59,8 +60,19 @@ function renderProducts() {
   `).join("");
   $("[data-products-empty]").classList.toggle("hidden", products.length > 0);
   $("[data-metric-published]").textContent = products.filter(product => product.published).length;
-  $("[data-metric-empty]").textContent = products.filter(product => product.stock === 0).length;
-  $("[data-metric-stock]").textContent = products.reduce((total, product) => total + product.stock, 0);
+  $("[data-metric-empty]").textContent = products.filter(product => getAdminAvailableStock(product) === 0).length;
+  $("[data-metric-stock]").textContent = products
+    .filter(product => product.product_type !== "composite")
+    .reduce((total, product) => total + product.stock, 0);
+}
+
+function getAdminAvailableStock(product) {
+  if (product.product_type !== "composite") return Number(product.stock) || 0;
+  if (!product.components?.length) return 0;
+  return Math.min(...product.components.map(component => {
+    const physicalProduct = products.find(item => item.id === component.component_product_id);
+    return Math.floor((Number(physicalProduct?.stock) || 0) / component.quantity);
+  }));
 }
 
 function renderOrders() {
@@ -115,22 +127,35 @@ async function loadOrders() {
 }
 
 async function loadProducts() {
-  const { data, error } = await supabase
+  const [{ data, error }, { data: componentRows, error: componentsError }] = await Promise.all([
+    supabase
     .from("products")
     .select("*")
     .order("sort_order")
-    .order("id");
+    .order("id"),
+    supabase.from("product_components").select("*")
+  ]);
   if (error) throw error;
-  products = data;
+  if (componentsError) throw componentsError;
+  products = (data || []).map(product => ({
+    ...product,
+    components: (componentRows || []).filter(row => row.composite_product_id === product.id)
+  }));
   renderProducts();
 }
 
 function renderCategories() {
   $("[data-category-list]").innerHTML = categories.map(category => `
-    <article class="admin-product">
+    <article class="admin-product ${category.image_url ? "" : "no-image"}">
+      ${category.image_url
+        ? `<img src="${escapeHtml(category.image_url)}" alt="Foto de ${escapeHtml(category.name)}">`
+        : ""}
       <div><h3>${escapeHtml(category.name)}</h3><p>${escapeHtml(category.id)} · Orden ${category.sort_order}</p></div>
       <span class="status ${category.published ? "" : "draft"}">${category.published ? "Publicada" : "Oculta"}</span>
-      <button type="button" data-edit-category="${category.id}">EDITAR</button>
+      <div class="category-actions">
+        <button type="button" data-edit-category="${escapeHtml(category.id)}">EDITAR</button>
+        <button class="delete-category" type="button" data-delete-category="${escapeHtml(category.id)}">ELIMINAR</button>
+      </div>
     </article>`).join("");
   const select = $("[data-product-form]").elements.category;
   select.innerHTML = categories.map(category =>
@@ -140,8 +165,79 @@ function renderCategories() {
 async function loadCategories() {
   const { data, error } = await supabase.from("categories").select("*").order("sort_order");
   if (error) throw error;
-  categories = data;
+  categories = data || [];
   renderCategories();
+  updateMenuTargetHelp();
+}
+
+const menuTypeLabels = {
+  category: "Categoría",
+  section: "Sección",
+  page: "Página interna",
+  external: "Link externo"
+};
+
+function renderMenuItems() {
+  $("[data-menu-list]").innerHTML = menuItems.map(item => `
+    <article class="admin-product">
+      <div>
+        <h3>${escapeHtml(item.label)}</h3>
+        <p>${menuTypeLabels[item.target_type]} · ${escapeHtml(item.target_value)} · Orden ${item.sort_order}</p>
+      </div>
+      <span class="status ${item.published ? "" : "draft"}">${item.published ? "Activa" : "Oculta"}</span>
+      <div class="category-actions">
+        <button type="button" data-edit-menu="${item.id}">EDITAR</button>
+        <button class="delete-category" type="button" data-delete-menu="${item.id}">ELIMINAR</button>
+      </div>
+    </article>`).join("");
+}
+
+async function loadMenuItems() {
+  const { data, error } = await supabase.from("menu_items").select("*").order("sort_order").order("id");
+  if (error) throw error;
+  menuItems = data || [];
+  renderMenuItems();
+}
+
+function resetMenuForm() {
+  const form = $("[data-menu-form]");
+  form.reset();
+  form.elements.id.value = "";
+  form.elements.published.checked = true;
+  $("[data-menu-form-title]").textContent = "Menú principal";
+  $("[data-cancel-menu]").classList.add("hidden");
+  updateMenuTargetHelp();
+}
+
+function updateMenuTargetHelp() {
+  const form = $("[data-menu-form]");
+  const type = form.elements.target_type.value;
+  const help = {
+    category: "Elegí el identificador de una categoría.",
+    section: "Usá el identificador de sección: inicio, productos, novedades o nosotras.",
+    page: "Ingresá la página interna, por ejemplo: account.html.",
+    external: "Ingresá el link completo, por ejemplo: https://instagram.com/."
+  };
+  const options = type === "category"
+    ? categories.map(category => `<option value="${escapeHtml(category.id)}">${escapeHtml(category.name)}</option>`).join("")
+    : type === "section"
+      ? ["inicio", "productos", "novedades", "nosotras"].map(value => `<option value="${value}"></option>`).join("")
+      : type === "page"
+        ? ["index.html", "account.html", "checkout.html"].map(value => `<option value="${value}"></option>`).join("")
+        : "";
+  $("[data-menu-target-options]").innerHTML = options;
+  $("[data-menu-target-help]").textContent = help[type];
+}
+
+function resetCategoryForm() {
+  const form = $("[data-category-form]");
+  editedImages.delete(form.elements.image);
+  form.reset();
+  form.elements.original_id.value = "";
+  form.elements.image_url.value = "";
+  form.elements.published.checked = true;
+  $("[data-category-form-title]").textContent = "Categorías";
+  $("[data-cancel-category]").classList.add("hidden");
 }
 
 async function loadContent() {
@@ -176,6 +272,7 @@ function openProduct(product = null) {
   form.elements.id.value = product?.id || "";
   form.elements.name.value = product?.name || "";
   form.elements.category.value = product?.category || "dijes";
+  form.elements.product_type.value = product?.product_type || "simple";
   form.elements.badge.value = product?.badge || "";
   form.elements.price.value = product?.price || "";
   form.elements.old_price.value = product?.old_price || "";
@@ -184,10 +281,48 @@ function openProduct(product = null) {
   form.elements.image_url.value = product?.image_url || "";
   form.elements.gallery_urls.value = JSON.stringify(product?.gallery_urls || []);
   form.elements.published.checked = product?.published ?? true;
+  renderComponentRows(product?.components || []);
+  updateProductTypeFields();
   $("[data-product-form-title]").textContent = product ? "Editar producto" : "Nuevo producto";
   $("[data-delete-product]").classList.toggle("hidden", !product);
   message("[data-product-message]", "");
   $("[data-product-modal]").classList.remove("hidden");
+}
+
+function componentOptions(selectedId = "") {
+  const currentId = Number($("[data-product-form]").elements.id.value);
+  return products
+    .filter(product => ["charm", "base"].includes(product.product_type) && product.id !== currentId)
+    .map(product => `<option value="${product.id}" ${String(product.id) === String(selectedId) ? "selected" : ""}>
+      ${escapeHtml(product.name)} · ${product.product_type === "base" ? "Pulsera base" : "Dije"} · Stock ${product.stock}
+    </option>`).join("");
+}
+
+function addComponentRow(component = {}) {
+  const row = document.createElement("div");
+  row.className = "component-row";
+  row.innerHTML = `
+    <select data-component-product required>
+      <option value="">Elegí un producto</option>
+      ${componentOptions(component.component_product_id)}
+    </select>
+    <input data-component-quantity type="number" min="1" step="1" value="${component.quantity || 1}" aria-label="Cantidad utilizada" required>
+    <button type="button" data-remove-component aria-label="Quitar componente">×</button>`;
+  $("[data-component-list]").append(row);
+}
+
+function renderComponentRows(components) {
+  $("[data-component-list]").innerHTML = "";
+  components.forEach(addComponentRow);
+}
+
+function updateProductTypeFields() {
+  const form = $("[data-product-form]");
+  const composite = form.elements.product_type.value === "composite";
+  $("[data-components-editor]").classList.toggle("hidden", !composite);
+  $("[data-product-stock-field]").classList.toggle("hidden", composite);
+  form.elements.stock.required = !composite;
+  if (composite) form.elements.stock.value = 0;
 }
 
 function closeProduct() {
@@ -332,7 +467,7 @@ if (!isSupabaseConfigured) {
     try {
       await verifyAdmin(session.user);
       showDashboard(session.user.email);
-      await Promise.all([loadOrders(), loadCategories(), loadProducts(), loadContent()]);
+      await Promise.all([loadOrders(), loadCategories(), loadProducts(), loadContent(), loadMenuItems()]);
     } catch (error) {
       showLogin();
       message("[data-login-message]", error.message, true);
@@ -352,7 +487,7 @@ $("[data-login-form]").addEventListener("submit", async event => {
   try {
     await verifyAdmin(data.user);
     showDashboard(data.user.email);
-    await Promise.all([loadOrders(), loadCategories(), loadProducts(), loadContent()]);
+    await Promise.all([loadOrders(), loadCategories(), loadProducts(), loadContent(), loadMenuItems()]);
   } catch (adminError) {
     message("[data-login-message]", adminError.message, true);
   }
@@ -369,6 +504,93 @@ document.querySelectorAll("[data-tab]").forEach(button => {
     document.querySelectorAll("[data-panel]").forEach(panel =>
       panel.classList.toggle("hidden", panel.dataset.panel !== button.dataset.tab)
     );
+  });
+});
+
+$("[data-menu-form]").elements.target_type.addEventListener("change", updateMenuTargetHelp);
+
+$("[data-menu-form]").addEventListener("submit", async event => {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const id = form.elements.id.value;
+  const targetType = form.elements.target_type.value;
+  const targetValue = form.elements.target_value.value.trim();
+  message("[data-menu-message]", "Guardando...");
+  try {
+    if (targetType === "category" && !categories.some(category => String(category.id) === targetValue)) {
+      throw new Error("Elegí una categoría válida.");
+    }
+    if (targetType === "external" && !/^https?:\/\//i.test(targetValue)) {
+      throw new Error("El link externo debe comenzar con http:// o https://.");
+    }
+    if (targetType === "page" && (!/^[a-z0-9][a-z0-9._/-]*(?:[?#].*)?$/i.test(targetValue) || targetValue.includes(".."))) {
+      throw new Error("Ingresá una ruta interna válida.");
+    }
+    const record = {
+      label: form.elements.label.value.trim(),
+      target_type: targetType,
+      target_value: targetValue.replace(/^#/, ""),
+      sort_order: Number(form.elements.sort_order.value),
+      published: form.elements.published.checked
+    };
+    const query = id
+      ? supabase.from("menu_items").update(record).eq("id", Number(id))
+      : supabase.from("menu_items").insert(record);
+    const { data, error } = await query.select("id").single();
+    if (error) throw error;
+    if (!data) throw new Error("La opción no pudo guardarse.");
+    resetMenuForm();
+    await loadMenuItems();
+    localStorage.setItem("pandoraMenuUpdatedAt", String(Date.now()));
+    message("[data-menu-message]", id ? "Opción actualizada." : "Opción agregada.");
+  } catch (error) {
+    message("[data-menu-message]", error.message, true);
+  }
+});
+
+$("[data-menu-list]").addEventListener("click", async event => {
+  const editButton = event.target.closest("[data-edit-menu]");
+  const deleteButton = event.target.closest("[data-delete-menu]");
+  if (editButton) {
+    const item = menuItems.find(menuItem => menuItem.id === Number(editButton.dataset.editMenu));
+    if (!item) return loadMenuItems();
+    const form = $("[data-menu-form]");
+    form.elements.id.value = item.id;
+    form.elements.label.value = item.label;
+    form.elements.target_type.value = item.target_type;
+    form.elements.target_value.value = item.target_value;
+    form.elements.sort_order.value = item.sort_order;
+    form.elements.published.checked = item.published;
+    updateMenuTargetHelp();
+    $("[data-menu-form-title]").textContent = `Editar ${item.label}`;
+    $("[data-cancel-menu]").classList.remove("hidden");
+    message("[data-menu-message]", `Estás editando la opción ${item.label}.`);
+    form.scrollIntoView({ behavior: "smooth", block: "start" });
+    return;
+  }
+  if (!deleteButton) return;
+  const item = menuItems.find(menuItem => menuItem.id === Number(deleteButton.dataset.deleteMenu));
+  if (!item || !confirm(`¿Querés eliminar la opción “${item.label}”?`)) return;
+  const { error } = await supabase.from("menu_items").delete().eq("id", item.id);
+  if (error) return message("[data-menu-message]", error.message, true);
+  if ($("[data-menu-form]").elements.id.value === String(item.id)) resetMenuForm();
+  await loadMenuItems();
+  localStorage.setItem("pandoraMenuUpdatedAt", String(Date.now()));
+  message("[data-menu-message]", "Opción eliminada.");
+});
+
+$("[data-cancel-menu]").addEventListener("click", () => {
+  resetMenuForm();
+  message("[data-menu-message]", "");
+});
+
+document.querySelectorAll("[data-admin-home-logo]").forEach(logo => {
+  logo.addEventListener("click", event => {
+    event.preventDefault();
+    const firstTab = document.querySelector("[data-tab]");
+    if (firstTab && !firstTab.classList.contains("active")) firstTab.click();
+    history.replaceState(null, "", window.location.pathname);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   });
 });
 
@@ -399,10 +621,21 @@ $("[data-product-list]").addEventListener("click", event => {
   if (button) openProduct(products.find(product => product.id === Number(button.dataset.editProduct)));
 });
 document.querySelectorAll("[data-close-product]").forEach(button => button.addEventListener("click", closeProduct));
+$("[data-product-form]").elements.product_type.addEventListener("change", () => {
+  updateProductTypeFields();
+  if ($("[data-product-form]").elements.product_type.value === "composite" &&
+      !$("[data-component-list]").children.length) addComponentRow();
+});
+$("[data-add-component]").addEventListener("click", () => addComponentRow());
+$("[data-component-list]").addEventListener("click", event => {
+  const button = event.target.closest("[data-remove-component]");
+  if (button) button.closest(".component-row").remove();
+});
 
 $("[data-category-form]").addEventListener("submit", async event => {
   event.preventDefault();
   const form = event.currentTarget;
+  message("[data-category-message]", "Guardando...");
   try {
     let imageUrl = form.elements.image_url.value;
     const categoryImage = editedImages.get(form.elements.image) || form.elements.image.files[0];
@@ -414,35 +647,71 @@ $("[data-category-form]").addEventListener("submit", async event => {
       sort_order: Number(form.elements.sort_order.value),
       published: form.elements.published.checked
     };
-    const { error } = await supabase.from("categories").upsert(record);
+    const originalId = form.elements.original_id.value;
+    const query = originalId
+      ? supabase.from("categories").update(record).eq("id", originalId)
+      : supabase.from("categories").insert(record);
+    const { data, error } = await query.select("id").single();
     if (error) throw error;
-    editedImages.delete(form.elements.image);
-    message("[data-category-message]", "Categoría guardada.");
-    form.reset();
-    form.elements.id.readOnly = false;
-    $("[data-category-form-title]").textContent = "Categorías";
-    await loadCategories();
+    if (!data) throw new Error("La categoría no pudo guardarse. Actualizá la lista e intentá nuevamente.");
+    resetCategoryForm();
+    await Promise.all([loadCategories(), loadProducts()]);
+    message("[data-category-message]", originalId ? "Categoría actualizada." : "Categoría creada.");
   } catch (error) {
     message("[data-category-message]", error.message, true);
   }
 });
 
 $("[data-category-list]").addEventListener("click", event => {
-  const button = event.target.closest("[data-edit-category]");
-  if (!button) return;
-  const category = categories.find(item => item.id === button.dataset.editCategory);
+  const editButton = event.target.closest("[data-edit-category]");
+  const deleteButton = event.target.closest("[data-delete-category]");
+  if (deleteButton) {
+    deleteCategory(deleteButton.dataset.deleteCategory);
+    return;
+  }
+  if (!editButton) return;
+  const categoryId = String(editButton.dataset.editCategory);
+  const category = categories.find(item => String(item.id) === categoryId);
+  if (!category) {
+    message("[data-category-message]", "No se encontró la categoría. La lista se actualizará.", true);
+    loadCategories().catch(error => message("[data-category-message]", error.message, true));
+    return;
+  }
   const form = $("[data-category-form]");
+  form.elements.original_id.value = String(category.id);
   form.elements.id.value = category.id;
-  form.elements.id.readOnly = true;
   form.elements.name.value = category.name;
   form.elements.image_url.value = category.image_url || "";
   form.elements.sort_order.value = category.sort_order;
   form.elements.published.checked = category.published;
   $("[data-category-form-title]").textContent = `Editar ${category.name}`;
+  $("[data-cancel-category]").classList.remove("hidden");
   message("[data-category-message]", `Estás editando la categoría ${category.name}.`);
   form.scrollIntoView({ behavior: "smooth", block: "start" });
   setTimeout(() => form.elements.name.focus(), 450);
 });
+
+$("[data-cancel-category]").addEventListener("click", () => {
+  resetCategoryForm();
+  message("[data-category-message]", "");
+});
+
+async function deleteCategory(categoryId) {
+  const category = categories.find(item => String(item.id) === String(categoryId));
+  if (!category || !confirm(`¿Querés eliminar la categoría “${category.name}”?`)) return;
+  message("[data-category-message]", "Eliminando...");
+  const { error } = await supabase.from("categories").delete().eq("id", category.id);
+  if (error) {
+    const text = error.code === "23503"
+      ? "No se puede eliminar porque tiene productos asociados. Cambiá esos productos de categoría primero."
+      : error.message;
+    message("[data-category-message]", text, true);
+    return;
+  }
+  if ($("[data-category-form]").elements.original_id.value === String(category.id)) resetCategoryForm();
+  await loadCategories();
+  message("[data-category-message]", "Categoría eliminada.");
+}
 
 $("[data-product-form]").addEventListener("submit", async event => {
   event.preventDefault();
@@ -453,6 +722,28 @@ $("[data-product-form]").addEventListener("submit", async event => {
     if (!form.elements.category.value ||
         !categories.some(category => category.id === form.elements.category.value)) {
       throw new Error("Elegí una categoría válida para el producto.");
+    }
+    const productType = form.elements.product_type.value;
+    const components = [...$("[data-component-list]").querySelectorAll(".component-row")]
+      .map(row => ({
+        productId: Number(row.querySelector("[data-component-product]").value),
+        quantity: Number(row.querySelector("[data-component-quantity]").value)
+      }))
+      .filter(component => component.productId);
+    if (productType === "composite") {
+      if (!components.length) throw new Error("Agregá la pulsera base y los dijes de la composición.");
+      if (new Set(components.map(component => component.productId)).size !== components.length) {
+        throw new Error("Cada componente debe aparecer una sola vez. Ajustá su cantidad en la misma fila.");
+      }
+      const selectedProducts = components.map(component =>
+        products.find(product => product.id === component.productId)
+      );
+      if (selectedProducts.filter(product => product?.product_type === "base").length !== 1) {
+        throw new Error("La pulsera armada debe usar exactamente una pulsera base.");
+      }
+      if (selectedProducts.some(product => !product || !["base", "charm"].includes(product.product_type))) {
+        throw new Error("La composición solo puede incluir una pulsera base y dijes.");
+      }
     }
     let imageUrl = form.elements.image_url.value;
     const productImage = editedImages.get(form.elements.image) || form.elements.image.files[0];
@@ -471,7 +762,8 @@ $("[data-product-form]").addEventListener("submit", async event => {
       badge: form.elements.badge.value.trim() || null,
       price: Number(form.elements.price.value),
       old_price: form.elements.old_price.value ? Number(form.elements.old_price.value) : null,
-      stock: Number(form.elements.stock.value),
+      stock: productType === "composite" ? 0 : Number(form.elements.stock.value),
+      product_type: productType,
       sort_order: Number(form.elements.sort_order.value || 0),
       image_url: imageUrl,
       gallery_urls: galleryUrls,
@@ -481,9 +773,15 @@ $("[data-product-form]").addEventListener("submit", async event => {
     const query = id
       ? supabase.from("products").update(record).eq("id", Number(id))
       : supabase.from("products").insert(record);
-    const { error } = await query;
+    const { data: savedProduct, error } = await query.select("id").single();
     if (error) throw error;
+    const { error: componentsError } = await supabase.rpc("replace_product_components", {
+      p_product_id: savedProduct.id,
+      p_components: productType === "composite" ? components : []
+    });
+    if (componentsError) throw componentsError;
     await loadProducts();
+    localStorage.setItem("pandoraProductsUpdatedAt", String(Date.now()));
     closeProduct();
   } catch (error) {
     message("[data-product-message]", error.message, true);
@@ -496,6 +794,7 @@ $("[data-delete-product]").addEventListener("click", async () => {
   const { error } = await supabase.from("products").delete().eq("id", id);
   if (error) return message("[data-product-message]", error.message, true);
   await loadProducts();
+  localStorage.setItem("pandoraProductsUpdatedAt", String(Date.now()));
   closeProduct();
 });
 

@@ -213,8 +213,9 @@ document.querySelector("[data-order-form]").addEventListener("submit", async eve
     await saveOrder(form, orderNumber);
   } catch (error) {
     submitButton.disabled = false;
-    document.querySelector("[data-order-message]").textContent =
-      "No pudimos registrar el pedido. Revisá tu conexión e intentá nuevamente.";
+    document.querySelector("[data-order-message]").textContent = /stock insuficiente/i.test(error.message)
+      ? "Cambió la disponibilidad de uno de los productos. Volvé al carrito y ajustá las cantidades."
+      : "No pudimos registrar el pedido. Revisá tu conexión e intentá nuevamente.";
     return;
   }
   document.querySelector("[data-receipt-text]").value = buildReceipt(form, orderNumber);

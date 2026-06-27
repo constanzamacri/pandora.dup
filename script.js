@@ -10,6 +10,7 @@ const fallbackProducts = [
 ];
 
 let products = [];
+let mixedProducts = [];
 let activeFilter = "todos";
 let searchTerm = "";
 let cart = [];
@@ -21,6 +22,9 @@ const catalogParams = new URLSearchParams(window.location.search);
 const requestedCategory = catalogParams.get("category");
 const requestedSearch = catalogParams.get("search");
 const requestedFavorites = catalogParams.get("favorites") === "1";
+const escapeHtml = value => String(value ?? "").replace(/[&<>"']/g, character => ({
+  "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;"
+})[character]);
 
 if (requestedCategory || requestedSearch || requestedFavorites) {
   document.body.classList.add("catalog-view");
@@ -44,8 +48,95 @@ try {
 const money = value => new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS", maximumFractionDigits: 0 }).format(value);
 const grid = document.querySelector("[data-products]");
 
+function shuffle(items) {
+  const result = [...items];
+  for (let index = result.length - 1; index > 0; index -= 1) {
+    const randomIndex = Math.floor(Math.random() * (index + 1));
+    [result[index], result[randomIndex]] = [result[randomIndex], result[index]];
+  }
+  return result;
+}
+
+function mixProducts(items) {
+  const groups = new Map();
+  items.forEach(product => {
+    if (!groups.has(product.category)) groups.set(product.category, []);
+    groups.get(product.category).push(product);
+  });
+  const categoryGroups = shuffle([...groups.values()]).map(group => shuffle(group));
+  const mixed = [];
+  while (categoryGroups.some(group => group.length)) {
+    categoryGroups.forEach(group => {
+      const product = group.shift();
+      if (product) mixed.push(product);
+    });
+  }
+  return mixed;
+}
+
+function menuHref(item) {
+  if (item.target_type === "category") {
+    return `index.html?category=${encodeURIComponent(item.target_value)}`;
+  }
+  if (item.target_type === "section") {
+    return item.target_value === "inicio"
+      ? "index.html"
+      : `index.html#${encodeURIComponent(item.target_value.replace(/^#/, ""))}`;
+  }
+  if (item.target_type === "page" && /^[a-z0-9][a-z0-9._/-]*(?:[?#].*)?$/i.test(item.target_value) && !item.target_value.includes("..")) {
+    return item.target_value;
+  }
+  if (item.target_type === "external" && /^https?:\/\//i.test(item.target_value)) {
+    return item.target_value;
+  }
+  return "#";
+}
+
+function renderMainMenu(menuItems) {
+  document.querySelector("[data-main-menu]").innerHTML = menuItems.map(item => {
+    const externalAttributes = item.target_type === "external" ? ` target="_blank" rel="noopener"` : "";
+    const homeAttribute = item.target_type === "section" && item.target_value === "inicio"
+      ? " data-menu-home"
+      : "";
+    return `<a href="${escapeHtml(menuHref(item))}"${homeAttribute}${externalAttributes}>${escapeHtml(item.label)}</a>`;
+  }).join("");
+}
+
+const normalizeStoreProduct = product => ({
+  ...product,
+  physical_stock: product.stock,
+  stock: Number(product.available_stock),
+  old: product.old_price,
+  image: product.image_url
+});
+
+async function refreshProductAvailability() {
+  if (!storeClient) return;
+  const { data, error } = await storeClient.rpc("get_store_products");
+  if (error) return;
+  products = (data || []).map(normalizeStoreProduct);
+  mixedProducts = mixProducts(products);
+  renderProducts();
+  if (detailProduct) {
+    const updatedDetail = products.find(product => product.id === detailProduct.id);
+    if (updatedDetail) openProductDetail(updatedDetail);
+  }
+}
+
+async function refreshPublicMenu() {
+  if (!storeClient) return;
+  const { data, error } = await storeClient
+    .from("menu_items")
+    .select("*")
+    .eq("published", true)
+    .order("sort_order")
+    .order("id");
+  if (!error) renderMainMenu(data || []);
+}
+
 function renderProducts() {
-  const visible = products.filter(product =>
+  const source = mixedProducts.length === products.length ? mixedProducts : products;
+  const visible = source.filter(product =>
     (activeFilter === "todos" || product.category === activeFilter) &&
     product.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
     (!requestedFavorites || favoriteIds.has(product.id))
@@ -69,6 +160,7 @@ function renderProducts() {
         <div class="transfer">${money(Math.round(product.price * .9))} con transferencia</div>
       </div>
     </article>`).join("");
+  grid.scrollLeft = 0;
   document.querySelector("[data-empty]").classList.toggle("visible", visible.length === 0);
 }
 
@@ -91,8 +183,11 @@ function openProductDetail(product) {
     `${product.old ? `<del>${money(product.old)}</del>` : ""}<span>${money(product.price)}</span>`;
   document.querySelector("[data-product-detail-transfer]").textContent =
     `${money(Math.round(product.price * .9))} pagando por transferencia`;
-  document.querySelector("[data-product-detail-stock]").textContent =
-    product.stock > 0 ? `${product.stock} unidades disponibles` : "Sin stock";
+  const stock = Number(product.stock) || 0;
+  const stockText = stock === 1 ? "1 unidad disponible" : `${stock} unidades disponibles`;
+  document.querySelector("[data-product-detail-stock]").innerHTML = stock === 0
+    ? "Sin stock"
+    : `${stock <= 2 ? '<span class="low-stock-warning">¡Quedan pocas unidades!</span>' : ""}<span>${stockText}</span>`;
   const addButton = document.querySelector("[data-product-detail-add]");
   addButton.disabled = product.stock === 0;
   addButton.firstChild.textContent = product.stock === 0 ? "SIN STOCK " : "AGREGAR AL CARRITO ";
@@ -134,18 +229,21 @@ async function loadStoreData() {
         .eq("user_id", currentUser.id);
       (savedFavorites || []).forEach(item => favoriteIds.add(Number(item.product_id)));
     }
-    const [{ data: remoteProducts, error: productsError }, { data: content, error: contentError }, { data: categories }] =
+    const [
+      { data: remoteProducts, error: productsError },
+      { data: content, error: contentError },
+      { data: categories },
+      { data: menuItems, error: menuError }
+    ] =
       await Promise.all([
-        client.from("products").select("*").eq("published", true).order("sort_order").order("id"),
+        client.rpc("get_store_products"),
         client.from("site_content").select("key,value"),
-        client.from("categories").select("*").eq("published", true).order("sort_order")
+        client.from("categories").select("*").eq("published", true).order("sort_order"),
+        client.from("menu_items").select("*").eq("published", true).order("sort_order").order("id")
       ]);
     if (!productsError && remoteProducts?.length) {
-      products = remoteProducts.map(product => ({
-        ...product,
-        old: product.old_price,
-        image: product.image_url
-      }));
+      products = remoteProducts.map(normalizeStoreProduct);
+      mixedProducts = mixProducts(products);
       renderProducts();
     }
     const contentValues = !contentError
@@ -164,20 +262,26 @@ async function loadStoreData() {
         }
       });
     }
+    if (!menuError) {
+      renderMainMenu(menuItems || []);
+    }
     if (categories?.length) {
+      const categoryNames = categories.map(category => category.name.toLocaleLowerCase("es-AR"));
+      document.querySelector("[data-search-input]").placeholder =
+        `Buscar ${categoryNames.slice(0, 3).join(", ")}${categoryNames.length > 3 ? "..." : ""}`;
       document.querySelector("[data-category-filters]").innerHTML =
         `<button class="active" data-filter="todos">Todo</button>` +
-        categories.map(category => `<button data-filter="${category.id}">${category.name}</button>`).join("");
+        categories.map(category => `<button data-filter="${escapeHtml(category.id)}">${escapeHtml(category.name)}</button>`).join("");
       document.querySelector("[data-store-categories]").innerHTML = categories.map((category, index) => {
         const imageUrl = category.image_url || contentValues[`category_${index + 1}_image`] || "";
         return `
-          <a href="#productos" data-filter-link="${category.id}" class="category"
+          <a href="#productos" data-filter-link="${escapeHtml(category.id)}" class="category"
             ${imageUrl ? `style="background-image:url('${imageUrl}')"` : ""}>
-            <span>${category.name}</span>
+            <span>${escapeHtml(category.name)}</span>
           </a>`;
       }).join("");
       document.querySelectorAll("[data-filter]").forEach(button =>
-        button.addEventListener("click", () => openCategoryView(button.dataset.filter))
+        button.addEventListener("click", () => setFilter(button.dataset.filter))
       );
       document.querySelectorAll("[data-filter]").forEach(button =>
         button.classList.toggle("active", button.dataset.filter === activeFilter)
@@ -200,6 +304,25 @@ function setFilter(filter) {
   renderProducts();
 }
 
+function moveCarousel(direction) {
+  const card = grid.querySelector(".product-card");
+  const distance = card ? card.getBoundingClientRect().width + 18 : grid.clientWidth * 0.8;
+  grid.scrollBy({ left: direction * distance, behavior: "smooth" });
+}
+
+document.querySelector("[data-carousel-prev]").addEventListener("click", () => moveCarousel(-1));
+document.querySelector("[data-carousel-next]").addEventListener("click", () => moveCarousel(1));
+
+function moveCategoryCarousel(direction) {
+  const categoryGrid = document.querySelector("[data-store-categories]");
+  const category = categoryGrid.querySelector(".category");
+  const distance = category ? category.getBoundingClientRect().width + 18 : categoryGrid.clientWidth * 0.8;
+  categoryGrid.scrollBy({ left: direction * distance, behavior: "smooth" });
+}
+
+document.querySelector("[data-category-prev]").addEventListener("click", () => moveCategoryCarousel(-1));
+document.querySelector("[data-category-next]").addEventListener("click", () => moveCategoryCarousel(1));
+
 function openCategoryView(category) {
   if (category === "todos") {
     window.location.href = "index.html?category=todos";
@@ -207,6 +330,16 @@ function openCategoryView(category) {
   }
   window.location.href = `index.html?category=${encodeURIComponent(category)}`;
 }
+
+document.querySelectorAll("[data-home-logo]").forEach(logo => {
+  logo.addEventListener("click", event => {
+    const isMainView = !window.location.search;
+    if (!isMainView) return;
+    event.preventDefault();
+    history.replaceState(null, "", window.location.pathname);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+});
 
 function openSearchView() {
   const term = document.querySelector("[data-search-input]").value.trim();
@@ -245,7 +378,8 @@ function updateCart() {
     return result;
   }, {}));
   items.innerHTML = grouped.map(item => `
-    <article class="cart-item">
+    <article class="cart-item" data-cart-product="${item.id}" role="button" tabindex="0"
+      aria-label="Ver detalle de ${item.name}">
       <img src="${item.image || item.image_url}" alt="${item.name}">
       <div class="cart-item-info">
         ${item.badge ? `<span class="cart-item-badge">${item.badge}</span>` : ""}
@@ -278,7 +412,51 @@ function toggleCart(open) {
   document.body.classList.toggle("no-scroll", open);
 }
 
-document.addEventListener("click", event => {
+function groupedCartPayload(items) {
+  return Object.values(items.reduce((groups, item) => {
+    const key = String(item.id);
+    if (!groups[key]) groups[key] = { id: item.id, quantity: 0 };
+    groups[key].quantity += 1;
+    return groups;
+  }, {}));
+}
+
+function showCartToast(text) {
+  const toast = document.querySelector("[data-toast]");
+  toast.textContent = text;
+  toast.classList.add("show");
+  setTimeout(() => toast.classList.remove("show"), 1800);
+}
+
+async function tryAddToCart(product) {
+  if (!product || Number(product.stock) <= 0) return false;
+  const nextCart = [...cart, { ...product }];
+  if (storeClient) {
+    const { data: hasStock, error } = await storeClient.rpc("validate_cart_stock", {
+      p_items: groupedCartPayload(nextCart)
+    });
+    if (error || !hasStock) {
+      showCartToast("No hay stock suficiente para esta combinación");
+      return false;
+    }
+  } else {
+    const quantity = nextCart.filter(item => String(item.id) === String(product.id)).length;
+    if (quantity > product.stock) return false;
+  }
+  cart.push({ ...product });
+  updateCart();
+  showCartToast("Agregado a tu bolsa ♡");
+  return true;
+}
+
+function openProductFromCart(productId) {
+  const product = products.find(item => String(item.id) === String(productId));
+  if (!product) return;
+  toggleCart(false);
+  openProductDetail(product);
+}
+
+document.addEventListener("click", async event => {
   const favorite = event.target.closest("[data-favorite]");
   if (favorite) {
     event.preventDefault();
@@ -289,11 +467,8 @@ document.addEventListener("click", event => {
   const add = event.target.closest("[data-add]");
   if (add) {
     event.stopPropagation();
-    cart.push(products.find(product => product.id === Number(add.dataset.add)));
-    updateCart();
-    const toast = document.querySelector("[data-toast]");
-    toast.classList.add("show");
-    setTimeout(() => toast.classList.remove("show"), 1800);
+    await tryAddToCart(products.find(product => product.id === Number(add.dataset.add)));
+    return;
   }
   const decrease = event.target.closest("[data-decrease]");
   if (decrease) {
@@ -304,16 +479,21 @@ document.addEventListener("click", event => {
   const increase = event.target.closest("[data-increase]");
   if (increase) {
     const productId = Number(increase.dataset.increase);
-    const product = cart.find(item => item.id === productId);
-    const quantity = cart.filter(item => item.id === productId).length;
-    if (product && (product.stock == null || quantity < product.stock)) cart.push({ ...product });
-    updateCart();
+    const product = products.find(item => item.id === productId) || cart.find(item => item.id === productId);
+    await tryAddToCart(product);
+    return;
   }
   const remove = event.target.closest("[data-remove-product]");
   if (remove) {
     const productId = Number(remove.dataset.removeProduct);
     cart = cart.filter(item => item.id !== productId);
     updateCart();
+  }
+  const cartProduct = event.target.closest("[data-cart-product]");
+  const cartControl = event.target.closest("[data-decrease], [data-increase], [data-remove-product]");
+  if (cartProduct && !cartControl) {
+    openProductFromCart(cartProduct.dataset.cartProduct);
+    return;
   }
   const filterLink = event.target.closest("[data-filter-link]");
   if (filterLink) {
@@ -329,19 +509,18 @@ document.addEventListener("click", event => {
   if (thumbnail) showProductImage(thumbnail.dataset.productThumbnail, thumbnail);
 });
 
-document.querySelector("[data-product-detail-add]").addEventListener("click", () => {
+document.querySelector("[data-product-detail-add]").addEventListener("click", async () => {
   if (!detailProduct || detailProduct.stock === 0) return;
-  const quantity = cart.filter(item => item.id === detailProduct.id).length;
-  if (quantity < detailProduct.stock) {
-    cart.push({ ...detailProduct });
-    updateCart();
-  }
+  await tryAddToCart(detailProduct);
 });
 document.querySelector("[data-product-detail-close]").addEventListener("click", closeProductDetail);
 document.querySelector("[data-product-detail-overlay]").addEventListener("click", closeProductDetail);
 
-document.querySelectorAll("[data-filter]").forEach(button => button.addEventListener("click", () => openCategoryView(button.dataset.filter)));
-document.querySelector("[data-cart-button]").addEventListener("click", () => toggleCart(true));
+document.querySelectorAll("[data-filter]").forEach(button => button.addEventListener("click", () => setFilter(button.dataset.filter)));
+document.querySelector("[data-cart-button]").addEventListener("click", async () => {
+  await refreshProductAvailability();
+  toggleCart(true);
+});
 document.querySelectorAll("[data-cart-close]").forEach(button => button.addEventListener("click", () => toggleCart(false)));
 document.querySelector("[data-checkout-start]").addEventListener("click", () => {
   localStorage.setItem("pandoraCart", JSON.stringify(cart));
@@ -353,6 +532,21 @@ document.querySelector("[data-clear-cart]").addEventListener("click", () => {
 });
 document.querySelector("[data-overlay]").addEventListener("click", () => toggleCart(false));
 document.querySelector("[data-menu-button]").addEventListener("click", () => document.querySelector("[data-nav]").classList.toggle("open"));
+document.querySelector("[data-nav]").addEventListener("click", event => {
+  const link = event.target.closest("a");
+  if (!link) return;
+  document.querySelector("[data-nav]").classList.remove("open");
+  if (!link.matches("[data-menu-home]")) return;
+  event.preventDefault();
+  closeProductDetail();
+  toggleCart(false);
+  if (window.location.search || !/\/(?:index\.html)?$/i.test(window.location.pathname)) {
+    window.location.href = "index.html";
+    return;
+  }
+  history.replaceState(null, "", window.location.pathname);
+  window.scrollTo({ top: 0, behavior: "smooth" });
+});
 const searchPanel = document.querySelector("[data-search-panel]");
 const searchButton = document.querySelector("[data-search-button]");
 function toggleSearch(open) {
@@ -363,6 +557,12 @@ function toggleSearch(open) {
 searchButton.addEventListener("click", () => toggleSearch(true));
 document.querySelector("[data-search-close]").addEventListener("click", () => toggleSearch(false));
 document.addEventListener("keydown", event => {
+  const cartProduct = event.target.closest("[data-cart-product]");
+  if (cartProduct && event.target === cartProduct && (event.key === "Enter" || event.key === " ")) {
+    event.preventDefault();
+    openProductFromCart(cartProduct.dataset.cartProduct);
+    return;
+  }
   if (event.key === "Escape") {
     toggleSearch(false);
     closeProductDetail();
@@ -373,11 +573,15 @@ document.querySelector("[data-search-input]").addEventListener("keydown", event 
   if (event.key === "Enter") openSearchView();
 });
 window.addEventListener("storage", event => {
+  if (event.key === "pandoraMenuUpdatedAt") refreshPublicMenu();
+  if (event.key === "pandoraProductsUpdatedAt") refreshProductAvailability();
   if (event.key === "pandoraCart" && event.newValue === null) {
     cart = [];
     updateCart();
+    refreshProductAvailability();
   }
 });
+window.addEventListener("focus", refreshProductAvailability);
 
 renderProducts();
 updateCart();
