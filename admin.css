@@ -43,6 +43,12 @@ form button, .primary-action { padding: 14px 20px; color: white; background: var
 .content-form h3 { margin: 35px 0 20px; font-size: 18px; }
 .upload-help { margin: -10px 0 22px; color: var(--muted); font-size: 10px; line-height: 1.5; }
 input[type="file"] { padding: 12px; background: #f7f5f1; cursor: pointer; }
+.photo-field { margin-bottom: 22px; padding: 18px; border: 1px solid var(--line); background: #faf9f6; }
+.photo-preview { width: min(100%, 460px); max-height: 360px; margin: 0 0 18px; background: #ece8e1 center/cover no-repeat; }
+.photo-field > label { margin-bottom: 14px; }
+.position-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.position-controls label { margin: 0; color: var(--muted); font-size: 9px; }
+.position-controls input { padding: 0; }
 .order-admin-list { display: grid; gap: 12px; }
 .admin-order { padding: 22px; background: white; border: 1px solid var(--line); }
 .order-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; }
@@ -96,4 +102,5 @@ input[type="file"] { padding: 12px; background: #f7f5f1; cursor: pointer; }
   .admin-product .status { display: none; }
   .form-grid { grid-template-columns: 1fr; }
   .crop-controls { grid-template-columns: 1fr; }
+  .position-controls { grid-template-columns: 1fr; }
 }

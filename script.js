@@ -65,11 +65,17 @@ async function loadStoreData() {
       renderProducts();
     }
     if (!contentError) {
+      const contentValues = Object.fromEntries(content.map(item => [item.key, item.value]));
       content.forEach(item => {
         const element = document.querySelector(`[data-content="${item.key}"]`);
         if (element) element.textContent = item.value;
         const image = document.querySelector(`[data-content-image="${item.key}"]`);
-        if (image) image.style.backgroundImage = `url("${item.value}")`;
+        if (image) {
+          image.style.backgroundImage = `url("${item.value}")`;
+          const x = contentValues[`${item.key}_position_x`] || 50;
+          const y = contentValues[`${item.key}_position_y`] || 50;
+          image.style.backgroundPosition = `${x}% ${y}%`;
+        }
       });
     }
     if (categories?.length) {

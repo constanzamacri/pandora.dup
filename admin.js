@@ -151,6 +151,23 @@ async function loadContent() {
   data.forEach(item => {
     if (form.elements[item.key]) form.elements[item.key].value = item.value;
   });
+  document.querySelectorAll(".photo-field").forEach(updatePhotoPreview);
+}
+
+function updatePhotoPreview(field) {
+  const fileInput = field.querySelector('input[type="file"]');
+  const key = fileInput.name.replace(/_file$/, "");
+  const url = field.dataset.previewUrl || field.querySelector(`input[name="${key}"]`).value;
+  let preview = field.querySelector(".photo-preview");
+  if (!preview) {
+    preview = document.createElement("div");
+    preview.className = "photo-preview";
+    preview.style.aspectRatio = String(cropRatios[fileInput.name] || 1);
+    field.prepend(preview);
+  }
+  preview.style.backgroundImage = url ? `url("${url}")` : "none";
+  preview.style.backgroundPosition =
+    `${field.querySelector(`[name="${key}_position_x"]`).value}% ${field.querySelector(`[name="${key}_position_y"]`).value}%`;
 }
 
 function openProduct(product = null) {
@@ -264,6 +281,11 @@ document.querySelectorAll('input[type="file"][accept*="image"]').forEach(input =
     if (file) openImageEditor(input, file);
   });
 });
+document.querySelectorAll(".photo-field").forEach(field => {
+  field.querySelectorAll('input[type="range"]').forEach(control =>
+    control.addEventListener("input", () => updatePhotoPreview(field))
+  );
+});
 
 document.querySelectorAll("[data-crop-zoom],[data-crop-x],[data-crop-y]")
   .forEach(control => control.addEventListener("input", drawCrop));
@@ -277,6 +299,12 @@ $("[data-image-apply]").addEventListener("click", () => {
     const file = new File([blob], `${crypto.randomUUID()}.webp`, { type: "image/webp" });
     editedImages.set(input, file);
     input.closest("label").classList.add("image-ready");
+    const photoField = input.closest(".photo-field");
+    if (photoField) {
+      if (photoField.dataset.previewUrl) URL.revokeObjectURL(photoField.dataset.previewUrl);
+      photoField.dataset.previewUrl = URL.createObjectURL(file);
+      updatePhotoPreview(photoField);
+    }
     closeImageEditor();
   }, "image/webp", 0.9);
 });

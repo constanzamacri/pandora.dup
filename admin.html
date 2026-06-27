@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="admin.css?v=20260627-2">
+  <link rel="stylesheet" href="admin.css?v=20260627-3">
 </head>
 <body>
   <main class="admin-shell">
@@ -105,12 +105,12 @@
           <label>Descripción de nuestra esencia<textarea name="story_description" rows="3" required></textarea></label>
           <h3>Imágenes principales</h3>
           <p class="upload-help">Elegí una foto solo cuando quieras reemplazar la actual.</p>
-          <label>Portada<input name="hero_image_file" type="file" accept="image/jpeg,image/png,image/webp"></label><input name="hero_image" type="hidden">
-          <label>Editorial principal<input name="editorial_main_image_file" type="file" accept="image/jpeg,image/png,image/webp"></label><input name="editorial_main_image" type="hidden">
-          <label>Editorial secundaria<input name="editorial_small_image_file" type="file" accept="image/jpeg,image/png,image/webp"></label><input name="editorial_small_image" type="hidden">
-          <label>Categoría 1<input name="category_1_image_file" type="file" accept="image/jpeg,image/png,image/webp"></label><input name="category_1_image" type="hidden">
-          <label>Categoría 2<input name="category_2_image_file" type="file" accept="image/jpeg,image/png,image/webp"></label><input name="category_2_image" type="hidden">
-          <label>Categoría 3<input name="category_3_image_file" type="file" accept="image/jpeg,image/png,image/webp"></label><input name="category_3_image" type="hidden">
+          <div class="photo-field"><label>Portada<input name="hero_image_file" type="file" accept="image/jpeg,image/png,image/webp"></label><input name="hero_image" type="hidden"><div class="position-controls"><label>Horizontal<input name="hero_image_position_x" type="range" min="0" max="100" value="50"></label><label>Vertical<input name="hero_image_position_y" type="range" min="0" max="100" value="50"></label></div></div>
+          <div class="photo-field"><label>Editorial principal<input name="editorial_main_image_file" type="file" accept="image/jpeg,image/png,image/webp"></label><input name="editorial_main_image" type="hidden"><div class="position-controls"><label>Horizontal<input name="editorial_main_image_position_x" type="range" min="0" max="100" value="50"></label><label>Vertical<input name="editorial_main_image_position_y" type="range" min="0" max="100" value="50"></label></div></div>
+          <div class="photo-field"><label>Editorial secundaria<input name="editorial_small_image_file" type="file" accept="image/jpeg,image/png,image/webp"></label><input name="editorial_small_image" type="hidden"><div class="position-controls"><label>Horizontal<input name="editorial_small_image_position_x" type="range" min="0" max="100" value="50"></label><label>Vertical<input name="editorial_small_image_position_y" type="range" min="0" max="100" value="50"></label></div></div>
+          <div class="photo-field"><label>Categoría 1<input name="category_1_image_file" type="file" accept="image/jpeg,image/png,image/webp"></label><input name="category_1_image" type="hidden"><div class="position-controls"><label>Horizontal<input name="category_1_image_position_x" type="range" min="0" max="100" value="50"></label><label>Vertical<input name="category_1_image_position_y" type="range" min="0" max="100" value="50"></label></div></div>
+          <div class="photo-field"><label>Categoría 2<input name="category_2_image_file" type="file" accept="image/jpeg,image/png,image/webp"></label><input name="category_2_image" type="hidden"><div class="position-controls"><label>Horizontal<input name="category_2_image_position_x" type="range" min="0" max="100" value="50"></label><label>Vertical<input name="category_2_image_position_y" type="range" min="0" max="100" value="50"></label></div></div>
+          <div class="photo-field"><label>Categoría 3<input name="category_3_image_file" type="file" accept="image/jpeg,image/png,image/webp"></label><input name="category_3_image" type="hidden"><div class="position-controls"><label>Horizontal<input name="category_3_image_position_x" type="range" min="0" max="100" value="50"></label><label>Vertical<input name="category_3_image_position_y" type="range" min="0" max="100" value="50"></label></div></div>
           <button type="submit">GUARDAR CAMBIOS</button>
           <p class="form-message" data-content-message></p>
         </form>
@@ -180,6 +180,6 @@
     </section>
   </div>
 
-  <script type="module" src="admin.js?v=20260627-2"></script>
+  <script type="module" src="admin.js?v=20260627-3"></script>
 </body>
 </html>
