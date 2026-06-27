@@ -419,6 +419,8 @@ $("[data-category-form]").addEventListener("submit", async event => {
     editedImages.delete(form.elements.image);
     message("[data-category-message]", "Categoría guardada.");
     form.reset();
+    form.elements.id.readOnly = false;
+    $("[data-category-form-title]").textContent = "Categorías";
     await loadCategories();
   } catch (error) {
     message("[data-category-message]", error.message, true);
@@ -431,10 +433,15 @@ $("[data-category-list]").addEventListener("click", event => {
   const category = categories.find(item => item.id === button.dataset.editCategory);
   const form = $("[data-category-form]");
   form.elements.id.value = category.id;
+  form.elements.id.readOnly = true;
   form.elements.name.value = category.name;
   form.elements.image_url.value = category.image_url || "";
   form.elements.sort_order.value = category.sort_order;
   form.elements.published.checked = category.published;
+  $("[data-category-form-title]").textContent = `Editar ${category.name}`;
+  message("[data-category-message]", `Estás editando la categoría ${category.name}.`);
+  form.scrollIntoView({ behavior: "smooth", block: "start" });
+  setTimeout(() => form.elements.name.focus(), 450);
 });
 
 $("[data-product-form]").addEventListener("submit", async event => {
