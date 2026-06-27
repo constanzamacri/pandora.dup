@@ -176,6 +176,11 @@ footer a { color: #bdb8ae; font-size: 11px; }
 .cart-header button { padding: 5px; border: 0; background: none; font-size: 34px; font-weight: 300; line-height: 1; }
 .cart-body { min-height: 0; padding: 16px 18px; flex: 1; overflow-y: auto; }
 .cart-items { display: grid; gap: 12px; }
+.cart-promotions { display: grid; gap: 8px; margin-top: 12px; }
+.cart-promotion { padding: 14px 16px; color: #315b35; background: #edf5ea; border: 1px solid #cfe0cc; }
+.cart-promotion strong, .cart-promotion span { display: block; }
+.cart-promotion strong { margin-bottom: 5px; font-size: 11px; }
+.cart-promotion span { font-size: 9px; }
 .cart-empty { min-height: 100%; display: grid; place-content: center; justify-items: center; position: relative; text-align: center; overflow: hidden; }
 .empty-pattern { display: none; }
 .empty-pattern span { display: block; white-space: nowrap; }

@@ -17,6 +17,7 @@ let cart = [];
 let detailProduct = null;
 let storeClient = null;
 let currentUser = null;
+let promotions = [];
 const favoriteIds = new Set();
 const catalogParams = new URLSearchParams(window.location.search);
 const requestedCategory = catalogParams.get("category");
@@ -249,6 +250,8 @@ async function loadStoreData() {
     const contentValues = !contentError
       ? Object.fromEntries(content.map(item => [item.key, item.value]))
       : {};
+    promotions = window.PromotionEngine.parse(contentValues.promotions_config);
+    localStorage.setItem("pandoraPromotions", JSON.stringify(promotions));
     if (!contentError) {
       content.forEach(item => {
         if (item.key === "hero_title" && item.value.includes(",")) {
@@ -298,6 +301,7 @@ async function loadStoreData() {
         if (category) document.querySelector("[data-catalog-title]").textContent = category.name;
       }
     }
+    updateCart();
   } catch (error) {
     console.warn("No se pudo cargar el catálogo administrable.", error);
   } finally {
@@ -407,10 +411,16 @@ function updateCart() {
     </article>`).join("");
   document.querySelector("[data-cart-empty]").classList.toggle("hidden", cart.length > 0);
   document.querySelector("[data-cart-footer]").classList.toggle("hidden", cart.length === 0);
-  const total = cart.reduce((sum, item) => sum + Number(item.price), 0);
-  document.querySelector("[data-cart-subtotal]").textContent = money(total);
-  document.querySelector("[data-cart-total]").textContent = money(total);
+  const pricing = window.PromotionEngine.calculate(cart, products, promotions);
+  document.querySelector("[data-cart-promotions]").innerHTML = pricing.applications.map(application => `
+    <div class="cart-promotion">
+      <strong>✓ Promo: ${escapeHtml(application.name)}${application.applications > 1 ? ` ×${application.applications}` : ""}</strong>
+      <span>Ahorrás ${money(application.saving)} · Precio promo ${money(application.promotionalAmount)}</span>
+    </div>`).join("");
+  document.querySelector("[data-cart-subtotal]").textContent = money(pricing.subtotal);
+  document.querySelector("[data-cart-total]").textContent = money(pricing.total);
   localStorage.setItem("pandoraCart", JSON.stringify(cart));
+  localStorage.setItem("pandoraPricing", JSON.stringify(pricing));
 }
 
 function toggleCart(open) {
@@ -582,6 +592,7 @@ document.querySelector("[data-search-input]").addEventListener("keydown", event 
 window.addEventListener("storage", event => {
   if (event.key === "pandoraMenuUpdatedAt") refreshPublicMenu();
   if (event.key === "pandoraProductsUpdatedAt") refreshProductAvailability();
+  if (event.key === "pandoraPromotionsUpdatedAt") loadStoreData();
   if (event.key === "pandoraCart" && event.newValue === null) {
     cart = [];
     updateCart();

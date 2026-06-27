@@ -17,6 +17,7 @@ let products = [];
 let orders = [];
 let categories = [];
 let menuItems = [];
+let promotions = [];
 const editedImages = new WeakMap();
 let cropState = null;
 
@@ -246,8 +247,88 @@ async function loadContent() {
   const form = $("[data-content-form]");
   data.forEach(item => {
     if (form.elements[item.key]) form.elements[item.key].value = item.value;
+    if (item.key === "promotions_config") {
+      try {
+        promotions = JSON.parse(item.value) || [];
+      } catch {
+        promotions = [];
+      }
+    }
   });
   document.querySelectorAll(".photo-field").forEach(updatePhotoPreview);
+  renderPromotions();
+  if (!$("[data-promotion-requirements]").children.length) renderPromotionRequirements();
+}
+
+function promotionMatcherOptions(matcher, selectedValue = "") {
+  const options = matcher === "product"
+    ? products.map(product => ({ value: product.id, label: product.name }))
+    : matcher === "category"
+      ? categories.map(category => ({ value: category.id, label: category.name }))
+      : [
+          { value: "base", label: "Pulsera sola / base" },
+          { value: "charm", label: "Dije / charm" },
+          { value: "composite", label: "Pulsera armada" },
+          { value: "simple", label: "Producto simple / otro" }
+        ];
+  return options.map(option =>
+    `<option value="${escapeHtml(option.value)}" ${String(option.value) === String(selectedValue) ? "selected" : ""}>${escapeHtml(option.label)}</option>`
+  ).join("");
+}
+
+function addPromotionRequirement(requirement = {}) {
+  const matcher = requirement.matcher || "product_type";
+  const row = document.createElement("div");
+  row.className = "promotion-requirement-row";
+  row.innerHTML = `
+    <select data-promotion-matcher>
+      <option value="product_type" ${matcher === "product_type" ? "selected" : ""}>Tipo de producto</option>
+      <option value="category" ${matcher === "category" ? "selected" : ""}>Categoría</option>
+      <option value="product" ${matcher === "product" ? "selected" : ""}>Producto específico</option>
+    </select>
+    <select data-promotion-value required>${promotionMatcherOptions(matcher, requirement.value)}</select>
+    <input data-promotion-quantity type="number" min="1" step="1" value="${requirement.quantity || 1}" aria-label="Cantidad necesaria" required>
+    <button type="button" data-remove-promotion-requirement aria-label="Quitar requisito">×</button>`;
+  $("[data-promotion-requirements]").append(row);
+}
+
+function renderPromotionRequirements(requirements = []) {
+  $("[data-promotion-requirements]").innerHTML = "";
+  (requirements.length ? requirements : [{}]).forEach(addPromotionRequirement);
+}
+
+function renderPromotions() {
+  $("[data-promotion-list]").innerHTML = promotions.map(promotion => `
+    <article class="admin-product">
+      <div><h3>${escapeHtml(promotion.name)}</h3><p>${money(promotion.price)} · ${promotion.requirements.length} requisitos · Prioridad ${promotion.priority || 0}</p></div>
+      <span class="status ${promotion.active ? "" : "draft"}">${promotion.active ? "Activa" : "Inactiva"}</span>
+      <div class="category-actions">
+        <button type="button" data-edit-promotion="${escapeHtml(promotion.id)}">EDITAR</button>
+        <button class="delete-category" type="button" data-delete-promotion="${escapeHtml(promotion.id)}">ELIMINAR</button>
+      </div>
+    </article>`).join("");
+}
+
+function resetPromotionForm() {
+  const form = $("[data-promotion-form]");
+  form.reset();
+  form.elements.id.value = "";
+  form.elements.active.checked = true;
+  $("[data-promotion-form-title]").textContent = "Promociones automáticas";
+  $("[data-cancel-promotion]").classList.add("hidden");
+  renderPromotionRequirements();
+}
+
+async function persistPromotions(messageText) {
+  const { error } = await supabase.from("site_content").upsert({
+    key: "promotions_config",
+    value: JSON.stringify(promotions),
+    updated_at: new Date().toISOString()
+  });
+  if (error) throw error;
+  localStorage.setItem("pandoraPromotionsUpdatedAt", String(Date.now()));
+  renderPromotions();
+  message("[data-promotion-message]", messageText);
 }
 
 function updatePhotoPreview(field) {
@@ -796,6 +877,85 @@ $("[data-delete-product]").addEventListener("click", async () => {
   await loadProducts();
   localStorage.setItem("pandoraProductsUpdatedAt", String(Date.now()));
   closeProduct();
+});
+
+$("[data-add-promotion-requirement]").addEventListener("click", () => addPromotionRequirement());
+$("[data-promotion-requirements]").addEventListener("change", event => {
+  const matcher = event.target.closest("[data-promotion-matcher]");
+  if (!matcher) return;
+  const row = matcher.closest(".promotion-requirement-row");
+  row.querySelector("[data-promotion-value]").innerHTML = promotionMatcherOptions(matcher.value);
+});
+$("[data-promotion-requirements]").addEventListener("click", event => {
+  const button = event.target.closest("[data-remove-promotion-requirement]");
+  if (button) button.closest(".promotion-requirement-row").remove();
+});
+
+$("[data-promotion-form]").addEventListener("submit", async event => {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const requirements = [...form.querySelectorAll(".promotion-requirement-row")].map(row => ({
+    matcher: row.querySelector("[data-promotion-matcher]").value,
+    value: row.querySelector("[data-promotion-value]").value,
+    quantity: Number(row.querySelector("[data-promotion-quantity]").value)
+  })).filter(requirement => requirement.value && requirement.quantity > 0);
+  if (!requirements.length) return message("[data-promotion-message]", "Agregá al menos un requisito.", true);
+  const promotion = {
+    id: form.elements.id.value || crypto.randomUUID(),
+    name: form.elements.name.value.trim(),
+    price: Number(form.elements.price.value),
+    priority: Number(form.elements.priority.value || 0),
+    startsAt: form.elements.starts_at.value || null,
+    endsAt: form.elements.ends_at.value || null,
+    active: form.elements.active.checked,
+    requirements
+  };
+  const index = promotions.findIndex(item => item.id === promotion.id);
+  if (index >= 0) promotions[index] = promotion;
+  else promotions.push(promotion);
+  try {
+    await persistPromotions(index >= 0 ? "Promoción actualizada." : "Promoción creada.");
+    resetPromotionForm();
+  } catch (error) {
+    message("[data-promotion-message]", error.message, true);
+  }
+});
+
+$("[data-promotion-list]").addEventListener("click", async event => {
+  const editButton = event.target.closest("[data-edit-promotion]");
+  const deleteButton = event.target.closest("[data-delete-promotion]");
+  if (editButton) {
+    const promotion = promotions.find(item => item.id === editButton.dataset.editPromotion);
+    if (!promotion) return;
+    const form = $("[data-promotion-form]");
+    form.elements.id.value = promotion.id;
+    form.elements.name.value = promotion.name;
+    form.elements.price.value = promotion.price;
+    form.elements.priority.value = promotion.priority || 0;
+    form.elements.starts_at.value = promotion.startsAt || "";
+    form.elements.ends_at.value = promotion.endsAt || "";
+    form.elements.active.checked = promotion.active;
+    renderPromotionRequirements(promotion.requirements);
+    $("[data-promotion-form-title]").textContent = `Editar ${promotion.name}`;
+    $("[data-cancel-promotion]").classList.remove("hidden");
+    form.scrollIntoView({ behavior: "smooth", block: "start" });
+    return;
+  }
+  if (!deleteButton) return;
+  const promotion = promotions.find(item => item.id === deleteButton.dataset.deletePromotion);
+  if (!promotion || !confirm(`¿Querés eliminar la promoción “${promotion.name}”?`)) return;
+  promotions = promotions.filter(item => item.id !== promotion.id);
+  try {
+    await persistPromotions("Promoción eliminada.");
+    resetPromotionForm();
+  } catch (error) {
+    message("[data-promotion-message]", error.message, true);
+  }
+});
+
+$("[data-cancel-promotion]").addEventListener("click", () => {
+  resetPromotionForm();
+  message("[data-promotion-message]", "");
 });
 
 $("[data-content-form]").addEventListener("submit", async event => {

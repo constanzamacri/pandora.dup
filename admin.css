@@ -98,6 +98,11 @@ input[type="file"] { padding: 12px; background: #f7f5f1; cursor: pointer; }
 .component-row { margin-bottom: 10px; display: grid; grid-template-columns: 1fr 110px auto; gap: 10px; }
 .component-row select, .component-row input { margin: 0; }
 .component-row button { padding: 0 12px; color: var(--danger); background: white; border: 1px solid var(--line); }
+.promotion-requirements { margin: 10px 0 24px; padding: 20px; border: 1px solid var(--line); background: #faf9f6; }
+.promotion-requirements h3 { margin: 0 0 7px; font-size: 15px; }
+.promotion-requirements > p { margin: 0 0 18px; color: var(--muted); font-size: 10px; }
+.promotion-requirement-row { margin-bottom: 10px; display: grid; grid-template-columns: 150px 1fr 100px auto; gap: 10px; }
+.promotion-requirement-row button { padding: 0 12px; color: var(--danger); background: white; border: 1px solid var(--line); }
 .danger-action { margin-right: auto; color: var(--danger); background: transparent; border-color: var(--danger); }
 .image-editor { z-index: 120; }
 .image-editor-card { width: min(820px, calc(100% - 24px)); }
@@ -121,6 +126,7 @@ input[type="file"] { padding: 12px; background: #f7f5f1; cursor: pointer; }
   .admin-product .status { display: none; }
   .form-grid { grid-template-columns: 1fr; }
   .component-row { grid-template-columns: 1fr 90px auto; }
+  .promotion-requirement-row { grid-template-columns: 1fr 1fr; }
   .crop-controls { grid-template-columns: 1fr; }
   .position-controls { grid-template-columns: 1fr; }
 }

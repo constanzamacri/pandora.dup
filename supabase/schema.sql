@@ -464,6 +464,7 @@ insert into public.site_content (key, value) values
   ('gift_description_1', 'Nuestros accesorios son una opción especial para regalar algo lindo, personal y con significado.'),
   ('gift_description_2', 'Realizamos ventas minoristas y también preparamos pedidos para eventos especiales como cumpleaños de 15, celebraciones, souvenirs o detalles para invitados.'),
   ('gift_description_3', 'Podés elegir pulseras, charms y combinaciones personalizadas para crear un regalo único.'),
+  ('promotions_config', '[]'),
   ('hero_image', 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&w=1600&q=88'),
   ('editorial_main_image', 'https://images.unsplash.com/photo-1611652022419-a9419f74343d?auto=format&fit=crop&w=1400&q=85'),
   ('editorial_small_image', 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=1000&q=85'),

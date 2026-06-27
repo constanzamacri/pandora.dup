@@ -3,6 +3,9 @@ const money = value => new Intl.NumberFormat("es-AR", {
   currency: "ARS",
   maximumFractionDigits: 0
 }).format(value);
+const escapeHtml = value => String(value ?? "").replace(/[&<>"']/g, character => ({
+  "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;"
+})[character]);
 
 let cart = [];
 try {
@@ -11,14 +14,19 @@ try {
   cart = [];
 }
 
-const groupedItems = Object.values(cart.reduce((groups, product) => {
+function groupCart(items) {
+  return Object.values(items.reduce((groups, product) => {
   const key = String(product.id);
   if (!groups[key]) groups[key] = { ...product, quantity: 0 };
   groups[key].quantity += 1;
   return groups;
-}, {}));
+  }, {}));
+}
 
-const subtotal = cart.reduce((sum, product) => sum + Number(product.price), 0);
+let groupedItems = groupCart(cart);
+let promotions = window.PromotionEngine.parse(localStorage.getItem("pandoraPromotions"));
+let promotionPricing = window.PromotionEngine.calculate(cart, cart, promotions);
+let subtotal = promotionPricing.total;
 let selectedPayment = "";
 let total = subtotal;
 
@@ -30,8 +38,13 @@ function renderSummary() {
       <strong>${money(item.price * item.quantity)}</strong>
     </article>
   `).join("");
-  document.querySelector("[data-subtotal]").textContent = money(subtotal);
+  document.querySelector("[data-subtotal]").textContent = money(promotionPricing.subtotal);
   document.querySelector("[data-total]").textContent = money(total);
+  const promotionSummary = document.querySelector("[data-promotion-summary]");
+  promotionSummary.classList.toggle("hidden", promotionPricing.applications.length === 0);
+  promotionSummary.innerHTML = promotionPricing.applications.map(application =>
+    `<p><span>Promo: ${escapeHtml(application.name)}${application.applications > 1 ? ` ×${application.applications}` : ""}</span><strong>-${money(application.saving)}</strong></p>`
+  ).join("");
 }
 
 function updatePayment(payment) {
@@ -55,6 +68,11 @@ function buildReceipt(form, orderNumber) {
   const deliveryDetails = delivery !== "Retiro en el local [Castelli 695]"
     ? `${delivery}: ${form.get("address")}, ${form.get("city")} (${form.get("postal_code")})`
     : delivery;
+  const promotionLines = promotionPricing.applications.length
+    ? `\nPROMOCIONES\n${promotionPricing.applications.map(application =>
+        `- ${application.name}${application.applications > 1 ? ` x${application.applications}` : ""}: -${money(application.saving)}`
+      ).join("\n")}\n`
+    : "";
   return `PANDORA.DUP — COMPROBANTE DE PEDIDO
 Pedido: ${orderNumber}
 Fecha: ${new Date().toLocaleString("es-AR")}
@@ -68,8 +86,10 @@ Entrega: ${deliveryDetails}
 
 PRODUCTOS
 ${itemLines}
+${promotionLines}
 
-Subtotal: ${money(subtotal)}${discountLine}
+Subtotal productos: ${money(promotionPricing.subtotal)}
+Descuento promociones: -${money(promotionPricing.discount)}${discountLine}
 TOTAL: ${money(total)}
 Forma de pago: ${selectedPayment}
 
@@ -83,6 +103,21 @@ async function saveOrder(form, orderNumber) {
   if (!config.isSupabaseConfigured) return;
   const { createClient } = await import("https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm");
   const client = createClient(config.SUPABASE_URL, config.SUPABASE_PUBLISHABLE_KEY);
+  const [{ data: currentProducts, error: productsError }, { data: promotionSetting, error: promotionError }] =
+    await Promise.all([
+      client.rpc("get_store_products"),
+      client.from("site_content").select("value").eq("key", "promotions_config").maybeSingle()
+    ]);
+  if (productsError) throw productsError;
+  if (promotionError) throw promotionError;
+  const productMap = new Map((currentProducts || []).map(product => [String(product.id), product]));
+  cart = cart.map(item => ({ ...item, ...(productMap.get(String(item.id)) || {}) }));
+  groupedItems = groupCart(cart);
+  promotions = window.PromotionEngine.parse(promotionSetting?.value);
+  promotionPricing = window.PromotionEngine.calculate(cart, currentProducts || [], promotions);
+  subtotal = promotionPricing.total;
+  updatePayment(selectedPayment);
+  renderSummary();
   const delivery = form.get("delivery");
   const discount = selectedPayment === "Transferencia" ? Math.round(subtotal * .1) : 0;
   const { error } = await client.from("orders").insert({

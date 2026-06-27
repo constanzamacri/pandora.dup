@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="admin.css?v=20260627-23">
+  <link rel="stylesheet" href="admin.css?v=20260627-24">
 </head>
 <body>
   <main class="admin-shell">
@@ -47,6 +47,7 @@
         <button class="active" type="button" data-tab="orders">Pedidos</button>
         <button type="button" data-tab="products">Productos</button>
         <button type="button" data-tab="categories">Categorías</button>
+        <button type="button" data-tab="promotions">Promociones</button>
         <button type="button" data-tab="menu">Menú</button>
         <button type="button" data-tab="content">Textos y fotos</button>
       </nav>
@@ -98,6 +99,35 @@
           <p class="form-message" data-category-message></p>
         </form>
         <div class="category-admin-list" data-category-list></div>
+      </div>
+
+      <div class="tab-panel hidden" data-panel="promotions">
+        <div class="panel-heading">
+          <div><p class="eyebrow">AJUSTES</p><h2 data-promotion-form-title>Promociones automáticas</h2></div>
+        </div>
+        <form class="content-form" data-promotion-form>
+          <input name="id" type="hidden">
+          <div class="form-grid">
+            <label>Nombre de la promoción<input name="name" placeholder="Ej: 1 pulsera + 3 charms" required></label>
+            <label>Precio final<input name="price" type="number" min="0" step="1" required></label>
+            <label>Prioridad<input name="priority" type="number" min="0" value="0"></label>
+            <label>Desde<input name="starts_at" type="date"></label>
+            <label>Hasta<input name="ends_at" type="date"></label>
+            <label class="check-field"><input name="active" type="checkbox" checked> Promoción activa</label>
+          </div>
+          <div class="promotion-requirements">
+            <h3>Productos necesarios</h3>
+            <p>Podés pedir un producto específico, una categoría o un tipo de producto.</p>
+            <div data-promotion-requirements></div>
+            <button class="secondary-action" type="button" data-add-promotion-requirement>+ AGREGAR REQUISITO</button>
+          </div>
+          <div class="category-form-actions">
+            <button type="submit">GUARDAR PROMOCIÓN</button>
+            <button class="secondary-action hidden" type="button" data-cancel-promotion>CANCELAR EDICIÓN</button>
+          </div>
+          <p class="form-message" data-promotion-message></p>
+        </form>
+        <div class="menu-admin-list" data-promotion-list></div>
       </div>
 
       <div class="tab-panel hidden" data-panel="menu">
@@ -243,6 +273,6 @@
     </section>
   </div>
 
-  <script type="module" src="admin.js?v=20260627-21"></script>
+  <script type="module" src="admin.js?v=20260627-22"></script>
 </body>
 </html>
