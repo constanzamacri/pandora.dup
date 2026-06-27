@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Mi cuenta — pandora.dup</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="account.css">
+</head>
+<body>
+  <header class="account-header">
+    <a href="index.html" class="account-brand">pandora.dup<small>ACCESORIOS</small></a>
+    <a href="index.html">VOLVER A LA TIENDA</a>
+  </header>
+
+  <main class="account-main">
+    <section class="auth-card" data-auth-view>
+      <p class="eyebrow">MI CUENTA</p>
+      <h1>Bienvenida</h1>
+      <div class="auth-tabs">
+        <button class="active" type="button" data-auth-tab="login">Iniciar sesión</button>
+        <button type="button" data-auth-tab="register">Registrarme</button>
+      </div>
+
+      <form data-login-form>
+        <label>Correo electrónico<input name="email" type="email" autocomplete="email" required></label>
+        <label>Contraseña<input name="password" type="password" autocomplete="current-password" minlength="8" required></label>
+        <button class="submit-button" type="submit">INICIAR SESIÓN</button>
+        <p class="form-message" data-login-message></p>
+      </form>
+
+      <form class="hidden" data-register-form>
+        <label>Correo electrónico<input name="email" type="email" autocomplete="email" required></label>
+        <label>Contraseña<input name="password" type="password" autocomplete="new-password" minlength="8" required></label>
+        <label>Repetir contraseña<input name="password_confirmation" type="password" autocomplete="new-password" minlength="8" required></label>
+        <button class="submit-button" type="submit">CREAR MI CUENTA</button>
+        <p class="form-message" data-register-message></p>
+      </form>
+    </section>
+
+    <section class="profile-card hidden" data-profile-view>
+      <div class="profile-icon" aria-hidden="true">✓</div>
+      <p class="eyebrow">MI CUENTA</p>
+      <h1>Sesión iniciada</h1>
+      <p class="profile-email" data-profile-email></p>
+      <a class="admin-link hidden" href="admin.html" data-admin-link>ABRIR PANEL DE ADMINISTRACIÓN →</a>
+      <a class="store-link" href="index.html">VOLVER A LA TIENDA</a>
+      <button type="button" data-logout>CERRAR SESIÓN</button>
+    </section>
+  </main>
+
+  <script type="module" src="account.js"></script>
+</body>
+</html>
