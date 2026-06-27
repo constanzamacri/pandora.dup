@@ -152,43 +152,6 @@
       <small>Envío calculado al finalizar la compra.</small>
       <button class="button button-dark" data-checkout-start>FINALIZAR COMPRA →</button>
     </div>
-    <form class="checkout-form hidden" data-checkout-form>
-      <button class="checkout-back" type="button" data-checkout-back>← VOLVER A MI BOLSA</button>
-      <p class="eyebrow">DATOS DE CONTACTO</p>
-      <h3>Finalizá tu compra</h3>
-      <label for="checkout-phone">Número de teléfono</label>
-      <input
-        id="checkout-phone"
-        name="phone"
-        type="tel"
-        inputmode="tel"
-        autocomplete="tel"
-        placeholder="Ej.: 11 2345 6789"
-        pattern="[0-9+() -]{8,20}"
-        title="Ingresá un teléfono válido de entre 8 y 20 caracteres."
-        required
-      >
-      <fieldset>
-        <legend>¿Cómo vas a pagar?</legend>
-        <label class="payment-option">
-          <input type="radio" name="payment" value="Efectivo" required>
-          <span><strong>Efectivo</strong><small>Pagás al recibir o retirar tu pedido.</small></span>
-        </label>
-        <label class="payment-option">
-          <input type="radio" name="payment" value="Transferencia" required>
-          <span><strong>Transferencia</strong><small>Recibirás los datos para realizar el pago.</small></span>
-        </label>
-      </fieldset>
-      <div class="checkout-total"><span>Total</span><strong data-checkout-total>$0</strong></div>
-      <button class="button button-dark" type="submit">CONFIRMAR PEDIDO →</button>
-    </form>
-    <div class="checkout-success hidden" data-checkout-success>
-      <span>✓</span>
-      <p class="eyebrow">PEDIDO CONFIRMADO</p>
-      <h3>¡Gracias por tu compra!</h3>
-      <p data-checkout-summary></p>
-      <button class="button button-dark" type="button" data-checkout-close>SEGUIR COMPRANDO</button>
-    </div>
   </aside>
   <div class="toast" data-toast>Agregado a tu bolsa ♡</div>
 

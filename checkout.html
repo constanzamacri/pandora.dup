@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex">
+  <title>Finalizar compra — pandora.dup</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="checkout.css">
+</head>
+<body>
+  <header class="checkout-header">
+    <a href="index.html" class="checkout-brand">pandora.dup<small>ACCESORIOS</small></a>
+    <span>COMPRA SEGURA</span>
+  </header>
+
+  <main class="checkout-layout">
+    <section class="checkout-data" data-checkout-data>
+      <a class="back-link" href="index.html">← VOLVER A LA TIENDA</a>
+      <p class="eyebrow">FINALIZAR COMPRA</p>
+      <h1>Tus datos</h1>
+      <form data-order-form>
+        <div class="field-grid">
+          <label>Nombre<input name="name" autocomplete="given-name" required></label>
+          <label>Apellido<input name="surname" autocomplete="family-name" required></label>
+          <label>Teléfono<input name="phone" type="tel" inputmode="tel" autocomplete="tel" pattern="[0-9+() -]{8,20}" required></label>
+          <label>Correo electrónico<input name="email" type="email" autocomplete="email" required></label>
+        </div>
+        <label>Dirección de entrega<input name="address" autocomplete="street-address" required></label>
+        <div class="field-grid">
+          <label>Ciudad<input name="city" autocomplete="address-level2" required></label>
+          <label>Código postal<input name="postal_code" autocomplete="postal-code" required></label>
+        </div>
+
+        <fieldset>
+          <legend>Elegí cómo pagar</legend>
+          <label class="payment-card">
+            <input type="radio" name="payment" value="Efectivo" required>
+            <span><strong>Efectivo</strong><small>Abonás al recibir o retirar tu compra.</small></span>
+          </label>
+          <label class="payment-card">
+            <input type="radio" name="payment" value="Transferencia" required>
+            <span><strong>Transferencia bancaria</strong><small>Tenés 10% de descuento. Recibirás los datos para transferir.</small></span>
+          </label>
+        </fieldset>
+
+        <label class="notes-field">Comentarios sobre el pedido
+          <textarea name="notes" rows="3" placeholder="Indicaciones de entrega, horarios, etc."></textarea>
+        </label>
+        <button class="confirm-button" type="submit">CONFIRMAR COMPRA →</button>
+        <p class="legal-note">Al confirmar, verificá que tus datos sean correctos.</p>
+      </form>
+    </section>
+
+    <aside class="order-summary">
+      <p class="eyebrow">TU PEDIDO</p>
+      <h2>Resumen</h2>
+      <div class="summary-items" data-summary-items></div>
+      <div class="summary-prices">
+        <div><span>Subtotal</span><strong data-subtotal>$0</strong></div>
+        <div class="discount hidden" data-discount-row><span>10% transferencia</span><strong data-discount>-$0</strong></div>
+        <div class="summary-total"><span>Total</span><strong data-total>$0</strong></div>
+      </div>
+    </aside>
+
+    <section class="empty-checkout hidden" data-empty-checkout>
+      <p class="eyebrow">TU PEDIDO</p>
+      <h1>Tu carrito está vacío</h1>
+      <p>Agregá productos antes de finalizar la compra.</p>
+      <a href="index.html">VOLVER A LA TIENDA</a>
+    </section>
+
+    <section class="receipt hidden" data-receipt>
+      <span class="receipt-check">✓</span>
+      <p class="eyebrow">COMPRA CONFIRMADA</p>
+      <h1>¡Gracias por tu pedido!</h1>
+      <p>Guardá este texto como comprobante de tu solicitud.</p>
+      <textarea readonly data-receipt-text aria-label="Comprobante del pedido"></textarea>
+      <div class="receipt-actions">
+        <button type="button" data-copy-receipt>COPIAR TEXTO</button>
+        <a href="index.html">VOLVER A LA TIENDA</a>
+      </div>
+      <p class="copy-message" data-copy-message></p>
+    </section>
+  </main>
+
+  <script src="checkout.js"></script>
+</body>
+</html>

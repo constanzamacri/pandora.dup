@@ -131,25 +131,7 @@ footer a { color: #bdb8ae; font-size: 11px; }
 .cart-footer > div { display: flex; justify-content: space-between; }
 .cart-footer small { display: block; margin: 8px 0 18px; color: #77716a; }
 .cart-footer .button { width: 100%; }
-.cart-footer.hidden, .cart-empty.hidden, .cart-items.hidden, .checkout-form.hidden, .checkout-success.hidden { display: none; }
-.checkout-form { padding-top: 24px; overflow-y: auto; }
-.checkout-form h3, .checkout-success h3 { margin: 6px 0 26px; font-size: 24px; }
-.checkout-form > label, .checkout-form legend { display: block; margin-bottom: 9px; font-size: 11px; font-weight: 600; }
-.checkout-form > input { width: 100%; padding: 14px 12px; border: 1px solid var(--line); background: white; font: inherit; outline: none; }
-.checkout-form > input:focus { border-color: var(--ink); }
-.checkout-form fieldset { margin: 26px 0; padding: 0; border: 0; }
-.payment-option { margin-top: 10px; padding: 15px; display: flex; align-items: flex-start; gap: 12px; border: 1px solid var(--line); cursor: pointer; }
-.payment-option:has(input:checked) { border-color: var(--ink); background: #f4f1ec; }
-.payment-option input { margin-top: 3px; accent-color: var(--ink); }
-.payment-option span { display: flex; flex-direction: column; gap: 5px; }
-.payment-option small { color: #77716a; line-height: 1.4; }
-.checkout-total { margin: 20px 0; padding-top: 18px; display: flex; justify-content: space-between; border-top: 1px solid var(--line); }
-.checkout-form .button, .checkout-success .button { width: 100%; }
-.checkout-back { margin-bottom: 24px; padding: 0; border: 0; background: none; font-size: 9px; letter-spacing: 1px; cursor: pointer; }
-.checkout-success { margin: auto 0; text-align: center; }
-.checkout-success > span { display: inline-grid; width: 48px; height: 48px; place-items: center; border: 1px solid var(--ink); border-radius: 50%; font-size: 22px; }
-.checkout-success .eyebrow { margin-top: 22px; }
-.checkout-success > p:not(.eyebrow) { margin: 0 0 26px; color: #77716a; line-height: 1.6; }
+.cart-footer.hidden, .cart-empty.hidden { display: none; }
 .toast { position: fixed; z-index: 60; left: 50%; bottom: 25px; padding: 13px 22px; color: white; background: var(--ink); font-size: 11px; transform: translate(-50%, 100px); transition: .35s; }
 .toast.show { transform: translate(-50%, 0); }
 
