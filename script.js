@@ -372,11 +372,6 @@ document.querySelector("[data-search-submit]").addEventListener("click", openSea
 document.querySelector("[data-search-input]").addEventListener("keydown", event => {
   if (event.key === "Enter") openSearchView();
 });
-document.querySelector("[data-newsletter]").addEventListener("submit", event => {
-  event.preventDefault();
-  event.currentTarget.reset();
-  document.querySelector("[data-newsletter-message]").textContent = "¡Listo! Ya sos parte del Club pandora.dup ♡";
-});
 window.addEventListener("storage", event => {
   if (event.key === "pandoraCart" && event.newValue === null) {
     cart = [];
