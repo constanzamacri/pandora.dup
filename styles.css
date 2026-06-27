@@ -136,8 +136,9 @@ h1 em, h2 em { font-weight: 400; color: #8f726a; }
 .newsletter form button { border: 0; background: none; white-space: nowrap; font-size: 10px; letter-spacing: 1px; }
 .newsletter > p { grid-column: 2; margin: 0; font-size: 11px; }
 
-footer { padding: 70px 5vw 25px; display: grid; grid-template-columns: 2fr repeat(3, 1fr); gap: 50px; color: #eeeae0; background: var(--ink); }
+footer { padding: 70px 5vw 25px; display: grid; grid-template-columns: 2fr repeat(4, 1fr); gap: 50px; color: #eeeae0; background: var(--ink); }
 .footer-brand { align-items: flex-start; }
+.footer-brand-logo { width: 290px; height: 72px; display: block; background: url("pandora-dup-logo.png?v=2") center 50% / 310px auto no-repeat; filter: invert(1); mix-blend-mode: screen; }
 footer div:not(.footer-brand) { display: flex; flex-direction: column; gap: 12px; }
 footer strong { margin-bottom: 9px; font-size: 9px; letter-spacing: 1.5px; }
 footer a { color: #bdb8ae; font-size: 11px; }
@@ -193,6 +194,8 @@ footer a { color: #bdb8ae; font-size: 11px; }
   .nav.open { transform: translateY(0); }
   .product-grid { grid-template-columns: repeat(2, 1fr); }
   .category { min-height: 430px; }
+  footer { grid-template-columns: repeat(2, 1fr); }
+  .footer-brand { grid-column: 1 / -1; }
 }
 @media (max-width: 680px) {
   .product-detail { inset: 0; padding: 55px 18px 30px; display: block; }
