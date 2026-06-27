@@ -125,8 +125,18 @@ document.querySelector("[data-checkout-start]").addEventListener("click", () => 
 });
 document.querySelector("[data-overlay]").addEventListener("click", () => toggleCart(false));
 document.querySelector("[data-menu-button]").addEventListener("click", () => document.querySelector("[data-nav]").classList.toggle("open"));
-document.querySelector("[data-search-button]").addEventListener("click", () => document.querySelector("[data-search-panel]").classList.add("open"));
-document.querySelector("[data-search-close]").addEventListener("click", () => document.querySelector("[data-search-panel]").classList.remove("open"));
+const searchPanel = document.querySelector("[data-search-panel]");
+const searchButton = document.querySelector("[data-search-button]");
+function toggleSearch(open) {
+  searchPanel.classList.toggle("open", open);
+  searchButton.setAttribute("aria-expanded", String(open));
+  if (open) document.querySelector("[data-search-input]").focus();
+}
+searchButton.addEventListener("click", () => toggleSearch(true));
+document.querySelector("[data-search-close]").addEventListener("click", () => toggleSearch(false));
+document.addEventListener("keydown", event => {
+  if (event.key === "Escape") toggleSearch(false);
+});
 document.querySelector("[data-search-input]").addEventListener("input", event => { searchTerm = event.target.value; renderProducts(); });
 document.querySelector("[data-newsletter]").addEventListener("submit", event => {
   event.preventDefault();

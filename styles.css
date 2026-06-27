@@ -34,8 +34,8 @@ button { color: inherit; cursor: pointer; }
 .bag-button { position: relative; }
 .bag-button span { position: absolute; top: -2px; right: -2px; width: 17px; height: 17px; display: grid; place-items: center; border-radius: 50%; background: var(--rose); font-size: 9px; }
 .mobile-menu { display: none; }
-.search-panel { position: fixed; z-index: 18; top: 115px; left: 0; right: 0; padding: 28px 6vw; background: var(--paper); border-bottom: 1px solid var(--line); transform: translateY(-120%); transition: .35s ease; }
-.search-panel.open { transform: translateY(0); }
+.search-panel { position: fixed; z-index: 18; top: 115px; left: 0; right: 0; padding: 28px 6vw; background: var(--paper); border-bottom: 1px solid var(--line); opacity: 0; visibility: hidden; pointer-events: none; transform: translateY(-18px); transition: opacity .25s ease, transform .25s ease, visibility 0s linear .25s; }
+.search-panel.open { opacity: 1; visibility: visible; pointer-events: auto; transform: translateY(0); transition-delay: 0s; }
 .search-panel label { display: block; margin-bottom: 8px; font: 500 22px "Montserrat", Arial, sans-serif; }
 .search-panel div { display: flex; border-bottom: 1px solid var(--ink); }
 .search-panel input { width: 100%; border: 0; outline: 0; background: none; padding: 12px 0; }
@@ -148,7 +148,6 @@ footer a { color: #bdb8ae; font-size: 11px; }
   .header { height: 68px; }
   .nav { top: 68px; }
   .search-panel { top: 99px; }
-  .search-button { display: none; }
   .brand span { font-size: 24px; }
   .hero { min-height: auto; display: flex; flex-direction: column; }
   .hero-image { min-height: 63vh; background-position: center; }
