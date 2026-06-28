@@ -385,16 +385,18 @@ security definer
 set search_path = ''
 as $$
 declare
-  item jsonb;
+  order_item jsonb;
   item_id bigint;
   item_quantity integer;
   ordered_type text;
   requirement record;
 begin
-  for item in select * from jsonb_array_elements(new.items)
+  for order_item in
+    select element.value
+    from jsonb_array_elements(new.items) as element(value)
   loop
-    item_id := (item->>'id')::bigint;
-    item_quantity := (item->>'quantity')::integer;
+    item_id := (order_item->>'id')::bigint;
+    item_quantity := (order_item->>'quantity')::integer;
     if item_quantity is null or item_quantity <= 0 then
       raise exception 'Cantidad inválida para el producto %', item_id;
     end if;
@@ -412,9 +414,9 @@ begin
   for requirement in
     with order_items as (
       select
-        (item->>'id')::bigint as product_id,
-        (item->>'quantity')::integer as quantity
-      from jsonb_array_elements(new.items) item
+        (element.value->>'id')::bigint as product_id,
+        (element.value->>'quantity')::integer as quantity
+      from jsonb_array_elements(new.items) as element(value)
     ),
     physical_requirements as (
       select ordered.id as product_id, order_items.quantity as quantity
@@ -428,10 +430,10 @@ begin
       join public.product_components recipe on recipe.composite_product_id = ordered.id
       where ordered.product_type = 'composite'
     )
-    select product_id, sum(quantity)::integer as quantity
+    select physical_requirements.product_id, sum(physical_requirements.quantity)::integer as quantity
     from physical_requirements
-    group by product_id
-    order by product_id
+    group by physical_requirements.product_id
+    order by physical_requirements.product_id
   loop
     update public.products
     set stock = stock - requirement.quantity,
