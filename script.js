@@ -310,6 +310,8 @@ async function loadStoreData() {
     renderPromotionShowcase();
     if (!contentError) {
       content.forEach(item => {
+        if (document.body.classList.contains("catalog-view") &&
+            ["products_kicker", "products_title"].includes(item.key)) return;
         if (item.key === "announcement") {
           renderAnnouncement(item.value);
           return;

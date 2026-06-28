@@ -462,6 +462,8 @@ insert into public.site_content (key, value) values
   ('hero_button_url', 'index.html?category=todos'),
   ('promotions_kicker', 'OPORTUNIDADES'),
   ('promotions_title', 'Promos para vos'),
+  ('products_kicker', 'NUESTROS FAVORITOS'),
+  ('products_title', 'Elegidos para vos'),
   ('story_title', '“Creemos que los pequeños detalles tienen el poder de cambiarlo todo.”'),
   ('story_description', 'pandora.dup nació para crear accesorios que se sientan tan personales como los recuerdos que llevamos con ellos.'),
   ('gift_title', 'Un detalle especial para cada ocasión'),
