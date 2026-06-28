@@ -178,12 +178,13 @@ async function refreshPublicMenu() {
 
 function renderProducts() {
   const source = mixedProducts.length === products.length ? mixedProducts : products;
+  const isCatalogView = document.body.classList.contains("catalog-view");
   const visible = source.filter(product =>
     (activeFilter === "todos" || product.category === activeFilter) &&
-    (activeFilter !== "todos" || product.stock > 0) &&
+    (isCatalogView || product.stock > 0) &&
     product.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
     (!requestedFavorites || favoriteIds.has(product.id))
-  ).sort((a, b) => activeFilter === "todos" ? 0 : Number(a.stock === 0) - Number(b.stock === 0));
+  ).sort((a, b) => isCatalogView ? Number(a.stock === 0) - Number(b.stock === 0) : 0);
   grid.innerHTML = visible.map(product => `
     <article class="product-card">
       <div class="product-image" data-product-open="${product.id}">
