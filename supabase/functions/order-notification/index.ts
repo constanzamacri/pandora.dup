@@ -3,6 +3,11 @@ const SELLER_EMAIL = Deno.env.get("SELLER_EMAIL");
 const FROM_EMAIL = Deno.env.get("FROM_EMAIL") || "Pandora DUP <onboarding@resend.dev>";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS"
+};
 
 const escapeHtml = (value: unknown) => String(value ?? "").replace(/[&<>"']/g, character => ({
   "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;"
@@ -14,13 +19,16 @@ const money = (value: unknown) => new Intl.NumberFormat("es-AR", {
 }).format(Number(value) || 0);
 
 Deno.serve(async request => {
+  if (request.method === "OPTIONS") {
+    return new Response("ok", { headers: corsHeaders });
+  }
   if (!RESEND_API_KEY || !SELLER_EMAIL || !SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
-    return new Response("Missing email configuration", { status: 500 });
+    return new Response("Missing email configuration", { status: 500, headers: corsHeaders });
   }
 
   const payload = await request.json();
   const orderNumber = String(payload.orderNumber || "");
-  if (!orderNumber) return new Response("Missing order number", { status: 400 });
+  if (!orderNumber) return new Response("Missing order number", { status: 400, headers: corsHeaders });
   const { createClient } = await import("https://esm.sh/@supabase/supabase-js@2");
   const client = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
   const { data: order, error: orderError } = await client
@@ -28,8 +36,8 @@ Deno.serve(async request => {
     .select("*")
     .eq("order_number", orderNumber)
     .single();
-  if (orderError || !order) return new Response("Order not found", { status: 404 });
-  if (!order?.order_number) return new Response("Invalid order", { status: 400 });
+  if (orderError || !order) return new Response("Order not found", { status: 404, headers: corsHeaders });
+  if (!order?.order_number) return new Response("Invalid order", { status: 400, headers: corsHeaders });
   const items = Array.isArray(order.items) ? order.items : [];
   const products = items.map((item: Record<string, unknown>) =>
     `<li>${escapeHtml(item.name)} × ${escapeHtml(item.quantity)} — ${escapeHtml(money(Number(item.price) * Number(item.quantity)))}</li>`
@@ -70,6 +78,6 @@ Deno.serve(async request => {
   const result = await response.text();
   return new Response(result, {
     status: response.status,
-    headers: { "Content-Type": "application/json" }
+    headers: { ...corsHeaders, "Content-Type": "application/json" }
   });
 });
