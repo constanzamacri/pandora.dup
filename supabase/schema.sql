@@ -454,7 +454,7 @@ for each row execute function public.decrease_stock_for_order();
 
 insert into public.site_content (key, value) values
   ('announcement', '3 CUOTAS SIN INTERÉS'),
-  ('hero_kicker', 'NUEVA COLECCIÓN · 2026'),
+  ('hero_kicker', 'LO MÁS NUEVO · 2026'),
   ('hero_title', 'Armá tu pulsera'),
   ('hero_subtitle', 'Combiná tus charms favoritos'),
   ('hero_description', 'Accesorios creados para acompañarte todos los días y hacer especial cada momento.'),

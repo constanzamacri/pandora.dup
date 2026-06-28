@@ -300,6 +300,10 @@ async function loadStoreData() {
     renderPromotionShowcase();
     if (!contentError) {
       content.forEach(item => {
+        if (item.key === "hero_kicker" && item.value.trim().toLocaleUpperCase("es-AR") === "NUEVA COLECCIÓN · 2026") {
+          document.querySelector('[data-content="hero_kicker"]').textContent = "LO MÁS NUEVO · 2026";
+          return;
+        }
         if (item.key === "hero_title" && item.value.includes(",")) {
           const [title, ...subtitleParts] = item.value.split(",");
           document.querySelector('[data-content="hero_title"]').textContent = title.trim();
