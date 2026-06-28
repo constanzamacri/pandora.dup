@@ -156,6 +156,8 @@ h1 em, h2 em { font-weight: 400; color: #8f726a; }
 .product-detail-stock { margin-bottom: 24px; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; }
 .product-detail-stock > span { display: block; }
 .product-detail-stock .low-stock-warning { margin-bottom: 6px; color: #b3261e; font-size: 9px; font-weight: 600; letter-spacing: .7px; text-transform: none; }
+.product-size { margin-bottom: 22px; display: grid; gap: 8px; font-size: 10px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; }
+.product-size select { width: 100%; min-height: 46px; padding: 0 12px; color: var(--ink); background: white; border: 1px solid var(--line); font: 12px "Montserrat", Arial, sans-serif; }
 .product-detail-add { width: 100%; }
 
 .editorial { display: grid; grid-template-columns: .9fr 1.1fr; grid-template-rows: 500px 240px; background: #d9d0c2; }

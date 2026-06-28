@@ -17,7 +17,7 @@ try {
 
 function groupCart(items) {
   return Object.values(items.reduce((groups, product) => {
-  const key = String(product.id);
+  const key = `${product.id}::${product.size || ""}`;
   if (!groups[key]) groups[key] = { ...product, quantity: 0 };
   groups[key].quantity += 1;
   return groups;
@@ -35,7 +35,7 @@ function renderSummary() {
   document.querySelector("[data-summary-items]").innerHTML = groupedItems.map(item => `
     <article class="summary-item">
       <img src="${item.image || item.image_url}" alt="">
-      <div><h3>${item.name}</h3><p>Cantidad: ${item.quantity}</p></div>
+      <div><h3>${item.name}</h3><p>${item.size ? `Talle: ${escapeHtml(item.size)} · ` : ""}Cantidad: ${item.quantity}</p></div>
       <strong>${money(item.price * item.quantity)}</strong>
     </article>
   `).join("");
@@ -56,7 +56,7 @@ function updatePayment(payment) {
 
 function buildReceipt(form, orderNumber) {
   const itemLines = groupedItems
-    .map(item => `- ${item.name} x${item.quantity}: ${money(item.price * item.quantity)}`)
+    .map(item => `- ${item.name}${item.size ? ` · Talle ${item.size}` : ""} x${item.quantity}: ${money(item.price * item.quantity)}`)
     .join("\n");
   const delivery = form.get("delivery");
   const deliveryDetails = delivery !== STORE_PICKUP
@@ -136,7 +136,8 @@ async function saveOrder(form, orderNumber) {
       id: item.id,
       name: item.name,
       price: Number(item.price),
-      quantity: item.quantity
+      quantity: item.quantity,
+      size: item.size || null
     })),
     status: "pending"
   });

@@ -40,7 +40,7 @@ Deno.serve(async request => {
   if (!order?.order_number) return new Response("Invalid order", { status: 400, headers: corsHeaders });
   const items = Array.isArray(order.items) ? order.items : [];
   const products = items.map((item: Record<string, unknown>) =>
-    `<li>${escapeHtml(item.name)} × ${escapeHtml(item.quantity)} — ${escapeHtml(money(Number(item.price) * Number(item.quantity)))}</li>`
+    `<li>${escapeHtml(item.name)}${item.size ? ` · Talle ${escapeHtml(item.size)}` : ""} × ${escapeHtml(item.quantity)} — ${escapeHtml(money(Number(item.price) * Number(item.quantity)))}</li>`
   ).join("");
   const address = order.address
     ? `${order.address}, ${order.city || ""}${order.postal_code ? ` (${order.postal_code})` : ""}`

@@ -47,6 +47,8 @@ try {
   cart = [];
 }
 const money = value => new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS", maximumFractionDigits: 0 }).format(value);
+const needsSize = product => ["base", "composite"].includes(product?.product_type) || product?.category === "brazaletes";
+const cartItemKey = item => `${item.id}::${item.size || ""}`;
 const grid = document.querySelector("[data-products]");
 
 function shuffle(items) {
@@ -233,6 +235,10 @@ function openProductDetail(product) {
   document.querySelector("[data-product-detail-stock]").innerHTML = stock === 0
     ? "Sin stock"
     : `${stock <= 2 ? '<span class="low-stock-warning">¡Quedan pocas unidades!</span>' : ""}<span>${stockText}</span>`;
+  const sizeField = document.querySelector("[data-product-size-field]");
+  const sizeSelect = document.querySelector("[data-product-size]");
+  sizeField.classList.toggle("hidden", !needsSize(product));
+  sizeSelect.value = "";
   const addButton = document.querySelector("[data-product-detail-add]");
   addButton.disabled = product.stock === 0;
   addButton.firstChild.textContent = product.stock === 0 ? "SIN STOCK " : "AGREGAR AL CARRITO ";
@@ -475,8 +481,8 @@ function updateCart() {
   document.querySelectorAll("[data-cart-count]").forEach(el => el.textContent = cart.length);
   const items = document.querySelector("[data-cart-items]");
   const grouped = Object.values(cart.reduce((result, item) => {
-    const key = String(item.id);
-    if (!result[key]) result[key] = { ...item, quantity: 0 };
+    const key = cartItemKey(item);
+    if (!result[key]) result[key] = { ...item, cartKey: key, quantity: 0 };
     result[key].quantity += 1;
     return result;
   }, {}));
@@ -487,17 +493,17 @@ function updateCart() {
       <div class="cart-item-info">
         ${item.badge ? `<span class="cart-item-badge">${item.badge}</span>` : ""}
         <h4>${item.name}</h4>
-        <p>${item.category || "Accesorios"}</p>
-        <button class="remove-item" type="button" data-remove-product="${item.id}" aria-label="Eliminar ${item.name}">
+        <p>${item.category || "Accesorios"}${item.size ? ` · Talle ${escapeHtml(item.size)}` : ""}</p>
+        <button class="remove-item" type="button" data-remove-product="${escapeHtml(item.cartKey)}" aria-label="Eliminar ${item.name}">
           <span aria-hidden="true">⌫</span> Eliminar producto
         </button>
       </div>
       <div class="cart-item-actions">
         <strong>${money(item.price * item.quantity)}</strong>
         <div class="quantity-control" aria-label="Cantidad de ${item.name}">
-          <button type="button" data-decrease="${item.id}" aria-label="Restar uno">−</button>
+          <button type="button" data-decrease="${escapeHtml(item.cartKey)}" aria-label="Restar uno">−</button>
           <span>${item.quantity} UN.</span>
-          <button type="button" data-increase="${item.id}" aria-label="Sumar uno">+</button>
+          <button type="button" data-increase="${escapeHtml(item.cartKey)}" aria-label="Sumar uno">+</button>
         </div>
       </div>
     </article>`).join("");
@@ -539,9 +545,14 @@ function showCartToast(text) {
   setTimeout(() => toast.classList.remove("show"), 1800);
 }
 
-async function tryAddToCart(product) {
+async function tryAddToCart(product, size = null) {
   if (!product || Number(product.stock) <= 0) return false;
-  const nextCart = [...cart, { ...product }];
+  if (needsSize(product) && !size) {
+    showCartToast("Seleccioná un talle");
+    return false;
+  }
+  const nextItem = { ...product, size: size || null };
+  const nextCart = [...cart, nextItem];
   if (storeClient) {
     const { data: hasStock, error } = await storeClient.rpc("validate_cart_stock", {
       p_items: groupedCartPayload(nextCart)
@@ -554,7 +565,7 @@ async function tryAddToCart(product) {
     const quantity = nextCart.filter(item => String(item.id) === String(product.id)).length;
     if (quantity > product.stock) return false;
   }
-  cart.push({ ...product });
+  cart.push(nextItem);
   updateCart();
   showCartToast("Agregado a tu bolsa ♡");
   return true;
@@ -578,26 +589,30 @@ document.addEventListener("click", async event => {
   const add = event.target.closest("[data-add]");
   if (add) {
     event.stopPropagation();
-    await tryAddToCart(products.find(product => product.id === Number(add.dataset.add)));
+    const product = products.find(item => item.id === Number(add.dataset.add));
+    if (needsSize(product)) {
+      openProductDetail(product);
+      return;
+    }
+    await tryAddToCart(product);
     return;
   }
   const decrease = event.target.closest("[data-decrease]");
   if (decrease) {
-    const index = cart.findIndex(item => item.id === Number(decrease.dataset.decrease));
+    const index = cart.findIndex(item => cartItemKey(item) === decrease.dataset.decrease);
     if (index >= 0) cart.splice(index, 1);
     updateCart();
   }
   const increase = event.target.closest("[data-increase]");
   if (increase) {
-    const productId = Number(increase.dataset.increase);
-    const product = products.find(item => item.id === productId) || cart.find(item => item.id === productId);
-    await tryAddToCart(product);
+    const existingItem = cart.find(item => cartItemKey(item) === increase.dataset.increase);
+    const product = products.find(item => item.id === existingItem?.id) || existingItem;
+    await tryAddToCart(product, existingItem?.size || null);
     return;
   }
   const remove = event.target.closest("[data-remove-product]");
   if (remove) {
-    const productId = Number(remove.dataset.removeProduct);
-    cart = cart.filter(item => item.id !== productId);
+    cart = cart.filter(item => cartItemKey(item) !== remove.dataset.removeProduct);
     updateCart();
   }
   const cartProduct = event.target.closest("[data-cart-product]");
@@ -622,7 +637,8 @@ document.addEventListener("click", async event => {
 
 document.querySelector("[data-product-detail-add]").addEventListener("click", async () => {
   if (!detailProduct || detailProduct.stock === 0) return;
-  await tryAddToCart(detailProduct);
+  const size = needsSize(detailProduct) ? document.querySelector("[data-product-size]").value : null;
+  await tryAddToCart(detailProduct, size);
 });
 document.querySelector("[data-product-detail-close]").addEventListener("click", closeProductDetail);
 document.querySelector("[data-product-detail-overlay]").addEventListener("click", closeProductDetail);
@@ -635,7 +651,7 @@ document.querySelector("[data-cart-button]").addEventListener("click", async () 
 document.querySelectorAll("[data-cart-close]").forEach(button => button.addEventListener("click", () => toggleCart(false)));
 document.querySelector("[data-checkout-start]").addEventListener("click", () => {
   localStorage.setItem("pandoraCart", JSON.stringify(cart));
-  window.open("checkout.html?v=20260628-36", "_blank", "noopener");
+  window.open("checkout.html?v=20260628-37", "_blank", "noopener");
 });
 document.querySelector("[data-clear-cart]").addEventListener("click", () => {
   cart = [];
