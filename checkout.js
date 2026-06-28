@@ -111,6 +111,10 @@ async function saveOrder(form, orderNumber) {
   if (productsError) throw productsError;
   if (promotionError) throw promotionError;
   const productMap = new Map((currentProducts || []).map(product => [String(product.id), product]));
+  const unavailableItems = cart.filter(item => !productMap.has(String(item.id)));
+  if (unavailableItems.length) {
+    throw new Error(`Producto no disponible: ${[...new Set(unavailableItems.map(item => item.name))].join(", ")}`);
+  }
   cart = cart.map(item => ({ ...item, ...(productMap.get(String(item.id)) || {}) }));
   groupedItems = groupCart(cart);
   promotions = window.PromotionEngine.parse(promotionSetting?.value);
@@ -144,6 +148,13 @@ async function saveOrder(form, orderNumber) {
     status: "pending"
   });
   if (error) throw error;
+  client.functions.invoke("order-notification", {
+    body: { orderNumber }
+  }).then(({ error: notificationError }) => {
+    if (notificationError) console.warn("El pedido se guardó, pero no se pudo enviar el aviso.", notificationError);
+  }).catch(notificationError => {
+    console.warn("El pedido se guardó, pero no se pudo enviar el aviso.", notificationError);
+  });
 }
 
 if (!cart.length) {
@@ -247,10 +258,16 @@ document.querySelector("[data-order-form]").addEventListener("submit", async eve
   try {
     await saveOrder(form, orderNumber);
   } catch (error) {
+    console.error("No se pudo registrar el pedido:", error);
     submitButton.disabled = false;
-    document.querySelector("[data-order-message]").textContent = /stock insuficiente/i.test(error.message)
-      ? "Cambió la disponibilidad de uno de los productos. Volvé al carrito y ajustá las cantidades."
-      : "No pudimos registrar el pedido. Revisá tu conexión e intentá nuevamente.";
+    const unavailableMatch = String(error.message).match(/Producto no disponible:\s*(.+)/i);
+    document.querySelector("[data-order-message]").textContent = unavailableMatch
+      ? `${unavailableMatch[1]} ya no está disponible. Volvé al carrito, eliminá ese producto y elegilo nuevamente.`
+      : /stock insuficiente/i.test(error.message)
+        ? "Cambió la disponibilidad de uno de los productos. Volvé al carrito y ajustá las cantidades."
+        : /producto inexistente|no tiene componentes/i.test(error.message)
+          ? "Uno de los productos cambió. Volvé al carrito, eliminálo y agregalo nuevamente."
+          : `No pudimos registrar el pedido: ${error.message || "error desconocido"}`;
     return;
   }
   document.querySelector("[data-receipt-text]").value = buildReceipt(form, orderNumber);

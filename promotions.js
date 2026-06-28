@@ -64,13 +64,22 @@
     const productList = [...counts.keys()].map(id => productMap.get(id) || cart.find(item => String(item.id) === id));
     const initialState = productList.map(product => counts.get(String(product.id)) || 0);
     const applicable = promotions.filter(promotion => isActive(promotion) && promotion.requirements?.length);
+    const combinable = applicable.filter(promotion => !promotion.exclusive);
+    const isBetter = (candidate, current) =>
+      candidate.discount > current.discount ||
+      (candidate.discount === current.discount && candidate.priority > current.priority) ||
+      (candidate.discount === current.discount && candidate.priority === current.priority &&
+        candidate.applications.length > current.applications.length) ||
+      (candidate.discount === current.discount && candidate.priority === current.priority &&
+        candidate.applications.length === current.applications.length &&
+        candidate.exclusive && !current.exclusive);
     const memo = new Map();
 
     function best(state) {
       const key = state.join(",");
       if (memo.has(key)) return memo.get(key);
       let result = { discount: 0, priority: 0, applications: [] };
-      for (const promotion of applicable) {
+      for (const promotion of combinable) {
         const allocation = allocate(promotion, state, productList);
         if (!allocation) continue;
         const tail = best(allocation.next);
@@ -87,10 +96,7 @@
             allocated: allocation.allocated
           }, ...tail.applications]
         };
-        if (candidate.discount > result.discount ||
-            (candidate.discount === result.discount && candidate.priority > result.priority) ||
-            (candidate.discount === result.discount && candidate.priority === result.priority &&
-              candidate.applications.length > result.applications.length)) {
+        if (isBetter(candidate, result)) {
           result = candidate;
         }
       }
@@ -98,7 +104,26 @@
       return result;
     }
 
-    const plan = best(initialState);
+    let plan = best(initialState);
+    for (const promotion of applicable.filter(item => item.exclusive)) {
+      const allocation = allocate(promotion, initialState, productList);
+      if (!allocation) continue;
+      const exclusivePlan = {
+        discount: allocation.saving,
+        priority: Number(promotion.priority) || 0,
+        exclusive: true,
+        applications: [{
+          id: promotion.id,
+          name: promotion.name,
+          regularAmount: allocation.regularAmount,
+          promotionalAmount: allocation.promotionalAmount,
+          saving: allocation.saving,
+          gift: allocation.gift,
+          allocated: allocation.allocated
+        }]
+      };
+      if (isBetter(exclusivePlan, plan)) plan = exclusivePlan;
+    }
     const grouped = Object.values(plan.applications.reduce((groups, application) => {
       const key = String(application.id);
       if (!groups[key]) groups[key] = { ...application, applications: 0, regularAmount: 0, promotionalAmount: 0, saving: 0, allocated: [] };

@@ -271,7 +271,7 @@ function renderPromotionRequirements(requirements = []) {
 function renderPromotions() {
   $("[data-promotion-list]").innerHTML = promotions.map(promotion => `
     <article class="admin-product">
-      <div><h3>${escapeHtml(promotion.name)}</h3><p>${promotion.type === "gift" ? `Regalo: ${escapeHtml(promotion.gift)}` : money(promotion.price)} · ${promotion.requirements.length} requisitos · Prioridad ${promotion.priority || 0}</p></div>
+      <div><h3>${escapeHtml(promotion.name)}</h3><p>${promotion.type === "gift" ? `Regalo: ${escapeHtml(promotion.gift)}` : money(promotion.price)} · ${promotion.requirements.length} requisitos · Prioridad ${promotion.priority || 0}${promotion.exclusive ? " · No combinable" : ""}</p></div>
       <span class="status ${promotion.active ? "" : "draft"}">${promotion.active ? "Activa" : "Inactiva"}</span>
       <div class="category-actions">
         <button type="button" data-edit-promotion="${escapeHtml(promotion.id)}">EDITAR</button>
@@ -285,6 +285,7 @@ function resetPromotionForm() {
   form.reset();
   form.elements.id.value = "";
   form.elements.active.checked = true;
+  form.elements.exclusive.checked = false;
   updatePromotionTypeFields();
   $("[data-promotion-form-title]").textContent = "Promociones automáticas";
   $("[data-cancel-promotion]").classList.add("hidden");
@@ -823,6 +824,7 @@ $("[data-promotion-form]").addEventListener("submit", async event => {
     startsAt: null,
     endsAt: null,
     active: form.elements.active.checked,
+    exclusive: form.elements.exclusive.checked,
     requirements
   };
   const index = promotions.findIndex(item => item.id === promotion.id);
@@ -851,6 +853,7 @@ $("[data-promotion-list]").addEventListener("click", async event => {
     updatePromotionTypeFields();
     form.elements.priority.value = promotion.priority || 0;
     form.elements.active.checked = promotion.active;
+    form.elements.exclusive.checked = Boolean(promotion.exclusive);
     renderPromotionRequirements(promotion.requirements);
     $("[data-promotion-form-title]").textContent = `Editar ${promotion.name}`;
     $("[data-cancel-promotion]").classList.remove("hidden");
