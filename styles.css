@@ -248,6 +248,8 @@ footer a { color: #bdb8ae; font-size: 11px; }
 .toast.show { transform: translate(-50%, 0); }
 
 @media (max-width: 1000px) {
+  .announcement { position: sticky; z-index: 22; top: 0; }
+  .header { position: sticky; z-index: 21; top: 31px; box-shadow: 0 3px 14px rgba(37,35,31,.06); }
   .product-detail { inset: 2vh 2vw; grid-template-columns: 1fr 1fr; gap: 28px; }
   .header { height: 84px; }
   .brand { top: 11px; }
