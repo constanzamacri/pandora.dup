@@ -130,6 +130,9 @@ h1 em, h2 em { font-weight: 400; color: #8f726a; }
 .catalog-view .newsletter { display: none; }
 .catalog-view .products-section { min-height: calc(100vh - 161px); padding-top: 75px; }
 .catalog-view .products-section .section-heading { align-items: flex-start; }
+.catalog-view .product-grid { margin: 0; padding: 0; display: grid !important; grid-template-columns: repeat(4, minmax(0, 1fr)) !important; gap: 28px 18px; overflow: visible; scroll-snap-type: none; }
+.catalog-view .product-grid > .product-card { min-width: 0; width: auto; flex: none; scroll-snap-align: none; }
+.catalog-view .product-carousel > .carousel-arrow { display: none; }
 
 .product-detail-overlay { position: fixed; z-index: 80; inset: 0; background: rgba(24,22,19,.55); opacity: 0; visibility: hidden; transition: .25s; }
 .product-detail-overlay.open { opacity: 1; visibility: visible; }
@@ -256,6 +259,7 @@ footer a { color: #bdb8ae; font-size: 11px; }
   .nav-product-dropdown { width: 100%; padding: 8px 0 0 14px; position: static; display: none; border: 0; opacity: 1; visibility: visible; transform: none; }
   .nav-product-menu.open .nav-product-dropdown { display: grid; }
   .product-grid > .product-card { flex-basis: calc((100% - 18px) / 2); }
+  .catalog-view .product-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
   .promotion-card { flex-basis: calc((100% - 18px) / 2); }
   .category { min-height: 430px; flex-basis: calc((100% - 18px) / 2); }
   footer { grid-template-columns: repeat(2, 1fr); }
@@ -288,6 +292,7 @@ footer a { color: #bdb8ae; font-size: 11px; }
   .section-heading { align-items: flex-start; flex-direction: column; }
   .product-grid { margin-inline: -5vw; padding-inline: 5vw; gap: 10px; }
   .product-grid > .product-card { flex-basis: 78vw; }
+  .catalog-view .product-grid { margin: 0; padding: 0; grid-template-columns: 1fr !important; gap: 24px; }
   .promotion-grid { margin-inline: -5vw; padding-inline: 5vw; gap: 10px; }
   .promotion-card { min-height: 250px; padding: 28px; flex-basis: 82vw; }
   .carousel-arrow { display: none; }
