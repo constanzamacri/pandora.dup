@@ -226,7 +226,7 @@ async function loadContent() {
     const field = forms.map(form => form.elements[item.key]).find(Boolean);
     if (field) {
       field.value = item.key === "announcement" && item.value.trim() === "3 CUOTAS SIN INTERÉS"
-        ? "3 CUOTAS SIN INTERÉS\nENVÍOS A TODO EL PAÍS\n10% OFF POR TRANSFERENCIA"
+        ? "3 CUOTAS SIN INTERÉS\nENVÍOS A TODO EL PAÍS"
         : item.value;
     }
     if (item.key === "promotions_config") {

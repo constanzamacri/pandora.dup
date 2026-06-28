@@ -455,7 +455,7 @@ before insert on public.orders
 for each row execute function public.decrease_stock_for_order();
 
 insert into public.site_content (key, value) values
-  ('announcement', E'3 CUOTAS SIN INTERÉS\nENVÍOS A TODO EL PAÍS\n10% OFF POR TRANSFERENCIA'),
+  ('announcement', E'3 CUOTAS SIN INTERÉS\nENVÍOS A TODO EL PAÍS'),
   ('hero_kicker', 'LO MÁS NUEVO · 2026'),
   ('hero_title', 'Armá tu pulsera'),
   ('hero_subtitle', 'Combiná tus charms favoritos'),

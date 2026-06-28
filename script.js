@@ -24,7 +24,7 @@ const catalogParams = new URLSearchParams(window.location.search);
 const requestedCategory = catalogParams.get("category");
 const requestedSearch = catalogParams.get("search");
 const requestedFavorites = catalogParams.get("favorites") === "1";
-const defaultAnnouncement = "3 CUOTAS SIN INTERÉS\nENVÍOS A TODO EL PAÍS\n10% OFF POR TRANSFERENCIA";
+const defaultAnnouncement = "3 CUOTAS SIN INTERÉS\nENVÍOS A TODO EL PAÍS";
 const escapeHtml = value => String(value ?? "").replace(/[&<>"']/g, character => ({
   "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;"
 })[character]);
@@ -214,7 +214,6 @@ function renderProducts() {
       <div class="product-info" data-product-open="${product.id}">
         <h3>${product.name}</h3>
         <div class="product-price">${product.old ? `<del>${money(product.old)}</del>` : ""}<span>${money(product.price)}</span></div>
-        <div class="transfer">${money(Math.round(product.price * .9))} con transferencia</div>
       </div>
     </article>`).join("");
   grid.scrollLeft = 0;
@@ -238,8 +237,6 @@ function openProductDetail(product) {
   document.querySelector("[data-product-detail-category]").textContent = product.category;
   document.querySelector("[data-product-detail-price]").innerHTML =
     `${product.old ? `<del>${money(product.old)}</del>` : ""}<span>${money(product.price)}</span>`;
-  document.querySelector("[data-product-detail-transfer]").textContent =
-    `${money(Math.round(product.price * .9))} pagando por transferencia`;
   const stock = Number(product.stock) || 0;
   const stockText = stock === 1 ? "1 unidad disponible" : `${stock} unidades disponibles`;
   document.querySelector("[data-product-detail-stock]").innerHTML = stock === 0
@@ -649,7 +646,7 @@ document.querySelector("[data-cart-button]").addEventListener("click", async () 
 document.querySelectorAll("[data-cart-close]").forEach(button => button.addEventListener("click", () => toggleCart(false)));
 document.querySelector("[data-checkout-start]").addEventListener("click", () => {
   localStorage.setItem("pandoraCart", JSON.stringify(cart));
-  window.open("checkout.html?v=20260628-35", "_blank", "noopener");
+  window.open("checkout.html?v=20260628-36", "_blank", "noopener");
 });
 document.querySelector("[data-clear-cart]").addEventListener("click", () => {
   cart = [];

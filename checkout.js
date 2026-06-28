@@ -50,11 +50,7 @@ function renderSummary() {
 
 function updatePayment(payment) {
   selectedPayment = payment;
-  const hasDiscount = payment === "Transferencia";
-  const discount = hasDiscount ? Math.round(subtotal * .1) : 0;
-  total = subtotal - discount;
-  document.querySelector("[data-discount-row]").classList.toggle("hidden", !hasDiscount);
-  document.querySelector("[data-discount]").textContent = `-${money(discount)}`;
+  total = subtotal;
   document.querySelector("[data-total]").textContent = money(total);
 }
 
@@ -62,9 +58,6 @@ function buildReceipt(form, orderNumber) {
   const itemLines = groupedItems
     .map(item => `- ${item.name} x${item.quantity}: ${money(item.price * item.quantity)}`)
     .join("\n");
-  const discountLine = selectedPayment === "Transferencia"
-    ? `\nDescuento por transferencia: -${money(Math.round(subtotal * .1))}`
-    : "";
   const delivery = form.get("delivery");
   const deliveryDetails = delivery !== STORE_PICKUP
     ? `${delivery}: ${form.get("address")}, ${form.get("city")} (${form.get("postal_code")})`
@@ -91,7 +84,7 @@ ${itemLines}
 ${promotionLines}
 
 Subtotal productos: ${money(promotionPricing.subtotal)}
-Descuento promociones: -${money(promotionPricing.discount)}${discountLine}
+Descuento promociones: -${money(promotionPricing.discount)}
 TOTAL: ${money(total)}
 Entrega: ${deliveryDetails}
 Forma de pago: ${selectedPayment}
@@ -123,7 +116,7 @@ async function saveOrder(form, orderNumber) {
   updatePayment(selectedPayment);
   renderSummary();
   const delivery = form.get("delivery");
-  const discount = selectedPayment === "Transferencia" ? Math.round(subtotal * .1) : 0;
+  const discount = 0;
   const { error } = await client.from("orders").insert({
     order_number: orderNumber,
     customer_name: `${form.get("name")} ${form.get("surname")}`.trim(),
