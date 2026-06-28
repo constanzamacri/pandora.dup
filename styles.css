@@ -59,7 +59,6 @@ h1 em, h2 em { font-weight: 400; color: #8f726a; }
 .button { min-height: 50px; padding: 0 24px; display: inline-flex; align-items: center; justify-content: space-between; gap: 38px; border: 0; font-size: 10px; letter-spacing: 1.4px; }
 .button-dark { color: #fff; background: var(--ink); }
 .button-dark:hover { background: #453f38; }
-.hero-note { position: absolute; left: 53%; bottom: 32px; width: 120px; height: 120px; display: grid; place-items: center; text-align: center; border-radius: 50%; background: var(--rose); font: 500 14px/1.5 "Montserrat", Arial, sans-serif; transform: rotate(-7deg); }
 
 .benefits { display: grid; grid-template-columns: repeat(3, 1fr); border-bottom: 1px solid var(--line); }
 .benefits div { padding: 25px; text-align: center; border-right: 1px solid var(--line); }
@@ -253,7 +252,6 @@ footer a { color: #bdb8ae; font-size: 11px; }
   .hero { min-height: auto; height: auto; max-height: none; display: flex; flex-direction: column; }
   .hero-image { min-height: 63vh; background-position: center; }
   .hero-copy { padding: 55px 7vw 70px; }
-  .hero-note { left: auto; right: 18px; bottom: 300px; width: 95px; height: 95px; font-size: 11px; }
   h1 { font-size: 56px; }
   .benefits { grid-template-columns: 1fr; }
   .benefits div { border-right: 0; border-bottom: 1px solid var(--line); }
