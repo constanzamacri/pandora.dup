@@ -251,7 +251,7 @@ document.querySelector("[data-order-form]").addEventListener("submit", async eve
   event.preventDefault();
   const form = new FormData(event.currentTarget);
   updatePayment(form.get("payment"));
-  const orderNumber = `PD-${Date.now().toString().slice(-8)}`;
+  const orderNumber = `PD-${Date.now().toString(36).toUpperCase()}-${crypto.randomUUID().slice(0, 4).toUpperCase()}`;
   const submitButton = event.currentTarget.querySelector('[type="submit"]');
   submitButton.disabled = true;
   document.querySelector("[data-order-message]").textContent = "Registrando pedido...";
