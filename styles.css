@@ -279,6 +279,10 @@ footer a { color: #bdb8ae; font-size: 11px; }
   .footer-brand { grid-column: 1 / -1; }
 }
 @media (max-width: 680px) {
+  .product-carousel::after,
+  .category-carousel::after,
+  .promotion-carousel::after { content: ""; position: absolute; z-index: 4; top: 0; right: -5vw; bottom: 0; width: 38px; background: linear-gradient(90deg, rgba(251,250,246,0), rgba(251,250,246,.96)); pointer-events: none; }
+  .promotions-section .promotion-carousel::after { background: linear-gradient(90deg, rgba(245,241,232,0), rgba(245,241,232,.96)); }
   .product-detail { inset: 0; padding: 55px 18px 30px; display: block; }
   .product-detail-main { height: min(52vh, 520px); min-height: 300px; }
   .product-detail-main img { padding: 12px; }
