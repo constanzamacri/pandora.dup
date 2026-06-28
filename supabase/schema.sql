@@ -493,7 +493,7 @@ insert into public.site_content (key, value) values
 on conflict (key) do nothing;
 
 insert into public.categories (id, name, sort_order) values
-  ('dijes','Dijes',1),('pulseras','Pulseras',2),('combos','Combos',3),
+  ('dijes','Charms',1),('pulseras','Pulseras',2),('combos','Combos',3),
   ('aros','Aros',4),('collares','Collares',5),('anillos','Anillos',6)
 on conflict (id) do nothing;
 

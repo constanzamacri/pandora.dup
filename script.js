@@ -125,10 +125,10 @@ function renderMainMenu(menuItems) {
 
 function promotionRequirementText(requirement) {
   const labels = {
-    base: "pulsera base",
+    base: "brazalete",
     charm: "charm",
-    composite: "pulsera armada",
-    simple: "producto"
+    simple: "otro",
+    composite: "pulsera"
   };
   if (requirement.matcher === "product_type") {
     return `${requirement.quantity} ${labels[requirement.value] || requirement.value}${requirement.quantity > 1 ? "s" : ""}`;

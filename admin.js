@@ -238,10 +238,10 @@ function promotionMatcherOptions(matcher, selectedValue = "") {
     : matcher === "category"
       ? categories.map(category => ({ value: category.id, label: category.name }))
       : [
-          { value: "base", label: "Pulsera sola / base" },
-          { value: "charm", label: "Dije / charm" },
-          { value: "composite", label: "Pulsera armada" },
-          { value: "simple", label: "Producto simple / otro" }
+          { value: "base", label: "Brazalete" },
+          { value: "charm", label: "Charm" },
+          { value: "simple", label: "Otro" },
+          { value: "composite", label: "Pulsera" }
         ];
   return options.map(option =>
     `<option value="${escapeHtml(option.value)}" ${String(option.value) === String(selectedValue) ? "selected" : ""}>${escapeHtml(option.label)}</option>`
@@ -359,7 +359,7 @@ function componentOptions(selectedId = "") {
   return products
     .filter(product => ["charm", "base"].includes(product.product_type) && product.id !== currentId)
     .map(product => `<option value="${product.id}" ${String(product.id) === String(selectedId) ? "selected" : ""}>
-      ${escapeHtml(product.name)} · ${product.product_type === "base" ? "Pulsera base" : "Dije"} · Stock ${product.stock}
+      ${escapeHtml(product.name)} · ${product.product_type === "base" ? "Brazalete" : "Charm"} · Stock ${product.stock}
     </option>`).join("");
 }
 
@@ -726,7 +726,7 @@ $("[data-product-form]").addEventListener("submit", async event => {
       }))
       .filter(component => component.productId);
     if (productType === "composite") {
-      if (!components.length) throw new Error("Agregá la pulsera base y los dijes de la composición.");
+      if (!components.length) throw new Error("Agregá el brazalete y los charms de la pulsera.");
       if (new Set(components.map(component => component.productId)).size !== components.length) {
         throw new Error("Cada componente debe aparecer una sola vez. Ajustá su cantidad en la misma fila.");
       }
@@ -734,10 +734,10 @@ $("[data-product-form]").addEventListener("submit", async event => {
         products.find(product => product.id === component.productId)
       );
       if (selectedProducts.filter(product => product?.product_type === "base").length !== 1) {
-        throw new Error("La pulsera armada debe usar exactamente una pulsera base.");
+        throw new Error("La pulsera debe usar exactamente un brazalete.");
       }
       if (selectedProducts.some(product => !product || !["base", "charm"].includes(product.product_type))) {
-        throw new Error("La composición solo puede incluir una pulsera base y dijes.");
+        throw new Error("La pulsera solo puede incluir un brazalete y charms.");
       }
     }
     let imageUrl = form.elements.image_url.value;
