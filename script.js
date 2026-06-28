@@ -1,14 +1,3 @@
-const fallbackProducts = [
-  { id: 1, name: "Aros Aura", category: "aros", price: 28900, old: 32000, badge: "NUEVO", image: "https://images.unsplash.com/photo-1635767798638-3e25273a8236?auto=format&fit=crop&w=700&q=85" },
-  { id: 2, name: "Collar Selene", category: "collares", price: 36500, badge: "MÁS VENDIDO", image: "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=700&q=85" },
-  { id: 3, name: "Anillo Nudo", category: "anillos", price: 24400, image: "https://images.unsplash.com/photo-1605100804763-247f67b3557e?auto=format&fit=crop&w=700&q=85" },
-  { id: 4, name: "Pulsera Siena", category: "pulseras", price: 31900, badge: "NUEVO", image: "https://images.unsplash.com/photo-1611652022419-a9419f74343d?auto=format&fit=crop&w=700&q=85" },
-  { id: 5, name: "Aros Lía", category: "aros", price: 22700, image: "https://images.unsplash.com/photo-1535632787350-4e68ef0ac584?auto=format&fit=crop&w=700&q=85" },
-  { id: 6, name: "Collar Ambar", category: "collares", price: 39800, old: 43000, badge: "ÚLTIMOS", image: "https://images.unsplash.com/photo-1599643477877-530eb83abc8e?auto=format&fit=crop&w=700&q=85" },
-  { id: 7, name: "Anillo Cielo", category: "anillos", price: 26900, image: "https://images.unsplash.com/photo-1603561596112-db1d797cc1c5?auto=format&fit=crop&w=700&q=85" },
-  { id: 8, name: "Pulsera Roma", category: "pulseras", price: 29500, image: "https://images.unsplash.com/photo-1573408301185-9146fe634ad0?auto=format&fit=crop&w=700&q=85" }
-];
-
 let products = [];
 let mixedProducts = [];
 let activeFilter = "todos";
