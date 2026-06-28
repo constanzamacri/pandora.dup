@@ -18,6 +18,7 @@ let orders = [];
 let categories = [];
 let categoriesHaveImageColumn = true;
 let promotions = [];
+let promotionRequirementsDirty = false;
 const editedImages = new WeakMap();
 let cropState = null;
 
@@ -286,6 +287,7 @@ function resetPromotionForm() {
   form.elements.id.value = "";
   form.elements.active.checked = true;
   form.elements.exclusive.checked = false;
+  promotionRequirementsDirty = false;
   updatePromotionTypeFields();
   $("[data-promotion-form-title]").textContent = "Promociones automáticas";
   $("[data-cancel-promotion]").classList.add("hidden");
@@ -791,9 +793,13 @@ $("[data-delete-product]").addEventListener("click", async () => {
   closeProduct();
 });
 
-$("[data-add-promotion-requirement]").addEventListener("click", () => addPromotionRequirement());
+$("[data-add-promotion-requirement]").addEventListener("click", () => {
+  addPromotionRequirement();
+  promotionRequirementsDirty = true;
+});
 $("[data-promotion-form]").elements.promotion_type.addEventListener("change", updatePromotionTypeFields);
 $("[data-promotion-requirements]").addEventListener("change", event => {
+  promotionRequirementsDirty = true;
   const matcher = event.target.closest("[data-promotion-matcher]");
   if (!matcher) return;
   const row = matcher.closest(".promotion-requirement-row");
@@ -801,17 +807,24 @@ $("[data-promotion-requirements]").addEventListener("change", event => {
 });
 $("[data-promotion-requirements]").addEventListener("click", event => {
   const button = event.target.closest("[data-remove-promotion-requirement]");
-  if (button) button.closest(".promotion-requirement-row").remove();
+  if (button) {
+    button.closest(".promotion-requirement-row").remove();
+    promotionRequirementsDirty = true;
+  }
 });
 
 $("[data-promotion-form]").addEventListener("submit", async event => {
   event.preventDefault();
   const form = event.currentTarget;
-  const requirements = [...form.querySelectorAll(".promotion-requirement-row")].map(row => ({
+  const editedPromotion = promotions.find(item => item.id === form.elements.id.value);
+  const formRequirements = [...form.querySelectorAll(".promotion-requirement-row")].map(row => ({
     matcher: row.querySelector("[data-promotion-matcher]").value,
     value: row.querySelector("[data-promotion-value]").value,
     quantity: Number(row.querySelector("[data-promotion-quantity]").value)
   })).filter(requirement => requirement.value && requirement.quantity > 0);
+  const requirements = editedPromotion && !promotionRequirementsDirty
+    ? editedPromotion.requirements.map(requirement => ({ ...requirement }))
+    : formRequirements;
   if (!requirements.length) return message("[data-promotion-message]", "Agregá al menos un requisito.", true);
   const type = form.elements.promotion_type.value;
   const promotion = {
@@ -855,6 +868,7 @@ $("[data-promotion-list]").addEventListener("click", async event => {
     form.elements.active.checked = promotion.active;
     form.elements.exclusive.checked = Boolean(promotion.exclusive);
     renderPromotionRequirements(promotion.requirements);
+    promotionRequirementsDirty = false;
     $("[data-promotion-form-title]").textContent = `Editar ${promotion.name}`;
     $("[data-cancel-promotion]").classList.remove("hidden");
     form.scrollIntoView({ behavior: "smooth", block: "start" });
