@@ -43,7 +43,7 @@ function renderSummary() {
   const promotionSummary = document.querySelector("[data-promotion-summary]");
   promotionSummary.classList.toggle("hidden", promotionPricing.applications.length === 0);
   promotionSummary.innerHTML = promotionPricing.applications.map(application =>
-    `<p><span>Promo: ${escapeHtml(application.name)}${application.applications > 1 ? ` ×${application.applications}` : ""}</span><strong>-${money(application.saving)}</strong></p>`
+    `<p><span>Promo: ${escapeHtml(application.name)}${application.applications > 1 ? ` ×${application.applications}` : ""}</span><strong>${application.gift ? `${escapeHtml(application.gift)} de regalo` : `-${money(application.saving)}`}</strong></p>`
   ).join("");
 }
 
@@ -70,7 +70,7 @@ function buildReceipt(form, orderNumber) {
     : delivery;
   const promotionLines = promotionPricing.applications.length
     ? `\nPROMOCIONES\n${promotionPricing.applications.map(application =>
-        `- ${application.name}${application.applications > 1 ? ` x${application.applications}` : ""}: -${money(application.saving)}`
+        `- ${application.name}${application.applications > 1 ? ` x${application.applications}` : ""}: ${application.gift ? `${application.gift} de regalo` : `-${money(application.saving)}`}`
       ).join("\n")}\n`
     : "";
   return `PANDORA.DUP — COMPROBANTE DE PEDIDO

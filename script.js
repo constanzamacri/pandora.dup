@@ -146,10 +146,9 @@ function renderPromotionShowcase() {
   section.classList.toggle("hidden", activePromotions.length === 0);
   document.querySelector("[data-store-promotions]").innerHTML = activePromotions.map(promotion => `
     <article class="promotion-card">
-      <p class="eyebrow">PROMO AUTOMÁTICA</p>
       <h3>${escapeHtml(promotion.name)}</h3>
       <p>${promotion.requirements.map(promotionRequirementText).join(" + ")}</p>
-      <strong>${money(promotion.price)}</strong>
+      <strong>${promotion.type === "gift" ? `${escapeHtml(promotion.gift)} de regalo` : money(promotion.price)}</strong>
       <a href="#productos">ELEGIR PRODUCTOS <span>→</span></a>
     </article>`).join("");
 }
@@ -520,7 +519,9 @@ function updateCart() {
   document.querySelector("[data-cart-promotions]").innerHTML = pricing.applications.map(application => `
     <div class="cart-promotion">
       <strong>✓ Promo: ${escapeHtml(application.name)}${application.applications > 1 ? ` ×${application.applications}` : ""}</strong>
-      <span>Ahorrás ${money(application.saving)} · Precio promo ${money(application.promotionalAmount)}</span>
+      <span>${application.gift
+        ? `Incluye ${escapeHtml(application.gift)} de regalo`
+        : `Ahorrás ${money(application.saving)} · Precio promo ${money(application.promotionalAmount)}`}</span>
     </div>`).join("");
   document.querySelector("[data-cart-subtotal]").textContent = money(pricing.subtotal);
   document.querySelector("[data-cart-total]").textContent = money(pricing.total);

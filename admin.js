@@ -191,6 +191,22 @@ function resetCategoryForm() {
   $("[data-cancel-category]").classList.add("hidden");
 }
 
+function categoryIdFromName(name) {
+  const base = name.normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "") || "categoria";
+  let id = base;
+  let suffix = 2;
+  while (categories.some(category => String(category.id) === id)) {
+    id = `${base}-${suffix}`;
+    suffix += 1;
+  }
+  return id;
+}
+
 async function loadContent() {
   const { data, error } = await supabase.from("site_content").select("key,value");
   if (error) throw error;
@@ -255,7 +271,7 @@ function renderPromotionRequirements(requirements = []) {
 function renderPromotions() {
   $("[data-promotion-list]").innerHTML = promotions.map(promotion => `
     <article class="admin-product">
-      <div><h3>${escapeHtml(promotion.name)}</h3><p>${money(promotion.price)} · ${promotion.requirements.length} requisitos · Prioridad ${promotion.priority || 0}</p></div>
+      <div><h3>${escapeHtml(promotion.name)}</h3><p>${promotion.type === "gift" ? `Regalo: ${escapeHtml(promotion.gift)}` : money(promotion.price)} · ${promotion.requirements.length} requisitos · Prioridad ${promotion.priority || 0}</p></div>
       <span class="status ${promotion.active ? "" : "draft"}">${promotion.active ? "Activa" : "Inactiva"}</span>
       <div class="category-actions">
         <button type="button" data-edit-promotion="${escapeHtml(promotion.id)}">EDITAR</button>
@@ -269,9 +285,19 @@ function resetPromotionForm() {
   form.reset();
   form.elements.id.value = "";
   form.elements.active.checked = true;
+  updatePromotionTypeFields();
   $("[data-promotion-form-title]").textContent = "Promociones automáticas";
   $("[data-cancel-promotion]").classList.add("hidden");
   renderPromotionRequirements();
+}
+
+function updatePromotionTypeFields() {
+  const form = $("[data-promotion-form]");
+  const isGift = form.elements.promotion_type.value === "gift";
+  $("[data-promotion-price-field]").classList.toggle("hidden", isGift);
+  $("[data-promotion-gift-field]").classList.toggle("hidden", !isGift);
+  form.elements.price.required = !isGift;
+  form.elements.gift.required = isGift;
 }
 
 async function persistPromotions(messageText) {
@@ -596,14 +622,15 @@ $("[data-category-form]").addEventListener("submit", async event => {
     let imageUrl = form.elements.image_url.value;
     const categoryImage = editedImages.get(form.elements.image) || form.elements.image.files[0];
     if (categoryImage) imageUrl = await uploadImage(categoryImage, "site");
+    const name = form.elements.name.value.trim();
+    const originalId = form.elements.original_id.value;
     const record = {
-      id: form.elements.id.value.trim().toLowerCase(),
-      name: form.elements.name.value.trim(),
+      id: originalId || categoryIdFromName(name),
+      name,
       sort_order: Number(form.elements.sort_order.value),
       published: form.elements.published.checked
     };
     if (categoriesHaveImageColumn) record.image_url = imageUrl || null;
-    const originalId = form.elements.original_id.value;
     const query = originalId
       ? supabase.from("categories").update(record).eq("id", originalId)
       : supabase.from("categories").insert(record);
@@ -644,7 +671,6 @@ $("[data-category-list]").addEventListener("click", event => {
   }
   const form = $("[data-category-form]");
   form.elements.original_id.value = String(category.id);
-  form.elements.id.value = category.id;
   form.elements.name.value = category.name;
   form.elements.image_url.value = category.image_url || "";
   form.elements.sort_order.value = category.sort_order;
@@ -765,6 +791,7 @@ $("[data-delete-product]").addEventListener("click", async () => {
 });
 
 $("[data-add-promotion-requirement]").addEventListener("click", () => addPromotionRequirement());
+$("[data-promotion-form]").elements.promotion_type.addEventListener("change", updatePromotionTypeFields);
 $("[data-promotion-requirements]").addEventListener("change", event => {
   const matcher = event.target.closest("[data-promotion-matcher]");
   if (!matcher) return;
@@ -785,13 +812,16 @@ $("[data-promotion-form]").addEventListener("submit", async event => {
     quantity: Number(row.querySelector("[data-promotion-quantity]").value)
   })).filter(requirement => requirement.value && requirement.quantity > 0);
   if (!requirements.length) return message("[data-promotion-message]", "Agregá al menos un requisito.", true);
+  const type = form.elements.promotion_type.value;
   const promotion = {
     id: form.elements.id.value || crypto.randomUUID(),
     name: form.elements.name.value.trim(),
-    price: Number(form.elements.price.value),
+    type,
+    price: type === "price" ? Number(form.elements.price.value) : null,
+    gift: type === "gift" ? form.elements.gift.value.trim() : null,
     priority: Number(form.elements.priority.value || 0),
-    startsAt: form.elements.starts_at.value || null,
-    endsAt: form.elements.ends_at.value || null,
+    startsAt: null,
+    endsAt: null,
     active: form.elements.active.checked,
     requirements
   };
@@ -815,10 +845,11 @@ $("[data-promotion-list]").addEventListener("click", async event => {
     const form = $("[data-promotion-form]");
     form.elements.id.value = promotion.id;
     form.elements.name.value = promotion.name;
-    form.elements.price.value = promotion.price;
+    form.elements.promotion_type.value = promotion.type || "price";
+    form.elements.price.value = promotion.price ?? "";
+    form.elements.gift.value = promotion.gift || "";
+    updatePromotionTypeFields();
     form.elements.priority.value = promotion.priority || 0;
-    form.elements.starts_at.value = promotion.startsAt || "";
-    form.elements.ends_at.value = promotion.endsAt || "";
     form.elements.active.checked = promotion.active;
     renderPromotionRequirements(promotion.requirements);
     $("[data-promotion-form-title]").textContent = `Editar ${promotion.name}`;

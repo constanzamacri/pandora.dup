@@ -50,10 +50,11 @@
       if (needed > 0) return null;
     }
 
-    const promotionalAmount = Number(promotion.price);
+    const isGift = promotion.type === "gift";
+    const promotionalAmount = isGift ? regularAmount : Number(promotion.price);
     const saving = regularAmount - promotionalAmount;
-    if (saving <= 0) return null;
-    return { next, allocated, regularAmount, promotionalAmount, saving };
+    if (!isGift && saving <= 0) return null;
+    return { next, allocated, regularAmount, promotionalAmount, saving, gift: isGift ? promotion.gift : null };
   }
 
   function calculate(cart, products, promotions) {
@@ -82,11 +83,14 @@
             regularAmount: allocation.regularAmount,
             promotionalAmount: allocation.promotionalAmount,
             saving: allocation.saving,
+            gift: allocation.gift,
             allocated: allocation.allocated
           }, ...tail.applications]
         };
         if (candidate.discount > result.discount ||
-            (candidate.discount === result.discount && candidate.priority > result.priority)) {
+            (candidate.discount === result.discount && candidate.priority > result.priority) ||
+            (candidate.discount === result.discount && candidate.priority === result.priority &&
+              candidate.applications.length > result.applications.length)) {
           result = candidate;
         }
       }
