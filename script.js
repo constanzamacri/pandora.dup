@@ -403,9 +403,7 @@ async function loadStoreData() {
 }
 
 function setFilter(filter) {
-  activeFilter = filter;
-  document.querySelectorAll("[data-filter]").forEach(button => button.classList.toggle("active", button.dataset.filter === filter));
-  renderProducts();
+  openCategoryView(filter);
 }
 
 function moveCarousel(direction) {
