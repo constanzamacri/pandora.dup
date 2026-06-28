@@ -776,6 +776,7 @@ $("[data-category-form]").addEventListener("submit", async event => {
     }
     resetCategoryForm();
     await Promise.all([loadCategories(), loadProducts()]);
+    localStorage.setItem("pandoraMenuUpdatedAt", String(Date.now()));
     message("[data-category-message]", originalId ? "Categoría actualizada." : "Categoría creada.");
   } catch (error) {
     message("[data-category-message]", error.message, true);
@@ -830,6 +831,7 @@ async function deleteCategory(categoryId) {
   }
   if ($("[data-category-form]").elements.original_id.value === String(category.id)) resetCategoryForm();
   await loadCategories();
+  localStorage.setItem("pandoraMenuUpdatedAt", String(Date.now()));
   message("[data-category-message]", "Categoría eliminada.");
 }
 

@@ -18,6 +18,7 @@ let detailProduct = null;
 let storeClient = null;
 let currentUser = null;
 let promotions = [];
+let storeCategories = [];
 const favoriteIds = new Set();
 const catalogParams = new URLSearchParams(window.location.search);
 const requestedCategory = catalogParams.get("category");
@@ -94,23 +95,22 @@ function menuHref(item) {
 }
 
 function renderMainMenu(menuItems) {
-  const oldDefault = menuItems.map(item => item.label.toLocaleLowerCase("es-AR")).join("|") ===
-    "novedades|promos|dijes|pulseras|combos|nosotras";
-  const visibleItems = oldDefault ? [
-    { label: "Promos", target_type: "section", target_value: "promos" },
-    { label: "Novedades", target_type: "section", target_value: "productos" },
-    { label: "Categorías", target_type: "section", target_value: "categorias" },
-    { label: "Materiales", target_type: "section", target_value: "materiales" },
-    { label: "Eventos", target_type: "section", target_value: "eventos" },
-    { label: "Contacto", target_type: "section", target_value: "contacto" }
-  ] : menuItems;
-  document.querySelector("[data-main-menu]").innerHTML = visibleItems.map(item => {
-    const externalAttributes = item.target_type === "external" ? ` target="_blank" rel="noopener"` : "";
-    const homeAttribute = item.target_type === "section" && item.target_value === "inicio"
-      ? " data-menu-home"
-      : "";
-    return `<a href="${escapeHtml(menuHref(item))}"${homeAttribute}${externalAttributes}>${escapeHtml(item.label)}</a>`;
-  }).join("");
+  const categoryLinks = storeCategories.map(category =>
+    `<a href="index.html?category=${encodeURIComponent(category.id)}">${escapeHtml(category.name)}</a>`
+  ).join("");
+  document.querySelector("[data-main-menu]").innerHTML = `
+    <a href="index.html#productos">Novedades</a>
+    <div class="nav-product-menu">
+      <button type="button" data-products-menu aria-expanded="false">Productos <span aria-hidden="true">⌄</span></button>
+      <div class="nav-product-dropdown">
+        ${categoryLinks}
+        <a class="view-all-products" href="index.html?category=todos">Ver todo</a>
+      </div>
+    </div>
+    <a href="index.html#promos">Promos</a>
+    <a href="index.html#materiales">Materiales</a>
+    <a href="index.html#eventos">Eventos</a>
+    <a href="index.html#contacto">Contacto</a>`;
 }
 
 function promotionRequirementText(requirement) {
@@ -167,13 +167,14 @@ async function refreshProductAvailability() {
 
 async function refreshPublicMenu() {
   if (!storeClient) return;
-  const { data, error } = await storeClient
-    .from("menu_items")
-    .select("*")
-    .eq("published", true)
-    .order("sort_order")
-    .order("id");
-  if (!error) renderMainMenu(data || []);
+  const [{ data, error }, { data: categories, error: categoriesError }] = await Promise.all([
+    storeClient.from("menu_items").select("*").eq("published", true).order("sort_order").order("id"),
+    storeClient.from("categories").select("id,name").eq("published", true).order("sort_order")
+  ]);
+  if (!error && !categoriesError) {
+    storeCategories = categories || [];
+    renderMainMenu(data || []);
+  }
 }
 
 function renderProducts() {
@@ -328,6 +329,7 @@ async function loadStoreData() {
       });
     }
     if (!menuError) {
+      storeCategories = categories || [];
       renderMainMenu(menuItems || []);
     }
     if (categories?.length) {
@@ -615,9 +617,17 @@ document.querySelector("[data-clear-cart]").addEventListener("click", () => {
 document.querySelector("[data-overlay]").addEventListener("click", () => toggleCart(false));
 document.querySelector("[data-menu-button]").addEventListener("click", () => document.querySelector("[data-nav]").classList.toggle("open"));
 document.querySelector("[data-nav]").addEventListener("click", event => {
+  const productsButton = event.target.closest("[data-products-menu]");
+  if (productsButton) {
+    const menu = productsButton.closest(".nav-product-menu");
+    const open = menu.classList.toggle("open");
+    productsButton.setAttribute("aria-expanded", String(open));
+    return;
+  }
   const link = event.target.closest("a");
   if (!link) return;
   document.querySelector("[data-nav]").classList.remove("open");
+  document.querySelector(".nav-product-menu")?.classList.remove("open");
   if (!link.matches("[data-menu-home]")) return;
   event.preventDefault();
   closeProductDetail();

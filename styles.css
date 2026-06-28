@@ -34,6 +34,15 @@ button { color: inherit; cursor: pointer; }
 .nav { position: absolute; left: 4vw; bottom: 37px; display: flex; gap: 25px; align-items: center; }
 .nav a { font-size: 11px; letter-spacing: 1px; text-transform: uppercase; }
 .nav a:hover { opacity: .55; }
+.nav-product-menu { position: relative; }
+.nav-product-menu > button { padding: 0; border: 0; background: none; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; }
+.nav-product-menu > button span { margin-left: 3px; font-size: 12px; }
+.nav-product-dropdown { min-width: 190px; padding: 12px 0; position: absolute; z-index: 30; top: calc(100% + 12px); left: -18px; display: grid; background: var(--paper); border: 1px solid var(--line); opacity: 0; visibility: hidden; transform: translateY(-6px); transition: .2s; }
+.nav-product-dropdown a { padding: 9px 18px; white-space: nowrap; font-size: 10px; }
+.nav-product-dropdown .view-all-products { margin-top: 7px; padding-top: 13px; border-top: 1px solid var(--line); font-weight: 600; }
+.nav-product-menu:hover .nav-product-dropdown,
+.nav-product-menu:focus-within .nav-product-dropdown,
+.nav-product-menu.open .nav-product-dropdown { opacity: 1; visibility: visible; transform: none; }
 .header-actions { position: absolute; right: 4vw; bottom: 11px; display: flex; gap: 14px; }
 .icon-button, .bag-button { border: 0; background: none; padding: 6px; }
 .icon-button svg, .bag-button svg { width: 21px; height: 21px; fill: none; stroke: currentColor; stroke-width: 1.5; }
@@ -241,6 +250,9 @@ footer a { color: #bdb8ae; font-size: 11px; }
   .mobile-menu span { display: block; margin: 6px 0; width: 20px; height: 1px; background: var(--ink); }
   .nav { position: absolute; top: 84px; bottom: auto; left: 0; right: 0; padding: 28px 5vw; flex-direction: column; align-items: flex-start; background: var(--paper); border-bottom: 1px solid var(--line); transform: translateY(-140%); transition: .3s; }
   .nav.open { transform: translateY(0); }
+  .nav-product-menu { width: 100%; }
+  .nav-product-dropdown { width: 100%; padding: 8px 0 0 14px; position: static; display: none; border: 0; opacity: 1; visibility: visible; transform: none; }
+  .nav-product-menu.open .nav-product-dropdown { display: grid; }
   .product-grid > .product-card { flex-basis: calc((100% - 18px) / 2); }
   .promotion-card { flex-basis: calc((100% - 18px) / 2); }
   .category { min-height: 430px; flex-basis: calc((100% - 18px) / 2); }
