@@ -322,6 +322,12 @@ async function loadStoreData() {
           if (safeDestination) document.querySelector("[data-hero-button]").href = item.value;
           return;
         }
+        if (item.key === "events_button_url") {
+          const safeDestination = /^(?:https?:\/\/[^\s]+|#[a-z0-9_-]+|[a-z0-9][a-z0-9._/-]*(?:[?#].*)?)$/i.test(item.value) &&
+            !item.value.includes("..");
+          if (safeDestination) document.querySelector("[data-events-button]").href = item.value;
+          return;
+        }
         if (item.key === "hero_kicker" && item.value.trim().toLocaleUpperCase("es-AR") === "NUEVA COLECCIÓN · 2026") {
           document.querySelector('[data-content="hero_kicker"]').textContent = "LO MÁS NUEVO · 2026";
           return;

@@ -190,10 +190,13 @@
           <label>Título de Materiales<input name="materials_title" value="HECHO PARA VOS" required></label>
           <label>Párrafo 1 de Materiales<textarea name="materials_description_1" rows="3" required>Nuestros artículos están elaborados en aleación con terminación plateada, seleccionados para crear pulseras únicas y personalizadas.</textarea></label>
           <label>Párrafo 2 de Materiales<textarea name="materials_description_2" rows="3" required>Para conservar mejor su brillo y acabado, recomendamos evitar el contacto con agua o productos químicos.</textarea></label>
-          <label>Título de Ideal para regalar<textarea name="gift_title" rows="2" required></textarea></label>
-          <label>Primer párrafo para regalos<textarea name="gift_description_1" rows="3" required></textarea></label>
-          <label>Segundo párrafo para eventos<textarea name="gift_description_2" rows="3" required></textarea></label>
-          <label>Tercer párrafo para combinaciones<textarea name="gift_description_3" rows="3" required></textarea></label>
+          <h3>Sección Eventos</h3>
+          <label>Subtítulo superior de Eventos<input name="events_kicker" value="IDEAL PARA REGALAR" required></label>
+          <label>Título de Eventos<textarea name="gift_title" rows="2" required>Un detalle especial para cada ocasión</textarea></label>
+          <label>Párrafo 1 de Eventos<textarea name="gift_description_1" rows="3" required>Nuestros accesorios son una opción especial para regalar algo lindo, personal y con significado.</textarea></label>
+          <label>Párrafo 2 de Eventos<textarea name="events_description_2" rows="4" required>Realizamos ventas minoristas y también preparamos pedidos para eventos especiales como cumpleaños de 15, celebraciones, souvenirs o detalles para invitados. Podés elegir pulseras, charms y combinaciones personalizadas para crear un regalo único.</textarea></label>
+          <label>Texto del botón de Eventos<input name="events_button_text" value="CONSULTAR POR EVENTOS" required></label>
+          <label>Destino del botón de Eventos<input name="events_button_url" value="https://wa.me/5492915072517?text=Hola%2C%20quiero%20consultar%20por%20accesorios%20para%20un%20evento" required></label>
           <h3>Imágenes principales</h3>
           <p class="upload-help">Elegí una foto solo cuando quieras reemplazar la actual.</p>
           <div class="photo-field"><label>Portada<input name="hero_image_file" type="file" accept="image/jpeg,image/png,image/webp"></label><input name="hero_image" type="hidden"><div class="position-controls"><label>Horizontal<input name="hero_image_position_x" type="range" min="0" max="100" value="50"></label><label>Vertical<input name="hero_image_position_y" type="range" min="0" max="100" value="50"></label></div></div>
@@ -289,6 +292,6 @@
     </section>
   </div>
 
-  <script type="module" src="admin.js?v=20260628-9"></script>
+  <script type="module" src="admin.js?v=20260628-10"></script>
 </body>
 </html>
