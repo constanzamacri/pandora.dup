@@ -147,13 +147,14 @@ async function saveOrder(form, orderNumber) {
     status: "pending"
   });
   if (error) throw error;
-  client.functions.invoke("order-notification", {
-    body: { orderNumber }
-  }).then(({ error: notificationError }) => {
+  try {
+    const { error: notificationError } = await client.functions.invoke("order-notification", {
+      body: { orderNumber }
+    });
     if (notificationError) console.warn("El pedido se guardó, pero no se pudo enviar el aviso.", notificationError);
-  }).catch(notificationError => {
+  } catch (notificationError) {
     console.warn("El pedido se guardó, pero no se pudo enviar el aviso.", notificationError);
-  });
+  }
 }
 
 if (!cart.length) {
