@@ -24,9 +24,19 @@ const catalogParams = new URLSearchParams(window.location.search);
 const requestedCategory = catalogParams.get("category");
 const requestedSearch = catalogParams.get("search");
 const requestedFavorites = catalogParams.get("favorites") === "1";
+const defaultAnnouncement = "3 CUOTAS SIN INTERÉS\nENVÍOS A TODO EL PAÍS\n10% OFF POR TRANSFERENCIA";
 const escapeHtml = value => String(value ?? "").replace(/[&<>"']/g, character => ({
   "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;"
 })[character]);
+
+function renderAnnouncement(value) {
+  const normalized = value.trim() === "3 CUOTAS SIN INTERÉS" ? defaultAnnouncement : value;
+  const messages = normalized.split(/\r?\n/).map(message => message.trim()).filter(Boolean);
+  const repeated = [...messages, ...messages];
+  document.querySelector("[data-announcement-track]").innerHTML = repeated
+    .map(message => `<span>${escapeHtml(message)}</span><i aria-hidden="true">✦</i>`)
+    .join("");
+}
 
 if (requestedCategory || requestedSearch || requestedFavorites) {
   document.body.classList.add("catalog-view");
@@ -300,6 +310,10 @@ async function loadStoreData() {
     renderPromotionShowcase();
     if (!contentError) {
       content.forEach(item => {
+        if (item.key === "announcement") {
+          renderAnnouncement(item.value);
+          return;
+        }
         if (item.key === "hero_kicker" && item.value.trim().toLocaleUpperCase("es-AR") === "NUEVA COLECCIÓN · 2026") {
           document.querySelector('[data-content="hero_kicker"]').textContent = "LO MÁS NUEVO · 2026";
           return;

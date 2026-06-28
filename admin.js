@@ -280,7 +280,11 @@ async function loadContent() {
   if (error) throw error;
   const form = $("[data-content-form]");
   data.forEach(item => {
-    if (form.elements[item.key]) form.elements[item.key].value = item.value;
+    if (form.elements[item.key]) {
+      form.elements[item.key].value = item.key === "announcement" && item.value.trim() === "3 CUOTAS SIN INTERÉS"
+        ? "3 CUOTAS SIN INTERÉS\nENVÍOS A TODO EL PAÍS\n10% OFF POR TRANSFERENCIA"
+        : item.value;
+    }
     if (item.key === "promotions_config") {
       try {
         promotions = JSON.parse(item.value) || [];
