@@ -16,6 +16,7 @@ let supabase;
 let products = [];
 let orders = [];
 let categories = [];
+let categoriesHaveImageColumn = true;
 let menuItems = [];
 let promotions = [];
 const editedImages = new WeakMap();
@@ -164,9 +165,19 @@ function renderCategories() {
 }
 
 async function loadCategories() {
-  const { data, error } = await supabase.from("categories").select("*").order("sort_order");
+  const [{ data, error }, { data: categoryImages, error: imagesError }] = await Promise.all([
+    supabase.from("categories").select("*").order("sort_order"),
+    supabase.from("site_content").select("key,value").like("key", "category_%_image")
+  ]);
   if (error) throw error;
-  categories = data || [];
+  if (imagesError) throw imagesError;
+  categoriesHaveImageColumn = !data?.length ||
+    Object.prototype.hasOwnProperty.call(data[0], "image_url");
+  const imageValues = Object.fromEntries((categoryImages || []).map(item => [item.key, item.value]));
+  categories = (data || []).map(category => ({
+    ...category,
+    image_url: category.image_url || imageValues[`category_${category.id}_image`] || null
+  }));
   renderCategories();
   updateMenuTargetHelp();
 }
@@ -724,10 +735,10 @@ $("[data-category-form]").addEventListener("submit", async event => {
     const record = {
       id: form.elements.id.value.trim().toLowerCase(),
       name: form.elements.name.value.trim(),
-      image_url: imageUrl || null,
       sort_order: Number(form.elements.sort_order.value),
       published: form.elements.published.checked
     };
+    if (categoriesHaveImageColumn) record.image_url = imageUrl || null;
     const originalId = form.elements.original_id.value;
     const query = originalId
       ? supabase.from("categories").update(record).eq("id", originalId)
@@ -735,6 +746,14 @@ $("[data-category-form]").addEventListener("submit", async event => {
     const { data, error } = await query.select("id").single();
     if (error) throw error;
     if (!data) throw new Error("La categoría no pudo guardarse. Actualizá la lista e intentá nuevamente.");
+    if (imageUrl) {
+      const { error: imageError } = await supabase.from("site_content").upsert({
+        key: `category_${record.id}_image`,
+        value: imageUrl,
+        updated_at: new Date().toISOString()
+      });
+      if (imageError) throw imageError;
+    }
     resetCategoryForm();
     await Promise.all([loadCategories(), loadProducts()]);
     message("[data-category-message]", originalId ? "Categoría actualizada." : "Categoría creada.");

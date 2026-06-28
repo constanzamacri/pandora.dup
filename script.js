@@ -283,7 +283,9 @@ async function loadStoreData() {
         `<button class="active" data-filter="todos">Todo</button>` +
         categories.map(category => `<button data-filter="${escapeHtml(category.id)}">${escapeHtml(category.name)}</button>`).join("");
       document.querySelector("[data-store-categories]").innerHTML = categories.map((category, index) => {
-        const imageUrl = category.image_url || contentValues[`category_${index + 1}_image`] || "";
+        const imageUrl = category.image_url ||
+          contentValues[`category_${category.id}_image`] ||
+          contentValues[`category_${index + 1}_image`] || "";
         return `
           <a href="#productos" data-filter-link="${escapeHtml(category.id)}" class="category"
             ${imageUrl ? `style="background-image:url('${imageUrl}')"` : ""}>
