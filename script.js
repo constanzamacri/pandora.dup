@@ -545,6 +545,31 @@ function showCartToast(text) {
   setTimeout(() => toast.classList.remove("show"), 1800);
 }
 
+function animateProductAdded(productId) {
+  const cards = new Set(
+    [...document.querySelectorAll(`[data-product-open="${productId}"]`)]
+      .map(element => element.closest(".product-card"))
+      .filter(Boolean)
+  );
+  cards.forEach(card => {
+    card.classList.remove("just-added");
+    void card.offsetWidth;
+    card.classList.add("just-added");
+    setTimeout(() => card.classList.remove("just-added"), 1500);
+  });
+  if (detailProduct?.id === productId) {
+    const detail = document.querySelector("[data-product-detail]");
+    const button = document.querySelector("[data-product-detail-add]");
+    const originalText = button.firstChild.textContent;
+    detail.classList.add("just-added");
+    button.firstChild.textContent = "✓ AGREGADO ";
+    setTimeout(() => {
+      detail.classList.remove("just-added");
+      button.firstChild.textContent = originalText;
+    }, 1500);
+  }
+}
+
 async function tryAddToCart(product, size = null) {
   if (!product || Number(product.stock) <= 0) return false;
   if (needsSize(product) && !size) {
@@ -567,6 +592,7 @@ async function tryAddToCart(product, size = null) {
   }
   cart.push(nextItem);
   updateCart();
+  animateProductAdded(product.id);
   showCartToast("Agregado a tu bolsa ♡");
   return true;
 }

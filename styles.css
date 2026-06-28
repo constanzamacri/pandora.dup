@@ -106,6 +106,11 @@ h1 em, h2 em { font-weight: 400; color: #8f726a; }
 .product-card { position: relative; }
 .product-card [data-product-open] { cursor: pointer; }
 .product-image { aspect-ratio: .78; overflow: hidden; position: relative; background: var(--cream); }
+.product-image::after { content: "✓ AGREGADO"; position: absolute; z-index: 4; inset: 0; display: grid; place-items: center; color: white; background: rgba(37,35,31,.7); font-size: 11px; font-weight: 600; letter-spacing: 1.8px; opacity: 0; visibility: hidden; pointer-events: none; }
+.product-card.just-added .product-image::after { animation: added-overlay 1.5s ease; }
+.product-card.just-added { animation: added-card 1.5s ease; }
+@keyframes added-overlay { 0% { opacity: 0; visibility: visible; } 18%, 68% { opacity: 1; visibility: visible; } 100% { opacity: 0; visibility: hidden; } }
+@keyframes added-card { 20% { transform: scale(.975); } 42% { transform: scale(1.015); } 100% { transform: none; } }
 .product-image img { width: 100%; height: 100%; object-fit: cover; transition: transform .6s; }
 .product-card:hover img { transform: scale(1.035); }
 .product-badge { position: absolute; top: 12px; left: 12px; padding: 7px 9px; background: var(--paper); font-size: 8px; letter-spacing: 1.3px; }
@@ -159,6 +164,8 @@ h1 em, h2 em { font-weight: 400; color: #8f726a; }
 .product-size { margin-bottom: 22px; display: grid; gap: 8px; font-size: 10px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; }
 .product-size select { width: 100%; min-height: 46px; padding: 0 12px; color: var(--ink); background: white; border: 1px solid var(--line); font: 12px "Montserrat", Arial, sans-serif; }
 .product-detail-add { width: 100%; }
+.product-detail.just-added .product-detail-add { animation: added-button 1.5s ease; }
+@keyframes added-button { 15%, 70% { color: white; background: #66725c; transform: scale(.985); } 100% { transform: none; } }
 
 .editorial { display: grid; grid-template-columns: .9fr 1.1fr; grid-template-rows: 500px 240px; background: #d9d0c2; }
 .editorial-image { background-size: cover; background-position: center; }
