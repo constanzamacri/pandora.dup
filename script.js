@@ -139,14 +139,17 @@ function renderProducts() {
   const source = mixedProducts.length === products.length ? mixedProducts : products;
   const visible = source.filter(product =>
     (activeFilter === "todos" || product.category === activeFilter) &&
+    (activeFilter !== "todos" || product.stock > 0) &&
     product.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
     (!requestedFavorites || favoriteIds.has(product.id))
-  );
+  ).sort((a, b) => activeFilter === "todos" ? 0 : Number(a.stock === 0) - Number(b.stock === 0));
   grid.innerHTML = visible.map(product => `
     <article class="product-card">
       <div class="product-image" data-product-open="${product.id}">
         <img src="${product.image}" alt="${product.name}" loading="lazy">
-        ${product.badge ? `<span class="product-badge">${product.badge}</span>` : ""}
+        ${product.stock === 0
+          ? `<span class="product-badge out-of-stock">SIN STOCK</span>`
+          : product.badge ? `<span class="product-badge">${product.badge}</span>` : ""}
         <button class="favorite-button ${favoriteIds.has(product.id) ? "active" : ""}"
           type="button" data-favorite="${product.id}" aria-label="${favoriteIds.has(product.id) ? "Quitar de" : "Agregar a"} favoritos">
           <span aria-hidden="true">${favoriteIds.has(product.id) ? "♥" : "♡"}</span>
