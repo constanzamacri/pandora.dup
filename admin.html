@@ -48,7 +48,6 @@
         <button type="button" data-tab="products">Productos</button>
         <button type="button" data-tab="categories">Categorías</button>
         <button type="button" data-tab="promotions">Promociones</button>
-        <button type="button" data-tab="menu">Menú</button>
         <button type="button" data-tab="content">Textos y fotos</button>
       </nav>
 
@@ -128,37 +127,6 @@
           <p class="form-message" data-promotion-message></p>
         </form>
         <div class="menu-admin-list" data-promotion-list></div>
-      </div>
-
-      <div class="tab-panel hidden" data-panel="menu">
-        <div class="panel-heading">
-          <div><p class="eyebrow">AJUSTES</p><h2 data-menu-form-title>Menú principal</h2></div>
-        </div>
-        <form class="content-form" data-menu-form>
-          <input name="id" type="hidden">
-          <div class="form-grid">
-            <label>Texto visible<input name="label" placeholder="Ej: Novedades" required></label>
-            <label>Tipo de destino
-              <select name="target_type" required>
-                <option value="category">Categoría</option>
-                <option value="section">Sección de la página</option>
-                <option value="page">Página interna</option>
-                <option value="external">Link externo</option>
-              </select>
-            </label>
-            <label>Destino<input name="target_value" list="menu-target-options" placeholder="Ej: dijes" required></label>
-            <datalist id="menu-target-options" data-menu-target-options></datalist>
-            <label>Orden<input name="sort_order" type="number" min="0" value="0" required></label>
-            <label class="check-field"><input name="published" type="checkbox" checked> Activa</label>
-          </div>
-          <p class="upload-help" data-menu-target-help>Elegí el identificador de una categoría.</p>
-          <div class="category-form-actions">
-            <button type="submit">GUARDAR OPCIÓN</button>
-            <button class="secondary-action hidden" type="button" data-cancel-menu>CANCELAR EDICIÓN</button>
-          </div>
-          <p class="form-message" data-menu-message></p>
-        </form>
-        <div class="menu-admin-list" data-menu-list></div>
       </div>
 
       <div class="tab-panel hidden" data-panel="content">
@@ -298,6 +266,6 @@
     </section>
   </div>
 
-  <script type="module" src="admin.js?v=20260628-11"></script>
+  <script type="module" src="admin.js?v=20260628-12"></script>
 </body>
 </html>

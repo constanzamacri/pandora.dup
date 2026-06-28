@@ -17,7 +17,6 @@ let products = [];
 let orders = [];
 let categories = [];
 let categoriesHaveImageColumn = true;
-let menuItems = [];
 let promotions = [];
 const editedImages = new WeakMap();
 let cropState = null;
@@ -179,89 +178,6 @@ async function loadCategories() {
     image_url: category.image_url || imageValues[`category_${category.id}_image`] || null
   }));
   renderCategories();
-  updateMenuTargetHelp();
-}
-
-const menuTypeLabels = {
-  category: "Categoría",
-  section: "Sección",
-  page: "Página interna",
-  external: "Link externo"
-};
-
-function renderMenuItems() {
-  $("[data-menu-list]").innerHTML = menuItems.map(item => `
-    <article class="admin-product">
-      <div>
-        <h3>${escapeHtml(item.label)}</h3>
-        <p>${menuTypeLabels[item.target_type]} · ${escapeHtml(item.target_value)} · Orden ${item.sort_order}</p>
-      </div>
-      <span class="status ${item.published ? "" : "draft"}">${item.published ? "Activa" : "Oculta"}</span>
-      <div class="category-actions">
-        <button type="button" data-edit-menu="${item.id}">EDITAR</button>
-        <button class="delete-category" type="button" data-delete-menu="${item.id}">ELIMINAR</button>
-      </div>
-    </article>`).join("");
-}
-
-async function loadMenuItems() {
-  let { data, error } = await supabase.from("menu_items").select("*").order("sort_order").order("id");
-  if (error) throw error;
-  const oldDefault = (data || []).map(item => item.label.toLocaleLowerCase("es-AR")).join("|") ===
-    "novedades|promos|dijes|pulseras|combos|nosotras";
-  if (oldDefault) {
-    const desired = [
-      ["Promos", "promos"],
-      ["Novedades", "productos"],
-      ["Categorías", "categorias"],
-      ["Materiales", "materiales"],
-      ["Eventos", "eventos"],
-      ["Contacto", "contacto"]
-    ];
-    data = data.map((item, index) => ({
-      ...item,
-      label: desired[index][0],
-      target_type: "section",
-      target_value: desired[index][1],
-      sort_order: index + 1,
-      published: true
-    }));
-    const { error: migrationError } = await supabase.from("menu_items").upsert(data);
-    if (migrationError) throw migrationError;
-    localStorage.setItem("pandoraMenuUpdatedAt", String(Date.now()));
-  }
-  menuItems = data || [];
-  renderMenuItems();
-}
-
-function resetMenuForm() {
-  const form = $("[data-menu-form]");
-  form.reset();
-  form.elements.id.value = "";
-  form.elements.published.checked = true;
-  $("[data-menu-form-title]").textContent = "Menú principal";
-  $("[data-cancel-menu]").classList.add("hidden");
-  updateMenuTargetHelp();
-}
-
-function updateMenuTargetHelp() {
-  const form = $("[data-menu-form]");
-  const type = form.elements.target_type.value;
-  const help = {
-    category: "Elegí el identificador de una categoría.",
-    section: "Usá: promos, productos, categorias, materiales, eventos o contacto.",
-    page: "Ingresá la página interna, por ejemplo: account.html.",
-    external: "Ingresá el link completo, por ejemplo: https://instagram.com/."
-  };
-  const options = type === "category"
-    ? categories.map(category => `<option value="${escapeHtml(category.id)}">${escapeHtml(category.name)}</option>`).join("")
-    : type === "section"
-      ? ["promos", "productos", "categorias", "materiales", "eventos", "contacto"].map(value => `<option value="${value}"></option>`).join("")
-      : type === "page"
-        ? ["index.html", "account.html", "checkout.html"].map(value => `<option value="${value}"></option>`).join("")
-        : "";
-  $("[data-menu-target-options]").innerHTML = options;
-  $("[data-menu-target-help]").textContent = help[type];
 }
 
 function resetCategoryForm() {
@@ -583,7 +499,7 @@ if (!isSupabaseConfigured) {
     try {
       await verifyAdmin(session.user);
       showDashboard(session.user.email);
-      await Promise.all([loadOrders(), loadCategories(), loadProducts(), loadContent(), loadMenuItems()]);
+      await Promise.all([loadOrders(), loadCategories(), loadProducts(), loadContent()]);
     } catch (error) {
       showLogin();
       message("[data-login-message]", error.message, true);
@@ -603,7 +519,7 @@ $("[data-login-form]").addEventListener("submit", async event => {
   try {
     await verifyAdmin(data.user);
     showDashboard(data.user.email);
-    await Promise.all([loadOrders(), loadCategories(), loadProducts(), loadContent(), loadMenuItems()]);
+    await Promise.all([loadOrders(), loadCategories(), loadProducts(), loadContent()]);
   } catch (adminError) {
     message("[data-login-message]", adminError.message, true);
   }
@@ -621,83 +537,6 @@ document.querySelectorAll("[data-tab]").forEach(button => {
       panel.classList.toggle("hidden", panel.dataset.panel !== button.dataset.tab)
     );
   });
-});
-
-$("[data-menu-form]").elements.target_type.addEventListener("change", updateMenuTargetHelp);
-
-$("[data-menu-form]").addEventListener("submit", async event => {
-  event.preventDefault();
-  const form = event.currentTarget;
-  const id = form.elements.id.value;
-  const targetType = form.elements.target_type.value;
-  const targetValue = form.elements.target_value.value.trim();
-  message("[data-menu-message]", "Guardando...");
-  try {
-    if (targetType === "category" && !categories.some(category => String(category.id) === targetValue)) {
-      throw new Error("Elegí una categoría válida.");
-    }
-    if (targetType === "external" && !/^https?:\/\//i.test(targetValue)) {
-      throw new Error("El link externo debe comenzar con http:// o https://.");
-    }
-    if (targetType === "page" && (!/^[a-z0-9][a-z0-9._/-]*(?:[?#].*)?$/i.test(targetValue) || targetValue.includes(".."))) {
-      throw new Error("Ingresá una ruta interna válida.");
-    }
-    const record = {
-      label: form.elements.label.value.trim(),
-      target_type: targetType,
-      target_value: targetValue.replace(/^#/, ""),
-      sort_order: Number(form.elements.sort_order.value),
-      published: form.elements.published.checked
-    };
-    const query = id
-      ? supabase.from("menu_items").update(record).eq("id", Number(id))
-      : supabase.from("menu_items").insert(record);
-    const { data, error } = await query.select("id").single();
-    if (error) throw error;
-    if (!data) throw new Error("La opción no pudo guardarse.");
-    resetMenuForm();
-    await loadMenuItems();
-    localStorage.setItem("pandoraMenuUpdatedAt", String(Date.now()));
-    message("[data-menu-message]", id ? "Opción actualizada." : "Opción agregada.");
-  } catch (error) {
-    message("[data-menu-message]", error.message, true);
-  }
-});
-
-$("[data-menu-list]").addEventListener("click", async event => {
-  const editButton = event.target.closest("[data-edit-menu]");
-  const deleteButton = event.target.closest("[data-delete-menu]");
-  if (editButton) {
-    const item = menuItems.find(menuItem => menuItem.id === Number(editButton.dataset.editMenu));
-    if (!item) return loadMenuItems();
-    const form = $("[data-menu-form]");
-    form.elements.id.value = item.id;
-    form.elements.label.value = item.label;
-    form.elements.target_type.value = item.target_type;
-    form.elements.target_value.value = item.target_value;
-    form.elements.sort_order.value = item.sort_order;
-    form.elements.published.checked = item.published;
-    updateMenuTargetHelp();
-    $("[data-menu-form-title]").textContent = `Editar ${item.label}`;
-    $("[data-cancel-menu]").classList.remove("hidden");
-    message("[data-menu-message]", `Estás editando la opción ${item.label}.`);
-    form.scrollIntoView({ behavior: "smooth", block: "start" });
-    return;
-  }
-  if (!deleteButton) return;
-  const item = menuItems.find(menuItem => menuItem.id === Number(deleteButton.dataset.deleteMenu));
-  if (!item || !confirm(`¿Querés eliminar la opción “${item.label}”?`)) return;
-  const { error } = await supabase.from("menu_items").delete().eq("id", item.id);
-  if (error) return message("[data-menu-message]", error.message, true);
-  if ($("[data-menu-form]").elements.id.value === String(item.id)) resetMenuForm();
-  await loadMenuItems();
-  localStorage.setItem("pandoraMenuUpdatedAt", String(Date.now()));
-  message("[data-menu-message]", "Opción eliminada.");
-});
-
-$("[data-cancel-menu]").addEventListener("click", () => {
-  resetMenuForm();
-  message("[data-menu-message]", "");
 });
 
 document.querySelectorAll("[data-admin-home-logo]").forEach(logo => {
