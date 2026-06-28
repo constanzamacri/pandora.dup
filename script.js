@@ -94,13 +94,54 @@ function menuHref(item) {
 }
 
 function renderMainMenu(menuItems) {
-  document.querySelector("[data-main-menu]").innerHTML = menuItems.map(item => {
+  const oldDefault = menuItems.map(item => item.label.toLocaleLowerCase("es-AR")).join("|") ===
+    "novedades|promos|dijes|pulseras|combos|nosotras";
+  const visibleItems = oldDefault ? [
+    { label: "Promos", target_type: "section", target_value: "promos" },
+    { label: "Novedades", target_type: "section", target_value: "productos" },
+    { label: "Categorías", target_type: "section", target_value: "categorias" },
+    { label: "Materiales", target_type: "section", target_value: "materiales" },
+    { label: "Eventos", target_type: "section", target_value: "eventos" },
+    { label: "Contacto", target_type: "section", target_value: "contacto" }
+  ] : menuItems;
+  document.querySelector("[data-main-menu]").innerHTML = visibleItems.map(item => {
     const externalAttributes = item.target_type === "external" ? ` target="_blank" rel="noopener"` : "";
     const homeAttribute = item.target_type === "section" && item.target_value === "inicio"
       ? " data-menu-home"
       : "";
     return `<a href="${escapeHtml(menuHref(item))}"${homeAttribute}${externalAttributes}>${escapeHtml(item.label)}</a>`;
   }).join("");
+}
+
+function promotionRequirementText(requirement) {
+  const labels = {
+    base: "pulsera base",
+    charm: "charm",
+    composite: "pulsera armada",
+    simple: "producto"
+  };
+  if (requirement.matcher === "product_type") {
+    return `${requirement.quantity} ${labels[requirement.value] || requirement.value}${requirement.quantity > 1 ? "s" : ""}`;
+  }
+  if (requirement.matcher === "category") {
+    return `${requirement.quantity} de ${requirement.value}`;
+  }
+  const product = products.find(item => String(item.id) === String(requirement.value));
+  return `${requirement.quantity} ${product?.name || "producto"}`;
+}
+
+function renderPromotionShowcase() {
+  const activePromotions = promotions.filter(promotion => window.PromotionEngine.isActive(promotion));
+  const section = document.querySelector("[data-promotions-section]");
+  section.classList.toggle("hidden", activePromotions.length === 0);
+  document.querySelector("[data-store-promotions]").innerHTML = activePromotions.map(promotion => `
+    <article class="promotion-card">
+      <p class="eyebrow">PROMO AUTOMÁTICA</p>
+      <h3>${escapeHtml(promotion.name)}</h3>
+      <p>${promotion.requirements.map(promotionRequirementText).join(" + ")}</p>
+      <strong>${money(promotion.price)}</strong>
+      <a href="#productos">ELEGIR PRODUCTOS <span>→</span></a>
+    </article>`).join("");
 }
 
 const normalizeStoreProduct = product => ({
@@ -255,6 +296,7 @@ async function loadStoreData() {
       : {};
     promotions = window.PromotionEngine.parse(contentValues.promotions_config);
     localStorage.setItem("pandoraPromotions", JSON.stringify(promotions));
+    renderPromotionShowcase();
     if (!contentError) {
       content.forEach(item => {
         if (item.key === "hero_title" && item.value.includes(",")) {
@@ -348,6 +390,16 @@ function moveCategoryCarousel(direction) {
 
 document.querySelector("[data-category-prev]").addEventListener("click", () => moveCategoryCarousel(-1));
 document.querySelector("[data-category-next]").addEventListener("click", () => moveCategoryCarousel(1));
+
+function movePromotionCarousel(direction) {
+  const promotionGrid = document.querySelector("[data-store-promotions]");
+  const card = promotionGrid.querySelector(".promotion-card");
+  const distance = card ? card.getBoundingClientRect().width + 18 : promotionGrid.clientWidth * 0.8;
+  promotionGrid.scrollBy({ left: direction * distance, behavior: "smooth" });
+}
+
+document.querySelector("[data-promotion-prev]").addEventListener("click", () => movePromotionCarousel(-1));
+document.querySelector("[data-promotion-next]").addEventListener("click", () => movePromotionCarousel(1));
 
 function openCategoryView(category) {
   if (category === "todos") {

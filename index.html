@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=20260627-42">
+  <link rel="stylesheet" href="styles.css?v=20260628-1">
 </head>
 <body class="content-loading">
   <div class="announcement">
@@ -75,6 +75,17 @@
       <div><strong>PULSERAS PERSONALIZABLES</strong><span>Elegí tus charms favoritos</span></div>
     </section>
 
+    <section class="section promotions-section hidden" id="promos" data-promotions-section>
+      <div class="section-heading">
+        <div><p class="eyebrow">OPORTUNIDADES</p><h2>Promos para vos</h2></div>
+      </div>
+      <div class="promotion-carousel">
+        <button class="carousel-arrow carousel-arrow-prev" type="button" data-promotion-prev aria-label="Ver promociones anteriores">←</button>
+        <div class="promotion-grid" data-store-promotions></div>
+        <button class="carousel-arrow carousel-arrow-next" type="button" data-promotion-next aria-label="Ver más promociones">→</button>
+      </div>
+    </section>
+
     <section class="section products-section" id="productos">
       <div class="section-heading">
         <div>
@@ -97,7 +108,7 @@
       <p class="empty-state" data-empty>No encontramos productos con esa búsqueda.</p>
     </section>
 
-    <section class="section categories">
+    <section class="section categories" id="categorias">
       <div class="section-heading">
         <div><p class="eyebrow">ENCONTRÁ TU ESTILO</p><h2>Comprá por categoría</h2></div>
       </div>
@@ -108,7 +119,7 @@
       </div>
     </section>
 
-    <section class="editorial" id="novedades">
+    <section class="editorial" id="materiales">
       <div class="editorial-image editorial-main" data-content-image="editorial_main_image"></div>
       <div class="editorial-copy">
         <h2>HECHO PARA VOS</h2>
@@ -118,7 +129,7 @@
       <div class="editorial-image editorial-small" data-content-image="editorial_small_image"></div>
     </section>
 
-    <section class="story" id="nosotras">
+    <section class="story" id="eventos">
       <p class="eyebrow">IDEAL PARA REGALAR</p>
       <h2 data-content="gift_title">Un detalle especial para cada ocasión</h2>
       <div class="story-copy">
@@ -128,7 +139,7 @@
       <a class="text-link" href="https://wa.me/5492915072517?text=Hola%2C%20quiero%20consultar%20por%20accesorios%20para%20un%20evento" target="_blank" rel="noopener">CONSULTAR POR EVENTOS <span>→</span></a>
     </section>
 
-    <section class="newsletter">
+    <section class="newsletter" id="contacto">
       <div>
         <p class="eyebrow">CONTACTANOS</p>
         <h2>¿Tenés dudas? Te ayudamos por WhatsApp.</h2>
@@ -161,7 +172,7 @@
 
   <footer>
     <a class="footer-brand" href="index.html" data-home-logo aria-label="Pandora Dup, volver al inicio"><span class="footer-brand-logo"></span></a>
-    <div><strong>TIENDA</strong><a href="#novedades">Novedades</a><a href="#productos">Productos</a><a href="#">Gift cards</a></div>
+    <div><strong>TIENDA</strong><a href="#productos">Novedades</a><a href="#productos">Productos</a><a href="#">Gift cards</a></div>
     <div><strong>AYUDA</strong><a href="#">Cómo comprar</a><a href="#">Envíos y cambios</a><a href="#">Preguntas frecuentes</a></div>
     <div><strong>SEGUINOS</strong><a href="https://www.instagram.com/" target="_blank" rel="noopener">Instagram ↗</a></div>
     <div><strong>CONTACTO</strong><a href="mailto:constanzamacri@gmail.com">Escribinos por email ↗</a></div>
@@ -199,6 +210,6 @@
   <div class="toast" data-toast>Agregado a tu bolsa ♡</div>
 
   <script src="promotions.js?v=20260627-1"></script>
-  <script src="script.js?v=20260627-38"></script>
+  <script src="script.js?v=20260628-1"></script>
 </body>
 </html>

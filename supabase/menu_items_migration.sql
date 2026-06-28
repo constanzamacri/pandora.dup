@@ -25,15 +25,11 @@ with check (public.is_admin());
 insert into public.menu_items (label, target_type, target_value, sort_order)
 select seed.*
 from (values
-  ('Novedades','section','inicio',1),
-  ('Promos','section','productos',2),
-  ('Dijes','category','dijes',3),
-  ('Pulseras','category','pulseras',4),
-  ('Combos','category','combos',5),
-  ('Nosotras','section','nosotras',6)
+  ('Promos','section','promos',1),
+  ('Novedades','section','productos',2),
+  ('Categorías','section','categorias',3),
+  ('Materiales','section','materiales',4),
+  ('Eventos','section','eventos',5),
+  ('Contacto','section','contacto',6)
 ) as seed(label, target_type, target_value, sort_order)
 where not exists (select 1 from public.menu_items);
-
-update public.menu_items
-set target_type = 'section', target_value = 'inicio'
-where lower(label) = 'novedades';

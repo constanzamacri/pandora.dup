@@ -205,8 +205,31 @@ function renderMenuItems() {
 }
 
 async function loadMenuItems() {
-  const { data, error } = await supabase.from("menu_items").select("*").order("sort_order").order("id");
+  let { data, error } = await supabase.from("menu_items").select("*").order("sort_order").order("id");
   if (error) throw error;
+  const oldDefault = (data || []).map(item => item.label.toLocaleLowerCase("es-AR")).join("|") ===
+    "novedades|promos|dijes|pulseras|combos|nosotras";
+  if (oldDefault) {
+    const desired = [
+      ["Promos", "promos"],
+      ["Novedades", "productos"],
+      ["Categorías", "categorias"],
+      ["Materiales", "materiales"],
+      ["Eventos", "eventos"],
+      ["Contacto", "contacto"]
+    ];
+    data = data.map((item, index) => ({
+      ...item,
+      label: desired[index][0],
+      target_type: "section",
+      target_value: desired[index][1],
+      sort_order: index + 1,
+      published: true
+    }));
+    const { error: migrationError } = await supabase.from("menu_items").upsert(data);
+    if (migrationError) throw migrationError;
+    localStorage.setItem("pandoraMenuUpdatedAt", String(Date.now()));
+  }
   menuItems = data || [];
   renderMenuItems();
 }
@@ -226,14 +249,14 @@ function updateMenuTargetHelp() {
   const type = form.elements.target_type.value;
   const help = {
     category: "Elegí el identificador de una categoría.",
-    section: "Usá el identificador de sección: inicio, productos, novedades o nosotras.",
+    section: "Usá: promos, productos, categorias, materiales, eventos o contacto.",
     page: "Ingresá la página interna, por ejemplo: account.html.",
     external: "Ingresá el link completo, por ejemplo: https://instagram.com/."
   };
   const options = type === "category"
     ? categories.map(category => `<option value="${escapeHtml(category.id)}">${escapeHtml(category.name)}</option>`).join("")
     : type === "section"
-      ? ["inicio", "productos", "novedades", "nosotras"].map(value => `<option value="${value}"></option>`).join("")
+      ? ["promos", "productos", "categorias", "materiales", "eventos", "contacto"].map(value => `<option value="${value}"></option>`).join("")
       : type === "page"
         ? ["index.html", "account.html", "checkout.html"].map(value => `<option value="${value}"></option>`).join("")
         : "";
