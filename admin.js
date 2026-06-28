@@ -194,10 +194,11 @@ function resetCategoryForm() {
 async function loadContent() {
   const { data, error } = await supabase.from("site_content").select("key,value");
   if (error) throw error;
-  const form = $("[data-content-form]");
+  const forms = [...document.querySelectorAll("[data-content-section-form]")];
   data.forEach(item => {
-    if (form.elements[item.key]) {
-      form.elements[item.key].value = item.key === "announcement" && item.value.trim() === "3 CUOTAS SIN INTERÉS"
+    const field = forms.map(form => form.elements[item.key]).find(Boolean);
+    if (field) {
+      field.value = item.key === "announcement" && item.value.trim() === "3 CUOTAS SIN INTERÉS"
         ? "3 CUOTAS SIN INTERÉS\nENVÍOS A TODO EL PAÍS\n10% OFF POR TRANSFERENCIA"
         : item.value;
     }
@@ -842,27 +843,34 @@ $("[data-cancel-promotion]").addEventListener("click", () => {
   message("[data-promotion-message]", "");
 });
 
-$("[data-content-form]").addEventListener("submit", async event => {
-  event.preventDefault();
-  message("[data-content-message]", "Guardando...");
-  const form = event.currentTarget;
-  const imageKeys = ["hero_image","editorial_main_image","editorial_small_image"];
-  try {
-    for (const key of imageKeys) {
-      const input = form.elements[`${key}_file`];
-      const file = editedImages.get(input) || input.files[0];
-      if (file) form.elements[key].value = await uploadImage(file, "site");
+document.querySelectorAll("[data-content-section-form]").forEach(form => {
+  form.addEventListener("submit", async event => {
+    event.preventDefault();
+    const messageElement = form.querySelector("[data-content-message]");
+    const sectionMessage = (text, isError = false) => {
+      messageElement.textContent = text;
+      messageElement.classList.toggle("error", isError);
+    };
+    sectionMessage("Guardando...");
+
+    if (form.matches("[data-image-settings-form]")) {
+      const imageKeys = ["hero_image","editorial_main_image","editorial_small_image"];
+      try {
+        for (const key of imageKeys) {
+          const input = form.elements[`${key}_file`];
+          const file = editedImages.get(input) || input.files[0];
+          if (file) form.elements[key].value = await uploadImage(file, "site");
+        }
+      } catch (error) {
+        sectionMessage(error.message, true);
+        return;
+      }
     }
-  } catch (error) {
-    return message("[data-content-message]", error.message, true);
-  }
-  const records = [...form.elements]
-    .filter(element => element.name && !element.name.endsWith("_file") && element.type !== "submit")
-    .map(element => ({ key: element.name, value: element.value.trim() }));
-  const { error } = await supabase.from("site_content").upsert(records);
-  message(
-    "[data-content-message]",
-    error ? error.message : "Los textos fueron actualizados.",
-    Boolean(error)
-  );
+
+    const records = [...form.elements]
+      .filter(element => element.name && !element.name.endsWith("_file") && element.type !== "submit")
+      .map(element => ({ key: element.name, value: element.value.trim() }));
+    const { error } = await supabase.from("site_content").upsert(records);
+    sectionMessage(error ? error.message : "Cambios guardados.", Boolean(error));
+  });
 });

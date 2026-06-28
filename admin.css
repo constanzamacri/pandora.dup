@@ -82,6 +82,14 @@ input[type="file"] { padding: 12px; background: #f7f5f1; cursor: pointer; }
 .admin-product > button { padding: 10px 13px; background: white; border: 1px solid var(--line); font-size: 9px; }
 .empty-admin { padding: 40px; color: var(--muted); text-align: center; background: white; border: 1px solid var(--line); }
 .content-form { max-width: 760px; padding: 30px; background: white; border: 1px solid var(--line); }
+.settings-accordions { width: min(100%, 900px); display: grid; gap: 10px; }
+.settings-accordion { background: white; border: 1px solid var(--line); }
+.settings-accordion summary { padding: 20px 24px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; list-style: none; font-size: 13px; font-weight: 600; }
+.settings-accordion summary::-webkit-details-marker { display: none; }
+.settings-accordion summary::after { content: "+"; font-size: 21px; font-weight: 400; line-height: 1; }
+.settings-accordion[open] summary { border-bottom: 1px solid var(--line); }
+.settings-accordion[open] summary::after { content: "−"; }
+.settings-accordion .content-form { max-width: none; padding: 28px 30px; border: 0; }
 .modal { position: fixed; z-index: 100; inset: 0; display: grid; place-items: center; }
 .modal-backdrop { position: absolute; inset: 0; background: rgba(20, 18, 16, .55); }
 .modal-card { position: relative; width: min(720px, calc(100% - 24px)); max-height: 92vh; padding: 30px; overflow-y: auto; background: var(--paper); }

@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="admin.css?v=20260627-25">
+  <link rel="stylesheet" href="admin.css?v=20260628-1">
 </head>
 <body>
   <main class="admin-shell">
@@ -133,52 +133,93 @@
         <div class="panel-heading">
           <div><p class="eyebrow">CONTENIDO</p><h2>Textos y fotos</h2></div>
         </div>
-        <form class="content-form" data-content-form>
-          <label>Cartel promocional
-            <textarea name="announcement" rows="5" placeholder="Escribí un mensaje por línea" required></textarea>
-            <small>Cada línea aparecerá separada por una mini estrella.</small>
-          </label>
-          <h3>Portada principal</h3>
-          <label>Texto superior<input name="hero_kicker" placeholder="Ej: LO MÁS NUEVO · 2026" required></label>
-          <label>Título<textarea name="hero_title" rows="2" required></textarea></label>
-          <label>Subtítulo<textarea name="hero_subtitle" rows="2" required>Combiná tus charms favoritos</textarea></label>
-          <label>Descripción<textarea name="hero_description" rows="3" required></textarea></label>
-          <label>Texto del botón<input name="hero_button_text" value="VER COLECCIÓN" required></label>
-          <label>Destino del botón<input name="hero_button_url" value="index.html?category=todos" placeholder="Ej: index.html?category=todos" required></label>
-          <h3>Sección Promos</h3>
-          <label>Subtítulo superior de Promos<input name="promotions_kicker" value="OPORTUNIDADES" required></label>
-          <label>Título de Promos<input name="promotions_title" value="Promos para vos" required></label>
-          <h3>Sección Novedades</h3>
-          <label>Subtítulo superior de Novedades<input name="products_kicker" value="NUESTROS FAVORITOS" required></label>
-          <label>Título de Novedades<input name="products_title" value="Elegidos para vos" required></label>
-          <h3>Sección Categorías</h3>
-          <label>Subtítulo superior de Categorías<input name="categories_kicker" value="ENCONTRÁ TU ESTILO" required></label>
-          <label>Título de Categorías<input name="categories_title" value="Comprá por categoría" required></label>
-          <h3>Sección Materiales</h3>
-          <label>Título de Materiales<input name="materials_title" value="HECHO PARA VOS" required></label>
-          <label>Párrafo 1 de Materiales<textarea name="materials_description_1" rows="3" required>Nuestros artículos están elaborados en aleación con terminación plateada, seleccionados para crear pulseras únicas y personalizadas.</textarea></label>
-          <label>Párrafo 2 de Materiales<textarea name="materials_description_2" rows="3" required>Para conservar mejor su brillo y acabado, recomendamos evitar el contacto con agua o productos químicos.</textarea></label>
-          <h3>Sección Eventos</h3>
-          <label>Subtítulo superior de Eventos<input name="events_kicker" value="IDEAL PARA REGALAR" required></label>
-          <label>Título de Eventos<textarea name="gift_title" rows="2" required>Un detalle especial para cada ocasión</textarea></label>
-          <label>Párrafo 1 de Eventos<textarea name="gift_description_1" rows="3" required>Nuestros accesorios son una opción especial para regalar algo lindo, personal y con significado.</textarea></label>
-          <label>Párrafo 2 de Eventos<textarea name="events_description_2" rows="4" required>Realizamos ventas minoristas y también preparamos pedidos para eventos especiales como cumpleaños de 15, celebraciones, souvenirs o detalles para invitados. Podés elegir pulseras, charms y combinaciones personalizadas para crear un regalo único.</textarea></label>
-          <label>Texto del botón de Eventos<input name="events_button_text" value="CONSULTAR POR EVENTOS" required></label>
-          <label>Destino del botón de Eventos<input name="events_button_url" value="https://wa.me/5492915072517?text=Hola%2C%20quiero%20consultar%20por%20accesorios%20para%20un%20evento" required></label>
-          <h3>Sección Contacto</h3>
-          <label>Subtítulo superior de Contacto<input name="contact_kicker" value="CONTACTANOS" required></label>
-          <label>Título de Contacto<textarea name="contact_title" rows="3" required>¿Tenés dudas? Te ayudamos por WhatsApp.</textarea></label>
-          <label>Párrafo de Contacto<textarea name="contact_description" rows="3" required>Te acompañamos por WhatsApp para que armes una pulsera única.</textarea></label>
-          <label>Texto del botón de Contacto<input name="contact_button_text" value="ESCRIBIR POR WHATSAPP" required></label>
-          <label>Destino del botón de Contacto<input name="contact_button_url" value="https://wa.me/5492915072517?text=Hola%2C%20quiero%20hacer%20una%20consulta%20sobre%20un%20art%C3%ADculo" required></label>
-          <h3>Imágenes principales</h3>
-          <p class="upload-help">Elegí una foto solo cuando quieras reemplazar la actual.</p>
-          <div class="photo-field"><label>Portada<input name="hero_image_file" type="file" accept="image/jpeg,image/png,image/webp"></label><input name="hero_image" type="hidden"><div class="position-controls"><label>Horizontal<input name="hero_image_position_x" type="range" min="0" max="100" value="50"></label><label>Vertical<input name="hero_image_position_y" type="range" min="0" max="100" value="50"></label></div></div>
-          <div class="photo-field"><label>Editorial principal<input name="editorial_main_image_file" type="file" accept="image/jpeg,image/png,image/webp"></label><input name="editorial_main_image" type="hidden"><div class="position-controls"><label>Horizontal<input name="editorial_main_image_position_x" type="range" min="0" max="100" value="50"></label><label>Vertical<input name="editorial_main_image_position_y" type="range" min="0" max="100" value="50"></label></div></div>
-          <div class="photo-field"><label>Editorial secundaria<input name="editorial_small_image_file" type="file" accept="image/jpeg,image/png,image/webp"></label><input name="editorial_small_image" type="hidden"><div class="position-controls"><label>Horizontal<input name="editorial_small_image_position_x" type="range" min="0" max="100" value="50"></label><label>Vertical<input name="editorial_small_image_position_y" type="range" min="0" max="100" value="50"></label></div></div>
-          <button type="submit">GUARDAR CAMBIOS</button>
-          <p class="form-message" data-content-message></p>
-        </form>
+        <div class="settings-accordions">
+          <details class="settings-accordion">
+            <summary>Cartel promocional</summary>
+            <form class="content-form" data-content-section-form>
+              <label>Mensajes<textarea name="announcement" rows="5" placeholder="Escribí un mensaje por línea" required></textarea><small>Cada línea aparecerá separada por una mini estrella.</small></label>
+              <button type="submit">GUARDAR CARTEL</button><p class="form-message" data-content-message></p>
+            </form>
+          </details>
+          <details class="settings-accordion">
+            <summary>Portada principal</summary>
+            <form class="content-form" data-content-section-form>
+              <label>Texto superior<input name="hero_kicker" placeholder="Ej: LO MÁS NUEVO · 2026" required></label>
+              <label>Título<textarea name="hero_title" rows="2" required></textarea></label>
+              <label>Subtítulo<textarea name="hero_subtitle" rows="2" required>Combiná tus charms favoritos</textarea></label>
+              <label>Descripción<textarea name="hero_description" rows="3" required></textarea></label>
+              <label>Texto del botón<input name="hero_button_text" value="VER COLECCIÓN" required></label>
+              <label>Destino del botón<input name="hero_button_url" value="index.html?category=todos" required></label>
+              <button type="submit">GUARDAR PORTADA</button><p class="form-message" data-content-message></p>
+            </form>
+          </details>
+          <details class="settings-accordion">
+            <summary>Promos</summary>
+            <form class="content-form" data-content-section-form>
+              <label>Subtítulo superior<input name="promotions_kicker" value="OPORTUNIDADES" required></label>
+              <label>Título<input name="promotions_title" value="Promos para vos" required></label>
+              <button type="submit">GUARDAR PROMOS</button><p class="form-message" data-content-message></p>
+            </form>
+          </details>
+          <details class="settings-accordion">
+            <summary>Novedades</summary>
+            <form class="content-form" data-content-section-form>
+              <label>Subtítulo superior<input name="products_kicker" value="NUESTROS FAVORITOS" required></label>
+              <label>Título<input name="products_title" value="Elegidos para vos" required></label>
+              <button type="submit">GUARDAR NOVEDADES</button><p class="form-message" data-content-message></p>
+            </form>
+          </details>
+          <details class="settings-accordion">
+            <summary>Categorías</summary>
+            <form class="content-form" data-content-section-form>
+              <label>Subtítulo superior<input name="categories_kicker" value="ENCONTRÁ TU ESTILO" required></label>
+              <label>Título<input name="categories_title" value="Comprá por categoría" required></label>
+              <button type="submit">GUARDAR CATEGORÍAS</button><p class="form-message" data-content-message></p>
+            </form>
+          </details>
+          <details class="settings-accordion">
+            <summary>Materiales</summary>
+            <form class="content-form" data-content-section-form>
+              <label>Título<input name="materials_title" value="HECHO PARA VOS" required></label>
+              <label>Párrafo 1<textarea name="materials_description_1" rows="3" required>Nuestros artículos están elaborados en aleación con terminación plateada, seleccionados para crear pulseras únicas y personalizadas.</textarea></label>
+              <label>Párrafo 2<textarea name="materials_description_2" rows="3" required>Para conservar mejor su brillo y acabado, recomendamos evitar el contacto con agua o productos químicos.</textarea></label>
+              <button type="submit">GUARDAR MATERIALES</button><p class="form-message" data-content-message></p>
+            </form>
+          </details>
+          <details class="settings-accordion">
+            <summary>Eventos</summary>
+            <form class="content-form" data-content-section-form>
+              <label>Subtítulo superior<input name="events_kicker" value="IDEAL PARA REGALAR" required></label>
+              <label>Título<textarea name="gift_title" rows="2" required>Un detalle especial para cada ocasión</textarea></label>
+              <label>Párrafo 1<textarea name="gift_description_1" rows="3" required>Nuestros accesorios son una opción especial para regalar algo lindo, personal y con significado.</textarea></label>
+              <label>Párrafo 2<textarea name="events_description_2" rows="4" required>Realizamos ventas minoristas y también preparamos pedidos para eventos especiales como cumpleaños de 15, celebraciones, souvenirs o detalles para invitados. Podés elegir pulseras, charms y combinaciones personalizadas para crear un regalo único.</textarea></label>
+              <label>Texto del botón<input name="events_button_text" value="CONSULTAR POR EVENTOS" required></label>
+              <label>Destino del botón<input name="events_button_url" value="https://wa.me/5492915072517?text=Hola%2C%20quiero%20consultar%20por%20accesorios%20para%20un%20evento" required></label>
+              <button type="submit">GUARDAR EVENTOS</button><p class="form-message" data-content-message></p>
+            </form>
+          </details>
+          <details class="settings-accordion">
+            <summary>Contacto</summary>
+            <form class="content-form" data-content-section-form>
+              <label>Subtítulo superior<input name="contact_kicker" value="CONTACTANOS" required></label>
+              <label>Título<textarea name="contact_title" rows="3" required>¿Tenés dudas? Te ayudamos por WhatsApp.</textarea></label>
+              <label>Párrafo<textarea name="contact_description" rows="3" required>Te acompañamos por WhatsApp para que armes una pulsera única.</textarea></label>
+              <label>Texto del botón<input name="contact_button_text" value="ESCRIBIR POR WHATSAPP" required></label>
+              <label>Destino del botón<input name="contact_button_url" value="https://wa.me/5492915072517?text=Hola%2C%20quiero%20hacer%20una%20consulta%20sobre%20un%20art%C3%ADculo" required></label>
+              <button type="submit">GUARDAR CONTACTO</button><p class="form-message" data-content-message></p>
+            </form>
+          </details>
+          <details class="settings-accordion">
+            <summary>Imágenes principales</summary>
+            <form class="content-form" data-content-section-form data-image-settings-form>
+              <p class="upload-help">Elegí una foto solo cuando quieras reemplazar la actual.</p>
+              <div class="photo-field"><label>Portada<input name="hero_image_file" type="file" accept="image/jpeg,image/png,image/webp"></label><input name="hero_image" type="hidden"><div class="position-controls"><label>Horizontal<input name="hero_image_position_x" type="range" min="0" max="100" value="50"></label><label>Vertical<input name="hero_image_position_y" type="range" min="0" max="100" value="50"></label></div></div>
+              <div class="photo-field"><label>Editorial principal<input name="editorial_main_image_file" type="file" accept="image/jpeg,image/png,image/webp"></label><input name="editorial_main_image" type="hidden"><div class="position-controls"><label>Horizontal<input name="editorial_main_image_position_x" type="range" min="0" max="100" value="50"></label><label>Vertical<input name="editorial_main_image_position_y" type="range" min="0" max="100" value="50"></label></div></div>
+              <div class="photo-field"><label>Editorial secundaria<input name="editorial_small_image_file" type="file" accept="image/jpeg,image/png,image/webp"></label><input name="editorial_small_image" type="hidden"><div class="position-controls"><label>Horizontal<input name="editorial_small_image_position_x" type="range" min="0" max="100" value="50"></label><label>Vertical<input name="editorial_small_image_position_y" type="range" min="0" max="100" value="50"></label></div></div>
+              <button type="submit">GUARDAR IMÁGENES</button><p class="form-message" data-content-message></p>
+            </form>
+          </details>
+        </div>
       </div>
     </section>
   </main>
@@ -266,6 +307,6 @@
     </section>
   </div>
 
-  <script type="module" src="admin.js?v=20260628-12"></script>
+  <script type="module" src="admin.js?v=20260628-13"></script>
 </body>
 </html>
