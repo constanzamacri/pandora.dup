@@ -49,17 +49,27 @@ function showDashboard(email) {
 
 function renderProducts() {
   const list = $("[data-product-list]");
-  list.innerHTML = products.map(product => `
+  const sortedProducts = [...products].sort((a, b) =>
+    Number(getAdminAvailableStock(a) === 0) - Number(getAdminAvailableStock(b) === 0)
+  );
+  list.innerHTML = sortedProducts.map(product => {
+    const stock = getAdminAvailableStock(product);
+    const status = !product.published
+      ? { className: "unpublished", label: "No publicado" }
+      : stock === 0
+        ? { className: "out-of-stock", label: "Sin stock" }
+        : { className: "", label: "Publicado" };
+    return `
     <article class="admin-product">
       <img src="${product.image_url}" alt="">
       <div>
         <h3>${product.name}</h3>
-        <p>${product.category} · ${money(product.price)} · Stock: ${getAdminAvailableStock(product)}${product.product_type === "composite" ? " calculado" : ""}</p>
+        <p>${product.category} · ${money(product.price)} · Stock: ${stock}${product.product_type === "composite" ? " calculado" : ""}</p>
       </div>
-      <span class="status ${product.published ? "" : "draft"}">${product.published ? "Publicado" : "Oculto"}</span>
+      <span class="status ${status.className}">${status.label}</span>
       <button type="button" data-edit-product="${product.id}">EDITAR</button>
     </article>
-  `).join("");
+  `}).join("");
   $("[data-products-empty]").classList.toggle("hidden", products.length > 0);
   $("[data-metric-published]").textContent = products.filter(product => product.published).length;
   $("[data-metric-empty]").textContent = products.filter(product => getAdminAvailableStock(product) === 0).length;

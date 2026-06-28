@@ -79,6 +79,8 @@ input[type="file"] { padding: 12px; background: #f7f5f1; cursor: pointer; }
 .admin-product p { margin: 0; color: var(--muted); font-size: 10px; }
 .status { padding: 6px 9px; border-radius: 20px; background: #edf5ea; font-size: 9px; }
 .status.draft { background: #eee; }
+.status.out-of-stock { color: #68645e; background: #e5e5e5; }
+.status.unpublished { color: #a5211b; background: #fde8e6; }
 .admin-product > button { padding: 10px 13px; background: white; border: 1px solid var(--line); font-size: 9px; }
 .empty-admin { padding: 40px; color: var(--muted); text-align: center; background: white; border: 1px solid var(--line); }
 .content-form { max-width: 760px; padding: 30px; background: white; border: 1px solid var(--line); }
