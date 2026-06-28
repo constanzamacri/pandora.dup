@@ -292,8 +292,8 @@ footer a { color: #bdb8ae; font-size: 11px; }
   .categories { padding-top: 35px; }
   .promotions-section { padding: 60px 5vw; }
   .section-heading { align-items: flex-start; flex-direction: column; }
-  .product-grid { margin-inline: -5vw; padding-inline: 5vw; display: grid !important; grid-template-columns: none !important; grid-template-rows: repeat(2, auto); grid-auto-flow: column; grid-auto-columns: 42vw; gap: 20px 10px; }
-  .product-grid > .product-card { width: 42vw; min-width: 0; flex: none; }
+  .product-grid { margin-inline: -5vw; padding-inline: 5vw; display: flex !important; flex-flow: row nowrap !important; gap: 10px; }
+  .product-grid > .product-card { width: 42vw; min-width: 0; flex: 0 0 42vw; }
   .catalog-view .product-grid { margin: 0; padding: 0; grid-template-columns: repeat(2, minmax(0, 1fr)) !important; grid-template-rows: none; grid-auto-flow: row; grid-auto-columns: auto; gap: 24px 10px; }
   .catalog-view .product-grid > .product-card { width: auto; }
   .promotion-grid { margin-inline: -5vw; padding-inline: 5vw; gap: 10px; }
