@@ -200,7 +200,9 @@ function renderProducts() {
         <img src="${product.image}" alt="${product.name}" loading="lazy">
         ${product.stock === 0
           ? `<span class="product-badge out-of-stock">SIN STOCK</span>`
-          : product.badge ? `<span class="product-badge">${product.badge}</span>` : ""}
+          : product.stock <= 2
+            ? `<span class="product-badge low-stock">¡QUEDAN POCOS!</span>`
+            : product.badge ? `<span class="product-badge">${product.badge}</span>` : ""}
         <button class="favorite-button ${favoriteIds.has(product.id) ? "active" : ""}"
           type="button" data-favorite="${product.id}" aria-label="${favoriteIds.has(product.id) ? "Quitar de" : "Agregar a"} favoritos">
           <span aria-hidden="true">${favoriteIds.has(product.id) ? "♥" : "♡"}</span>
