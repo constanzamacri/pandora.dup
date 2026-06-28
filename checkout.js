@@ -6,6 +6,7 @@ const money = value => new Intl.NumberFormat("es-AR", {
 const escapeHtml = value => String(value ?? "").replace(/[&<>"']/g, character => ({
   "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;"
 })[character]);
+const STORE_PICKUP = "Retiro en el local [Castelli 695, 8000 Bahía Blanca, Provincia de Buenos Aires]";
 
 let cart = [];
 try {
@@ -65,7 +66,7 @@ function buildReceipt(form, orderNumber) {
     ? `\nDescuento por transferencia: -${money(Math.round(subtotal * .1))}`
     : "";
   const delivery = form.get("delivery");
-  const deliveryDetails = delivery !== "Retiro en el local [Castelli 695]"
+  const deliveryDetails = delivery !== STORE_PICKUP
     ? `${delivery}: ${form.get("address")}, ${form.get("city")} (${form.get("postal_code")})`
     : delivery;
   const notesLine = form.get("notes")?.trim()
@@ -130,9 +131,9 @@ async function saveOrder(form, orderNumber) {
     phone: form.get("phone"),
     document: form.get("document"),
     delivery_method: delivery,
-    address: delivery !== "Retiro en el local [Castelli 695]" ? form.get("address") : null,
-    city: delivery !== "Retiro en el local [Castelli 695]" ? form.get("city") : null,
-    postal_code: delivery !== "Retiro en el local [Castelli 695]" ? form.get("postal_code") : null,
+    address: delivery !== STORE_PICKUP ? form.get("address") : null,
+    city: delivery !== STORE_PICKUP ? form.get("city") : null,
+    postal_code: delivery !== STORE_PICKUP ? form.get("postal_code") : null,
     payment_method: selectedPayment,
     notes: form.get("notes") || null,
     subtotal,
@@ -207,7 +208,7 @@ document.querySelector("[data-order-form]").addEventListener("change", updateSte
 
 document.querySelectorAll('input[name="delivery"]').forEach(input => {
   input.addEventListener("change", () => {
-    const needsAddress = input.value !== "Retiro en el local [Castelli 695]";
+    const needsAddress = input.value !== STORE_PICKUP;
     const isAndreani = input.value === "Envío por correo Andreani";
     document.querySelector("[data-address-fields]").classList.toggle("hidden", !needsAddress);
     document.querySelector("[data-andreani-tools]").classList.toggle("hidden", !isAndreani);
