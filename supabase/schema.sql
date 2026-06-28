@@ -467,10 +467,7 @@ insert into public.site_content (key, value) values
   ('promotions_config', '[]'),
   ('hero_image', 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&w=1600&q=88'),
   ('editorial_main_image', 'https://images.unsplash.com/photo-1611652022419-a9419f74343d?auto=format&fit=crop&w=1400&q=85'),
-  ('editorial_small_image', 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=1000&q=85'),
-  ('category_1_image', 'https://images.unsplash.com/photo-1535632787350-4e68ef0ac584?auto=format&fit=crop&w=900&q=85'),
-  ('category_2_image', 'https://images.unsplash.com/photo-1599643477877-530eb83abc8e?auto=format&fit=crop&w=900&q=85'),
-  ('category_3_image', 'https://images.unsplash.com/photo-1605100804763-247f67b3557e?auto=format&fit=crop&w=900&q=85')
+  ('editorial_small_image', 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=1000&q=85')
 on conflict (key) do nothing;
 
 insert into public.categories (id, name, sort_order) values

@@ -459,9 +459,6 @@ const cropRatios = {
   hero_image_file: 1.25,
   editorial_main_image_file: 0.82,
   editorial_small_image_file: 1.5,
-  category_1_image_file: 0.78,
-  category_2_image_file: 0.78,
-  category_3_image_file: 0.78,
   image: 0.78
 };
 
@@ -1004,7 +1001,7 @@ $("[data-content-form]").addEventListener("submit", async event => {
   event.preventDefault();
   message("[data-content-message]", "Guardando...");
   const form = event.currentTarget;
-  const imageKeys = ["hero_image","editorial_main_image","editorial_small_image","category_1_image","category_2_image","category_3_image"];
+  const imageKeys = ["hero_image","editorial_main_image","editorial_small_image"];
   try {
     for (const key of imageKeys) {
       const input = form.elements[`${key}_file`];
