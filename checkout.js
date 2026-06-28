@@ -68,21 +68,22 @@ function buildReceipt(form, orderNumber) {
   const deliveryDetails = delivery !== "Retiro en el local [Castelli 695]"
     ? `${delivery}: ${form.get("address")}, ${form.get("city")} (${form.get("postal_code")})`
     : delivery;
+  const notesLine = form.get("notes")?.trim()
+    ? `\nObservaciones: ${form.get("notes").trim()}`
+    : "";
   const promotionLines = promotionPricing.applications.length
     ? `\nPROMOCIONES\n${promotionPricing.applications.map(application =>
         `- ${application.name}${application.applications > 1 ? ` x${application.applications}` : ""}: ${application.gift ? `${application.gift} de regalo` : `-${money(application.saving)}`}`
       ).join("\n")}\n`
     : "";
-  return `PANDORA.DUP — COMPROBANTE DE PEDIDO
+  return `PANDORA.DUP — RESUMEN DEL PEDIDO
 Pedido: ${orderNumber}
-Fecha: ${new Date().toLocaleString("es-AR")}
 
 CLIENTE
 Nombre: ${form.get("name")} ${form.get("surname")}
 Documento: ${form.get("document")}
 Teléfono: ${form.get("phone")}
 Email: ${form.get("email")}
-Entrega: ${deliveryDetails}
 
 PRODUCTOS
 ${itemLines}
@@ -91,11 +92,9 @@ ${promotionLines}
 Subtotal productos: ${money(promotionPricing.subtotal)}
 Descuento promociones: -${money(promotionPricing.discount)}${discountLine}
 TOTAL: ${money(total)}
+Entrega: ${deliveryDetails}
 Forma de pago: ${selectedPayment}
-
-Comentarios: ${form.get("notes") || "Sin comentarios"}
-
-Este texto confirma la solicitud del pedido.`;
+${notesLine}`;
 }
 
 async function saveOrder(form, orderNumber) {
@@ -251,7 +250,7 @@ document.querySelector("[data-order-form]").addEventListener("submit", async eve
   event.preventDefault();
   const form = new FormData(event.currentTarget);
   updatePayment(form.get("payment"));
-  const orderNumber = `PD-${Date.now().toString(36).toUpperCase()}-${crypto.randomUUID().slice(0, 4).toUpperCase()}`;
+  const orderNumber = crypto.randomUUID().replaceAll("-", "").slice(0, 8).toUpperCase();
   const submitButton = event.currentTarget.querySelector('[type="submit"]');
   submitButton.disabled = true;
   document.querySelector("[data-order-message]").textContent = "Registrando pedido...";
@@ -270,21 +269,10 @@ document.querySelector("[data-order-form]").addEventListener("submit", async eve
           : `No pudimos registrar el pedido: ${error.message || "error desconocido"}`;
     return;
   }
-  document.querySelector("[data-receipt-text]").value = buildReceipt(form, orderNumber);
+  document.querySelector("[data-receipt-text]").textContent = buildReceipt(form, orderNumber);
   document.querySelector("[data-checkout-data]").classList.add("hidden");
   document.querySelector(".order-summary").classList.add("hidden");
   document.querySelector("[data-receipt]").classList.remove("hidden");
   localStorage.removeItem("pandoraCart");
   window.scrollTo({ top: 0, behavior: "smooth" });
-});
-
-document.querySelector("[data-copy-receipt]").addEventListener("click", async () => {
-  const text = document.querySelector("[data-receipt-text]").value;
-  try {
-    await navigator.clipboard.writeText(text);
-    document.querySelector("[data-copy-message]").textContent = "Comprobante copiado.";
-  } catch {
-    document.querySelector("[data-receipt-text]").select();
-    document.querySelector("[data-copy-message]").textContent = "Seleccioná y copiá el texto.";
-  }
 });

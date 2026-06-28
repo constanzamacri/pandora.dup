@@ -649,7 +649,7 @@ document.querySelector("[data-cart-button]").addEventListener("click", async () 
 document.querySelectorAll("[data-cart-close]").forEach(button => button.addEventListener("click", () => toggleCart(false)));
 document.querySelector("[data-checkout-start]").addEventListener("click", () => {
   localStorage.setItem("pandoraCart", JSON.stringify(cart));
-  window.open("checkout.html?v=20260628-32", "_blank", "noopener");
+  window.open("checkout.html?v=20260628-33", "_blank", "noopener");
 });
 document.querySelector("[data-clear-cart]").addEventListener("click", () => {
   cart = [];

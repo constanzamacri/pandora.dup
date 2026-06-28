@@ -63,7 +63,7 @@ legend { margin-bottom: 12px; font-size: 13px; font-weight: 600; }
 .empty-checkout p:not(.eyebrow), .receipt > p:not(.eyebrow) { color: var(--muted); }
 .empty-checkout a, .receipt-actions a, .receipt-actions button { display: inline-block; margin-top: 18px; padding: 14px 22px; color: white; background: var(--ink); border: 1px solid var(--ink); font-size: 10px; font-weight: 600; letter-spacing: 1px; text-decoration: none; cursor: pointer; }
 .receipt-check { margin: 0 auto 20px; display: grid; width: 54px; height: 54px; place-items: center; border: 1px solid var(--ink); border-radius: 50%; font-size: 24px; }
-.receipt textarea { margin-top: 25px; min-height: 330px; background: white; line-height: 1.7; }
+.receipt-summary { margin-top: 25px; padding: 24px; background: white; border: 1px solid var(--line); font-size: 13px; line-height: 1.7; text-align: left; white-space: pre-wrap; }
 .receipt-actions { display: flex; justify-content: center; gap: 12px; }
 .receipt-actions a { color: var(--ink); background: transparent; }
 .copy-message { min-height: 18px; font-size: 10px; }

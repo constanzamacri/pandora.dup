@@ -12,7 +12,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="checkout.css?v=20260627-26">
+  <link rel="stylesheet" href="checkout.css?v=20260628-27">
 </head>
 <body>
   <header class="checkout-header">
@@ -134,17 +134,15 @@
       <span class="receipt-check">✓</span>
       <p class="eyebrow">COMPRA CONFIRMADA</p>
       <h1>¡Gracias por tu pedido!</h1>
-      <p>Guardá este texto como comprobante de tu solicitud.</p>
-      <textarea readonly data-receipt-text aria-label="Comprobante del pedido"></textarea>
+      <p>En breve nos estaremos comunicando por WhatsApp.</p>
+      <div class="receipt-summary" data-receipt-text aria-label="Resumen del pedido"></div>
       <div class="receipt-actions">
-        <button type="button" data-copy-receipt>COPIAR TEXTO</button>
         <a href="index.html">VOLVER A LA TIENDA</a>
       </div>
-      <p class="copy-message" data-copy-message></p>
     </section>
   </main>
 
   <script src="promotions.js?v=20260627-1"></script>
-  <script src="checkout.js?v=20260628-32"></script>
+  <script src="checkout.js?v=20260628-33"></script>
 </body>
 </html>
