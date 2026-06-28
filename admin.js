@@ -297,6 +297,7 @@ function resetPromotionForm() {
   form.elements.id.value = "";
   form.elements.active.checked = true;
   form.elements.exclusive.checked = false;
+  form.elements.promotion_image_url.value = "";
   promotionRequirementsDirty = false;
   updatePromotionTypeFields();
   $("[data-promotion-form-title]").textContent = "Promociones automáticas";
@@ -843,6 +844,7 @@ $("[data-promotion-form]").addEventListener("submit", async event => {
     type,
     price: type === "price" ? Number(form.elements.price.value) : null,
     gift: type === "gift" ? form.elements.gift.value.trim() : null,
+    image_url: form.elements.promotion_image_url.value || null,
     priority: Number(form.elements.priority.value || 0),
     startsAt: null,
     endsAt: null,
@@ -850,10 +852,12 @@ $("[data-promotion-form]").addEventListener("submit", async event => {
     exclusive: form.elements.exclusive.checked,
     requirements
   };
-  const index = promotions.findIndex(item => item.id === promotion.id);
-  if (index >= 0) promotions[index] = promotion;
-  else promotions.push(promotion);
   try {
+    const imageFile = form.elements.promotion_image.files[0];
+    if (imageFile) promotion.image_url = await uploadImage(imageFile, "site");
+    const index = promotions.findIndex(item => item.id === promotion.id);
+    if (index >= 0) promotions[index] = promotion;
+    else promotions.push(promotion);
     await persistPromotions(index >= 0 ? "Promoción actualizada." : "Promoción creada.");
     resetPromotionForm();
   } catch (error) {
@@ -873,6 +877,7 @@ $("[data-promotion-list]").addEventListener("click", async event => {
     form.elements.promotion_type.value = promotion.type || "price";
     form.elements.price.value = promotion.price ?? "";
     form.elements.gift.value = promotion.gift || "";
+    form.elements.promotion_image_url.value = promotion.image_url || "";
     updatePromotionTypeFields();
     form.elements.priority.value = promotion.priority || 0;
     form.elements.active.checked = promotion.active;

@@ -146,6 +146,7 @@ function renderPromotionShowcase() {
   section.classList.toggle("hidden", activePromotions.length === 0);
   document.querySelector("[data-store-promotions]").innerHTML = activePromotions.map(promotion => `
     <article class="promotion-card">
+      ${promotion.image_url ? `<img class="promotion-card-image" src="${escapeHtml(promotion.image_url)}" alt="">` : ""}
       <h3>${escapeHtml(promotion.name)}</h3>
       <p>${promotion.requirements.map(promotionRequirementText).join(" + ")}</p>
       <strong>${promotion.type === "gift" ? `${escapeHtml(promotion.gift)} de regalo` : money(promotion.price)}</strong>

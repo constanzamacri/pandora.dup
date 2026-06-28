@@ -115,6 +115,8 @@
             </label>
             <label data-promotion-price-field>Precio final<input name="price" type="number" min="0" step="1"></label>
             <label class="hidden" data-promotion-gift-field>Regalo incluido<input name="gift" placeholder="Ej: Bolsa de terciopelo"></label>
+            <label>Foto de la promoción<input name="promotion_image" type="file" accept="image/jpeg,image/png,image/webp"></label>
+            <input name="promotion_image_url" type="hidden">
             <label>Prioridad<input name="priority" type="number" min="0" value="0"></label>
             <label class="check-field"><input name="active" type="checkbox" checked> Promoción activa</label>
             <label class="check-field"><input name="exclusive" type="checkbox"> No combinar con otras promociones</label>
@@ -312,6 +314,6 @@
     </section>
   </div>
 
-  <script type="module" src="admin.js?v=20260628-17"></script>
+  <script type="module" src="admin.js?v=20260628-18"></script>
 </body>
 </html>
