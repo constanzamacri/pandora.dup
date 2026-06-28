@@ -315,7 +315,8 @@ footer a { color: #bdb8ae; font-size: 11px; }
   .story h2 { margin-bottom: 28px; font-size: clamp(34px, 10vw, 46px); }
   .story-copy p { font-size: 13px; line-height: 1.75; }
   .category-grid { margin-inline: -5vw; padding-inline: 5vw; gap: 10px; }
-  .category { min-width: 0; flex-basis: 78vw; }
+  .category { min-width: 0; min-height: 330px; flex-basis: 42vw; }
+  .category span { left: 15px; bottom: 15px; font-size: 22px; }
   .newsletter { grid-template-columns: 1fr; }
   .newsletter > p { grid-column: auto; }
   footer { grid-template-columns: repeat(2, 1fr); }
