@@ -274,6 +274,16 @@ async function loadStoreData() {
           image.style.backgroundPosition = `${x}% ${y}%`;
         }
       });
+      document.querySelectorAll("[data-balanced-lines]").forEach(element => {
+        const text = element.textContent.trim();
+        const midpoint = Math.floor(text.length / 2);
+        const before = text.lastIndexOf(" ", midpoint);
+        const after = text.indexOf(" ", midpoint);
+        const breakAt = before < 0 ? after : after < 0 || midpoint - before <= after - midpoint ? before : after;
+        if (breakAt > 0) {
+          element.replaceChildren(text.slice(0, breakAt), document.createElement("br"), text.slice(breakAt + 1));
+        }
+      });
     }
     if (!menuError) {
       renderMainMenu(menuItems || []);
