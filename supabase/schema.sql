@@ -458,6 +458,8 @@ insert into public.site_content (key, value) values
   ('hero_title', 'Armá tu pulsera'),
   ('hero_subtitle', 'Combiná tus charms favoritos'),
   ('hero_description', 'Accesorios creados para acompañarte todos los días y hacer especial cada momento.'),
+  ('hero_button_text', 'VER COLECCIÓN'),
+  ('hero_button_url', 'index.html?category=todos'),
   ('story_title', '“Creemos que los pequeños detalles tienen el poder de cambiarlo todo.”'),
   ('story_description', 'pandora.dup nació para crear accesorios que se sientan tan personales como los recuerdos que llevamos con ellos.'),
   ('gift_title', 'Un detalle especial para cada ocasión'),

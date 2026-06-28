@@ -170,10 +170,13 @@
             <textarea name="announcement" rows="5" placeholder="Escribí un mensaje por línea" required></textarea>
             <small>Cada línea aparecerá separada por una mini estrella.</small>
           </label>
-          <label>Etiqueta principal<input name="hero_kicker" required></label>
-          <label>Título principal<textarea name="hero_title" rows="2" required></textarea></label>
-          <label>Subtítulo principal<textarea name="hero_subtitle" rows="2" required>Combiná tus charms favoritos</textarea></label>
-          <label>Descripción principal<textarea name="hero_description" rows="3" required></textarea></label>
+          <h3>Portada principal</h3>
+          <label>Texto superior<input name="hero_kicker" placeholder="Ej: LO MÁS NUEVO · 2026" required></label>
+          <label>Título<textarea name="hero_title" rows="2" required></textarea></label>
+          <label>Subtítulo<textarea name="hero_subtitle" rows="2" required>Combiná tus charms favoritos</textarea></label>
+          <label>Descripción<textarea name="hero_description" rows="3" required></textarea></label>
+          <label>Texto del botón<input name="hero_button_text" value="VER COLECCIÓN" required></label>
+          <label>Destino del botón<input name="hero_button_url" value="index.html?category=todos" placeholder="Ej: index.html?category=todos" required></label>
           <label>Título de Ideal para regalar<textarea name="gift_title" rows="2" required></textarea></label>
           <label>Primer párrafo para regalos<textarea name="gift_description_1" rows="3" required></textarea></label>
           <label>Segundo párrafo para eventos<textarea name="gift_description_2" rows="3" required></textarea></label>
@@ -273,6 +276,6 @@
     </section>
   </div>
 
-  <script type="module" src="admin.js?v=20260628-4"></script>
+  <script type="module" src="admin.js?v=20260628-5"></script>
 </body>
 </html>
