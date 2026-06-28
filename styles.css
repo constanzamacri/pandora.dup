@@ -297,7 +297,11 @@ footer a { color: #bdb8ae; font-size: 11px; }
   .catalog-view .product-grid { margin: 0; padding: 0; grid-template-columns: repeat(2, minmax(0, 1fr)) !important; grid-template-rows: none; grid-auto-flow: row; grid-auto-columns: auto; gap: 24px 10px; }
   .catalog-view .product-grid > .product-card { width: auto; }
   .promotion-grid { margin-inline: -5vw; padding-inline: 5vw; gap: 10px; }
-  .promotion-card { min-height: 250px; padding: 28px; flex-basis: 82vw; }
+  .promotion-card { min-height: 250px; padding: 18px; flex-basis: 42vw; }
+  .promotion-card-image { width: 58px; height: 58px; margin-bottom: 15px; }
+  .promotion-card h3 { margin-bottom: 10px; font-size: 18px; }
+  .promotion-card > p:not(.eyebrow) { margin-bottom: 16px; font-size: 10px; }
+  .promotion-card > strong { font-size: 18px; }
   .carousel-arrow { display: none; }
   .product-info h3 { font-size: 11px; }
   .quick-add { opacity: 1; transform: none; }
