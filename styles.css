@@ -181,7 +181,7 @@ h1 em, h2 em { font-weight: 400; color: #8f726a; }
 .whatsapp-area > p { margin: 0 0 15px; color: #5f504b; font-size: 10px; font-weight: 600; line-height: 1.7; letter-spacing: 2.4px; text-transform: uppercase; }
 .whatsapp-contact { min-height: 58px; padding: 0 24px; display: flex; align-items: center; justify-content: space-between; gap: 30px; color: white; background: var(--ink); font-size: 10px; font-weight: 600; letter-spacing: 1.2px; text-decoration: none; }
 .whatsapp-contact:hover { background: #453f38; }
-.whatsapp-area > .in-person-note { margin: 30px 0 0; padding-top: 22px; color: #493e39; border-top: 1px solid rgba(73,62,57,.22); font: italic 17px/1.55 Georgia, "Times New Roman", serif; letter-spacing: .2px; text-transform: none; }
+.whatsapp-area > .in-person-note { margin: 2cm 0 0; padding-top: 22px; color: #493e39; border-top: 1px solid rgba(73,62,57,.22); font: 600 15px/1.65 "Montserrat", Arial, sans-serif; letter-spacing: .5px; text-transform: none; }
 
 footer { padding: 70px 5vw 25px; display: grid; grid-template-columns: 2fr repeat(4, 1fr); gap: 50px; color: #eeeae0; background: var(--ink); }
 .footer-brand { align-items: flex-start; }
