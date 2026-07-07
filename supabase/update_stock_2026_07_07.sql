@@ -1,10 +1,49 @@
 -- Actualizacion de stock solicitada el 2026-07-07.
 -- Ejecutar en Supabase > SQL Editor.
 --
--- Este archivo usa stock por talle para las pulseras/brazaletes.
--- Antes de ejecutarlo, aplicar el esquema actualizado para crear products.size_stock.
+-- Deja publicado solo lo listado abajo.
+-- Todo lo demas queda sin stock y no publicado.
+
+alter table public.products
+  add column if not exists size_stock jsonb not null default '{}'::jsonb;
 
 begin;
+
+create temporary table desired_stock (
+  name text primary key,
+  stock integer not null,
+  size_stock jsonb not null default '{}'::jsonb,
+  product_type text not null
+) on commit drop;
+
+insert into desired_stock (name, stock, size_stock, product_type) values
+  ('Pulsera Pandora Clasica', 2, '{"18 cm": 1, "19 cm": 1}'::jsonb, 'base'),
+  ('Pulsera Pandora Corazon', 4, '{"18 cm": 2, "19 cm": 2}'::jsonb, 'base'),
+  ('Charm Mickey', 2, '{}'::jsonb, 'charm'),
+  ('Charm Bola Pandora Shine', 1, '{}'::jsonb, 'charm'),
+  ('Charm O Pandora', 1, '{}'::jsonb, 'charm'),
+  ('Charm Bolsa Pandora', 1, '{}'::jsonb, 'charm'),
+  ('Charm Corazon Colgante Pandora', 2, '{}'::jsonb, 'charm'),
+  ('Charm Corazon Pandora Shine', 1, '{}'::jsonb, 'charm'),
+  ('Charm Perrito', 1, '{}'::jsonb, 'charm'),
+  ('Charm Arbol de la Vida', 1, '{}'::jsonb, 'charm');
+
+do $$
+declare
+  missing_names text;
+begin
+  select string_agg(desired_stock.name, ', ' order by desired_stock.name)
+  into missing_names
+  from desired_stock
+  left join public.products
+    on lower(regexp_replace(public.products.name, '\s+', ' ', 'g')) =
+       lower(regexp_replace(desired_stock.name, '\s+', ' ', 'g'))
+  where public.products.id is null;
+
+  if missing_names is not null then
+    raise exception 'No encontre estos productos: %', missing_names;
+  end if;
+end $$;
 
 update public.products
 set
@@ -15,26 +54,14 @@ set
 
 update public.products
 set
-  stock = case id
-    when 22 then 2 -- Pulsera Pandora Clasica: 18 cm (1) + 19 cm (1)
-    when 21 then 4 -- Pulsera Pandora Corazon: 18 cm (2) + 19 cm (2)
-    when 1 then 2 -- Charm Mickey
-    when 5 then 1 -- Charm Bola Pandora Shine
-    when 2 then 1 -- Charm O Pandora
-    when 3 then 1 -- Charm Bolsa Pandora
-    when 6 then 2 -- Charm Corazon Colgante Pandora
-    when 4 then 1 -- Charm Corazon Pandora Shine
-    when 15 then 1 -- Charm Perrito
-    when 17 then 1 -- Charm Arbol de la Vida
-  end,
-  size_stock = case id
-    when 22 then '{"18 cm": 1, "19 cm": 1}'::jsonb -- Pulsera Pandora Clasica
-    when 21 then '{"18 cm": 2, "19 cm": 2}'::jsonb -- Pulsera Pandora Corazon
-    else '{}'::jsonb
-  end,
+  stock = desired_stock.stock,
+  size_stock = desired_stock.size_stock,
+  product_type = desired_stock.product_type,
   published = true,
   updated_at = now()
-where id in (22, 21, 1, 5, 2, 3, 6, 4, 15, 17);
+from desired_stock
+where lower(regexp_replace(public.products.name, '\s+', ' ', 'g')) =
+      lower(regexp_replace(desired_stock.name, '\s+', ' ', 'g'));
 
 commit;
 
