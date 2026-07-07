@@ -5,15 +5,11 @@ let searchTerm = "";
 let cart = [];
 let detailProduct = null;
 let storeClient = null;
-let currentUser = null;
-let authSubscription = null;
 let promotions = [];
 let storeCategories = [];
-const favoriteIds = new Set();
 const catalogParams = new URLSearchParams(window.location.search);
 const requestedCategory = catalogParams.get("category");
 const requestedSearch = catalogParams.get("search");
-const requestedFavorites = catalogParams.get("favorites") === "1";
 const defaultAnnouncement = "3 CUOTAS SIN INTERÉS\nENVÍOS A TODO EL PAÍS";
 const escapeHtml = value => String(value ?? "").replace(/[&<>"']/g, character => ({
   "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;"
@@ -28,18 +24,14 @@ function renderAnnouncement(value) {
     .join("");
 }
 
-if (requestedCategory || requestedSearch || requestedFavorites) {
+if (requestedCategory || requestedSearch) {
   document.body.classList.add("catalog-view");
   activeFilter = requestedCategory || "todos";
   searchTerm = requestedSearch || "";
-  document.querySelector("[data-catalog-eyebrow]").textContent = requestedFavorites
-    ? "TU SELECCIÓN"
-    : requestedSearch ? "RESULTADOS DE BÚSQUEDA" : "CATÁLOGO";
-  document.querySelector("[data-catalog-title]").textContent = requestedFavorites
-    ? "Mis favoritos"
-    : requestedSearch
-      ? `Resultados para “${requestedSearch}”`
-      : requestedCategory === "todos" ? "Todos los productos" : requestedCategory;
+  document.querySelector("[data-catalog-eyebrow]").textContent = requestedSearch ? "RESULTADOS DE BÚSQUEDA" : "CATÁLOGO";
+  document.querySelector("[data-catalog-title]").textContent = requestedSearch
+    ? `Resultados para “${requestedSearch}”`
+    : requestedCategory === "todos" ? "Todos los productos" : requestedCategory;
   document.querySelector("[data-search-input]").value = searchTerm;
 }
 try {
@@ -48,7 +40,6 @@ try {
   cart = [];
 }
 const money = value => new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS", maximumFractionDigits: 0 }).format(value);
-const itemKey = value => String(value);
 const needsSize = product => ["base", "composite"].includes(product?.product_type) || product?.category === "brazaletes";
 const cartItemKey = item => `${item.id}::${item.size || ""}`;
 const grid = document.querySelector("[data-products]");
@@ -186,8 +177,7 @@ function renderProducts() {
   const visible = source.filter(product =>
     (activeFilter === "todos" || product.category === activeFilter) &&
     (isCatalogView || product.stock > 0) &&
-    product.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
-    (!requestedFavorites || favoriteIds.has(itemKey(product.id)))
+    product.name.toLowerCase().includes(searchTerm.toLowerCase())
   ).sort((a, b) => isCatalogView ? Number(a.stock === 0) - Number(b.stock === 0) : 0);
   grid.innerHTML = visible.map(product => `
     <article class="product-card">
@@ -198,10 +188,6 @@ function renderProducts() {
           : product.stock <= 2
             ? `<span class="product-badge low-stock">¡QUEDAN POCOS!</span>`
             : product.badge ? `<span class="product-badge">${product.badge}</span>` : ""}
-        <button class="favorite-button ${favoriteIds.has(itemKey(product.id)) ? "active" : ""}"
-          type="button" data-favorite="${product.id}" aria-label="${favoriteIds.has(itemKey(product.id)) ? "Quitar de" : "Agregar a"} favoritos">
-          <span aria-hidden="true">${favoriteIds.has(itemKey(product.id)) ? "♥" : "♡"}</span>
-        </button>
         <button class="quick-add" data-add="${product.id}" ${product.stock === 0 ? "disabled" : ""}>
           ${product.stock === 0 ? "SIN STOCK" : "AGREGAR A LA BOLSA +"}
         </button>
@@ -213,25 +199,6 @@ function renderProducts() {
     </article>`).join("");
   grid.scrollLeft = 0;
   document.querySelector("[data-empty]").classList.toggle("visible", visible.length === 0);
-}
-
-async function refreshFavoriteState() {
-  if (!storeClient) return;
-  const { data: { session } } = await storeClient.auth.getSession();
-  currentUser = session?.user || null;
-  favoriteIds.clear();
-  if (requestedFavorites && !currentUser) {
-    window.location.href = "account.html?v=20260707-1";
-    return;
-  }
-  if (currentUser) {
-    const { data: savedFavorites } = await storeClient
-      .from("favorites")
-      .select("product_id")
-      .eq("user_id", currentUser.id);
-    (savedFavorites || []).forEach(item => favoriteIds.add(itemKey(item.product_id)));
-  }
-  renderProducts();
 }
 
 function showProductImage(url, selectedButton) {
@@ -288,12 +255,6 @@ async function loadStoreData() {
     const { createSupabaseClient } = await import("./supabase-client.js");
     const client = await createSupabaseClient();
     storeClient = client;
-    if (!authSubscription) {
-      const { data } = client.auth.onAuthStateChange(() => refreshFavoriteState());
-      authSubscription = data.subscription;
-    }
-    await refreshFavoriteState();
-    if (requestedFavorites && !currentUser) return;
     const [
       { data: remoteProducts, error: productsError },
       { data: content, error: contentError },
@@ -468,28 +429,6 @@ function openSearchView() {
   window.location.href = `index.html?search=${encodeURIComponent(term)}`;
 }
 
-async function toggleFavorite(productId) {
-  if (!currentUser || !storeClient) {
-    window.location.href = "account.html?v=20260707-1";
-    return;
-  }
-  const key = itemKey(productId);
-  if (favoriteIds.has(key)) {
-    const { error } = await storeClient
-      .from("favorites")
-      .delete()
-      .eq("user_id", currentUser.id)
-      .eq("product_id", productId);
-    if (!error) favoriteIds.delete(key);
-  } else {
-    const { error } = await storeClient
-      .from("favorites")
-      .upsert({ user_id: currentUser.id, product_id: productId }, { onConflict: "user_id,product_id" });
-    if (!error) favoriteIds.add(key);
-  }
-  renderProducts();
-}
-
 function updateCart() {
   document.querySelectorAll("[data-cart-count]").forEach(el => el.textContent = cart.length);
   const items = document.querySelector("[data-cart-items]");
@@ -618,13 +557,6 @@ function openProductFromCart(productId) {
 }
 
 document.addEventListener("click", async event => {
-  const favorite = event.target.closest("[data-favorite]");
-  if (favorite) {
-    event.preventDefault();
-    event.stopPropagation();
-    toggleFavorite(favorite.dataset.favorite);
-    return;
-  }
   const add = event.target.closest("[data-add]");
   if (add) {
     event.stopPropagation();
@@ -757,7 +689,6 @@ window.addEventListener("storage", event => {
   }
 });
 window.addEventListener("focus", async () => {
-  await refreshFavoriteState();
   await refreshProductAvailability();
 });
 

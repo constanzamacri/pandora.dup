@@ -103,13 +103,6 @@ create table if not exists public.orders (
   created_at timestamptz not null default now()
 );
 
-create table if not exists public.favorites (
-  user_id uuid not null references auth.users(id) on delete cascade,
-  product_id bigint not null references public.products(id) on delete cascade,
-  created_at timestamptz not null default now(),
-  primary key (user_id, product_id)
-);
-
 alter table public.admins enable row level security;
 alter table public.products enable row level security;
 alter table public.product_components enable row level security;
@@ -117,7 +110,6 @@ alter table public.site_content enable row level security;
 alter table public.categories enable row level security;
 alter table public.menu_items enable row level security;
 alter table public.orders enable row level security;
-alter table public.favorites enable row level security;
 
 create or replace function public.is_admin()
 returns boolean
@@ -205,24 +197,6 @@ on public.orders for update
 to authenticated
 using (public.is_admin())
 with check (public.is_admin());
-
-drop policy if exists "Usuarios ven sus favoritos" on public.favorites;
-create policy "Usuarios ven sus favoritos"
-on public.favorites for select
-to authenticated
-using (user_id = (select auth.uid()));
-
-drop policy if exists "Usuarios agregan favoritos" on public.favorites;
-create policy "Usuarios agregan favoritos"
-on public.favorites for insert
-to authenticated
-with check (user_id = (select auth.uid()));
-
-drop policy if exists "Usuarios eliminan favoritos" on public.favorites;
-create policy "Usuarios eliminan favoritos"
-on public.favorites for delete
-to authenticated
-using (user_id = (select auth.uid()));
 
 create or replace function public.get_store_products()
 returns table (
@@ -458,14 +432,14 @@ insert into public.site_content (key, value) values
   ('announcement', E'3 CUOTAS SIN INTERÉS\nENVÍOS A TODO EL PAÍS'),
   ('hero_kicker', 'LO MÁS NUEVO · 2026'),
   ('hero_title', 'Armá tu pulsera'),
-  ('hero_subtitle', 'Combiná tus charms favoritos'),
+  ('hero_subtitle', 'Combiná tus charms preferidos'),
   ('hero_description', 'Accesorios creados para acompañarte todos los días y hacer especial cada momento.'),
   ('hero_button_text', 'VER COLECCIÓN'),
   ('hero_button_url', 'index.html?category=todos'),
   ('promotions_kicker', 'OPORTUNIDADES'),
   ('promotions_title', 'Promos para vos'),
   ('promotions_description', 'Para aprovechar una promo, agregá al carrito todos los productos que indica la tarjeta. El descuento o regalo se aplica automáticamente al finalizar.'),
-  ('products_kicker', 'NUESTROS FAVORITOS'),
+  ('products_kicker', 'NUESTROS ELEGIDOS'),
   ('products_title', 'Elegidos para vos'),
   ('categories_kicker', 'ENCONTRÁ TU ESTILO'),
   ('categories_title', 'Comprá por categoría'),
