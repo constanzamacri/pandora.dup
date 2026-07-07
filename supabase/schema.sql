@@ -24,6 +24,9 @@ alter table public.products
   add column if not exists gallery_urls text[] not null default '{}';
 
 alter table public.products
+  add column if not exists size_stock jsonb not null default '{}'::jsonb;
+
+alter table public.products
   add column if not exists product_type text not null default 'simple'
   check (product_type in ('simple', 'charm', 'base', 'composite'));
 
@@ -214,6 +217,8 @@ returns table (
   updated_at timestamptz,
   gallery_urls text[],
   product_type text,
+  size_stock jsonb,
+  available_size_stock jsonb,
   available_stock integer
 )
 language sql
@@ -224,14 +229,37 @@ as $$
   select
     p.id, p.name, p.category, p.price, p.old_price, p.badge, p.image_url,
     p.stock, p.published, p.sort_order, p.created_at, p.updated_at,
-    p.gallery_urls, p.product_type,
+    p.gallery_urls, p.product_type, p.size_stock,
     case
       when p.product_type = 'composite' then coalesce((
-        select min(floor(component.stock::numeric / recipe.quantity))::integer
+        select jsonb_object_agg(size_item.key, floor(coalesce((base_product.size_stock->>size_item.key)::numeric, 0) / base_recipe.quantity)::integer)
+        from public.product_components base_recipe
+        join public.products base_product on base_product.id = base_recipe.component_product_id
+        cross join jsonb_each_text(base_product.size_stock) as size_item(key, value)
+        where base_recipe.composite_product_id = p.id
+          and (base_product.product_type = 'base' or base_product.category = 'brazaletes')
+      ), '{}'::jsonb)
+      else coalesce(p.size_stock, '{}'::jsonb)
+    end as available_size_stock,
+    case
+      when p.product_type = 'composite' then coalesce((
+        select min(floor((
+          case
+            when component.size_stock <> '{}'::jsonb then (
+              select coalesce(sum(value::integer), 0)
+              from jsonb_each_text(component.size_stock)
+            )
+            else component.stock
+          end
+        )::numeric / recipe.quantity))::integer
         from public.product_components recipe
         join public.products component on component.id = recipe.component_product_id
         where recipe.composite_product_id = p.id
       ), 0)
+      when p.size_stock <> '{}'::jsonb then (
+        select coalesce(sum(value::integer), 0)::integer
+        from jsonb_each_text(p.size_stock)
+      )
       else p.stock
     end as available_stock
   from public.products p
@@ -253,41 +281,63 @@ declare
   item jsonb;
   item_id bigint;
   item_quantity integer;
+  item_size text;
   ordered_type text;
+  ordered_category text;
 begin
   if jsonb_typeof(coalesce(p_items, '[]'::jsonb)) <> 'array' then return false; end if;
   for item in select * from jsonb_array_elements(coalesce(p_items, '[]'::jsonb))
   loop
     item_id := (item->>'id')::bigint;
     item_quantity := (item->>'quantity')::integer;
-    select product_type into ordered_type from public.products where id = item_id and published = true;
+    item_size := nullif(item->>'size', '');
+    select product_type, category into ordered_type, ordered_category from public.products where id = item_id and published = true;
     if ordered_type is null or item_quantity is null or item_quantity <= 0 then return false; end if;
+    if (ordered_type in ('base', 'composite') or ordered_category = 'brazaletes') and item_size is null then return false; end if;
     if ordered_type = 'composite' and not exists (
       select 1 from public.product_components where composite_product_id = item_id
     ) then return false; end if;
   end loop;
   return not exists (
     with order_items as (
-      select (entry->>'id')::bigint product_id, (entry->>'quantity')::integer quantity
+      select
+        (entry->>'id')::bigint product_id,
+        nullif(entry->>'size', '') size,
+        (entry->>'quantity')::integer quantity
       from jsonb_array_elements(coalesce(p_items, '[]'::jsonb)) entry
     ), physical_requirements as (
-      select ordered.id product_id, order_items.quantity
+      select
+        ordered.id product_id,
+        case when ordered.product_type = 'base' or ordered.category = 'brazaletes' then order_items.size else null end size,
+        order_items.quantity
       from order_items join public.products ordered on ordered.id = order_items.product_id
       where ordered.product_type <> 'composite'
       union all
-      select recipe.component_product_id, order_items.quantity * recipe.quantity
+      select
+        recipe.component_product_id,
+        case when component.product_type = 'base' or component.category = 'brazaletes' then order_items.size else null end size,
+        order_items.quantity * recipe.quantity
       from order_items
       join public.products ordered on ordered.id = order_items.product_id
       join public.product_components recipe on recipe.composite_product_id = ordered.id
+      join public.products component on component.id = recipe.component_product_id
       where ordered.product_type = 'composite'
     ), totals as (
-      select product_id, sum(quantity)::integer quantity
-      from physical_requirements group by product_id
+      select product_id, size, sum(quantity)::integer quantity
+      from physical_requirements group by product_id, size
     )
     select 1
     from totals
     join public.products component on component.id = totals.product_id
-    where component.product_type = 'composite' or component.stock < totals.quantity
+    where component.product_type = 'composite'
+       or (
+        totals.size is not null
+        and coalesce((component.size_stock->>totals.size)::integer, 0) < totals.quantity
+      )
+       or (
+        totals.size is null
+        and component.stock < totals.quantity
+      )
   );
 end;
 $$;
@@ -362,7 +412,9 @@ declare
   order_item jsonb;
   item_id bigint;
   item_quantity integer;
+  item_size text;
   ordered_type text;
+  ordered_category text;
   requirement record;
 begin
   for order_item in
@@ -371,12 +423,16 @@ begin
   loop
     item_id := (order_item->>'id')::bigint;
     item_quantity := (order_item->>'quantity')::integer;
+    item_size := nullif(order_item->>'size', '');
     if item_quantity is null or item_quantity <= 0 then
       raise exception 'Cantidad inválida para el producto %', item_id;
     end if;
-    select product_type into ordered_type from public.products where id = item_id and published = true;
+    select product_type, category into ordered_type, ordered_category from public.products where id = item_id and published = true;
     if ordered_type is null then
       raise exception 'Producto inexistente: %', item_id;
+    end if;
+    if (ordered_type in ('base', 'composite') or ordered_category = 'brazaletes') and item_size is null then
+      raise exception 'Falta talle para el producto %', item_id;
     end if;
     if ordered_type = 'composite' and not exists (
       select 1 from public.product_components where composite_product_id = item_id
@@ -389,32 +445,56 @@ begin
     with order_items as (
       select
         (element.value->>'id')::bigint as product_id,
+        nullif(element.value->>'size', '') as size,
         (element.value->>'quantity')::integer as quantity
       from jsonb_array_elements(new.items) as element(value)
     ),
     physical_requirements as (
-      select ordered.id as product_id, order_items.quantity as quantity
+      select
+        ordered.id as product_id,
+        case when ordered.product_type = 'base' or ordered.category = 'brazaletes' then order_items.size else null end as size,
+        order_items.quantity as quantity
       from order_items
       join public.products ordered on ordered.id = order_items.product_id
       where ordered.product_type <> 'composite'
       union all
-      select recipe.component_product_id, order_items.quantity * recipe.quantity
+      select
+        recipe.component_product_id,
+        case when component.product_type = 'base' or component.category = 'brazaletes' then order_items.size else null end as size,
+        order_items.quantity * recipe.quantity
       from order_items
       join public.products ordered on ordered.id = order_items.product_id
       join public.product_components recipe on recipe.composite_product_id = ordered.id
+      join public.products component on component.id = recipe.component_product_id
       where ordered.product_type = 'composite'
     )
-    select physical_requirements.product_id, sum(physical_requirements.quantity)::integer as quantity
+    select physical_requirements.product_id, physical_requirements.size, sum(physical_requirements.quantity)::integer as quantity
     from physical_requirements
-    group by physical_requirements.product_id
-    order by physical_requirements.product_id
+    group by physical_requirements.product_id, physical_requirements.size
+    order by physical_requirements.product_id, physical_requirements.size nulls first
   loop
-    update public.products
-    set stock = stock - requirement.quantity,
-        updated_at = now()
-    where id = requirement.product_id
-      and product_type <> 'composite'
-      and stock >= requirement.quantity;
+    if requirement.size is not null then
+      update public.products
+      set size_stock = jsonb_set(
+            size_stock,
+            array[requirement.size],
+            to_jsonb(((size_stock->>requirement.size)::integer - requirement.quantity)),
+            true
+          ),
+          stock = stock - requirement.quantity,
+          updated_at = now()
+      where id = requirement.product_id
+        and product_type <> 'composite'
+        and coalesce((size_stock->>requirement.size)::integer, 0) >= requirement.quantity
+        and stock >= requirement.quantity;
+    else
+      update public.products
+      set stock = stock - requirement.quantity,
+          updated_at = now()
+      where id = requirement.product_id
+        and product_type <> 'composite'
+        and stock >= requirement.quantity;
+    end if;
     if not found then
       raise exception 'Stock insuficiente para el producto %', requirement.product_id;
     end if;

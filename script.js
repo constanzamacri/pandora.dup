@@ -49,9 +49,35 @@ try {
   cart = [];
 }
 const money = value => new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS", maximumFractionDigits: 0 }).format(value);
+const PRODUCT_SIZES = ["16 cm", "17 cm", "18 cm", "19 cm", "20 cm", "21 cm", "23 cm"];
 const needsSize = product => ["base", "composite"].includes(product?.product_type) || product?.category === "brazaletes";
 const cartItemKey = item => `${item.id}::${item.size || ""}`;
 const grid = document.querySelector("[data-products]");
+
+function normalizeSizeStock(source = {}) {
+  return PRODUCT_SIZES.reduce((result, size) => {
+    result[size] = Math.max(0, Number(source?.[size]) || 0);
+    return result;
+  }, {});
+}
+
+function sizeStockTotal(source = {}) {
+  return Object.values(normalizeSizeStock(source)).reduce((total, value) => total + value, 0);
+}
+
+function productAvailableStock(product = {}) {
+  const sizedTotal = sizeStockTotal(product.available_size_stock || product.size_stock);
+  if (!needsSize(product)) return Number(product.stock) || 0;
+  return Math.min(sizedTotal, Number(product.stock) || sizedTotal);
+}
+
+function productSizeAvailable(product = {}, size = "") {
+  const sizes = normalizeSizeStock(product.available_size_stock || product.size_stock);
+  const available = Math.max(0, Number(sizes[size]) || 0);
+  return product.product_type === "composite"
+    ? Math.min(available, Number(product.stock) || available)
+    : available;
+}
 
 function shuffle(items) {
   const result = [...items];
@@ -147,13 +173,20 @@ function renderPromotionShowcase() {
     </article>`).join("");
 }
 
-const normalizeStoreProduct = product => ({
-  ...product,
-  physical_stock: product.stock,
-  stock: Number(product.available_stock),
-  old: product.old_price,
-  image: product.image_url
-});
+function normalizeStoreProduct(product) {
+  const sizeStock = normalizeSizeStock(product.size_stock);
+  const availableSizeStock = normalizeSizeStock(product.available_size_stock || product.size_stock);
+  const availableStock = Number(product.available_stock ?? (sizeStockTotal(availableSizeStock) || product.stock || 0));
+  return {
+    ...product,
+    physical_stock: product.stock,
+    size_stock: sizeStock,
+    available_size_stock: availableSizeStock,
+    stock: availableStock,
+    old: product.old_price,
+    image: product.image_url
+  };
+}
 
 async function refreshProductAvailability() {
   if (!storeClient) return;
@@ -185,27 +218,30 @@ function renderProducts() {
   const isCatalogView = document.body.classList.contains("catalog-view");
   const visible = source.filter(product =>
     (activeFilter === "todos" || product.category === activeFilter) &&
-    (isCatalogView || product.stock > 0) &&
+    (isCatalogView || productAvailableStock(product) > 0) &&
     product.name.toLowerCase().includes(searchTerm.toLowerCase())
-  ).sort((a, b) => isCatalogView ? Number(a.stock === 0) - Number(b.stock === 0) : 0);
-  grid.innerHTML = visible.map(product => `
+  ).sort((a, b) => isCatalogView ? Number(productAvailableStock(a) === 0) - Number(productAvailableStock(b) === 0) : 0);
+  grid.innerHTML = visible.map(product => {
+    const availableStock = productAvailableStock(product);
+    return `
     <article class="product-card">
       <div class="product-image" data-product-open="${product.id}">
         <img src="${product.image}" alt="${product.name}" loading="lazy">
-        ${product.stock === 0
+        ${availableStock === 0
           ? `<span class="product-badge out-of-stock">SIN STOCK</span>`
-          : product.stock <= 2
+          : availableStock <= 2
             ? `<span class="product-badge low-stock">¡QUEDAN POCOS!</span>`
             : product.badge ? `<span class="product-badge">${product.badge}</span>` : ""}
-        <button class="quick-add" data-add="${product.id}" ${product.stock === 0 ? "disabled" : ""}>
-          ${product.stock === 0 ? "SIN STOCK" : "AGREGAR A LA BOLSA +"}
+        <button class="quick-add" data-add="${product.id}" ${availableStock === 0 ? "disabled" : ""}>
+          ${availableStock === 0 ? "SIN STOCK" : "AGREGAR A LA BOLSA +"}
         </button>
       </div>
       <div class="product-info" data-product-open="${product.id}">
         <h3>${product.name}</h3>
         <div class="product-price">${product.old ? `<del>${money(product.old)}</del>` : ""}<span>${money(product.price)}</span></div>
       </div>
-    </article>`).join("");
+    </article>`;
+  }).join("");
   grid.scrollLeft = 0;
   document.querySelector("[data-empty]").classList.toggle("visible", visible.length === 0);
 }
@@ -227,7 +263,7 @@ function openProductDetail(product) {
   document.querySelector("[data-product-detail-category]").textContent = product.category;
   document.querySelector("[data-product-detail-price]").innerHTML =
     `${product.old ? `<del>${money(product.old)}</del>` : ""}<span>${money(product.price)}</span>`;
-  const stock = Number(product.stock) || 0;
+  const stock = productAvailableStock(product);
   const stockText = stock === 1 ? "1 unidad disponible" : `${stock} unidades disponibles`;
   document.querySelector("[data-product-detail-stock]").innerHTML = stock === 0
     ? "Sin stock"
@@ -235,10 +271,19 @@ function openProductDetail(product) {
   const sizeField = document.querySelector("[data-product-size-field]");
   const sizeSelect = document.querySelector("[data-product-size]");
   sizeField.classList.toggle("hidden", !needsSize(product));
+  if (needsSize(product)) {
+    sizeSelect.innerHTML = `<option value="">Seleccioná un talle</option>` + PRODUCT_SIZES.map(size => {
+      const available = productSizeAvailable(product, size);
+      const label = available > 0
+        ? `${size} · ${available} ${available === 1 ? "disponible" : "disponibles"}`
+        : `${size} · Sin stock`;
+      return `<option value="${escapeHtml(size)}" ${available === 0 ? "disabled" : ""}>${escapeHtml(label)}</option>`;
+    }).join("");
+  }
   sizeSelect.value = "";
   const addButton = document.querySelector("[data-product-detail-add]");
-  addButton.disabled = product.stock === 0;
-  addButton.firstChild.textContent = product.stock === 0 ? "SIN STOCK " : "AGREGAR AL CARRITO ";
+  addButton.disabled = stock === 0;
+  addButton.firstChild.textContent = stock === 0 ? "SIN STOCK " : "AGREGAR AL CARRITO ";
   document.querySelector("[data-product-thumbnails]").innerHTML = photos.map((url, index) => `
     <button type="button" class="${index === 0 ? "active" : ""}" data-product-thumbnail="${url}" aria-label="Ver foto ${index + 1}">
       <img src="${url}" alt="">
@@ -495,8 +540,8 @@ function toggleCart(open) {
 
 function groupedCartPayload(items) {
   return Object.values(items.reduce((groups, item) => {
-    const key = String(item.id);
-    if (!groups[key]) groups[key] = { id: item.id, quantity: 0 };
+    const key = cartItemKey(item);
+    if (!groups[key]) groups[key] = { id: item.id, size: item.size || null, quantity: 0 };
     groups[key].quantity += 1;
     return groups;
   }, {}));
@@ -535,9 +580,13 @@ function animateProductAdded(productId) {
 }
 
 async function tryAddToCart(product, size = null) {
-  if (!product || Number(product.stock) <= 0) return false;
+  if (!product || productAvailableStock(product) <= 0) return false;
   if (needsSize(product) && !size) {
     showCartToast("Seleccioná un talle");
+    return false;
+  }
+  if (needsSize(product) && productSizeAvailable(product, size) <= 0) {
+    showCartToast("Ese talle no tiene stock");
     return false;
   }
   const nextItem = { ...product, size: size || null };
@@ -551,8 +600,9 @@ async function tryAddToCart(product, size = null) {
       return false;
     }
   } else {
-    const quantity = nextCart.filter(item => String(item.id) === String(product.id)).length;
-    if (quantity > product.stock) return false;
+    const quantity = nextCart.filter(item => cartItemKey(item) === cartItemKey(nextItem)).length;
+    const available = needsSize(product) ? productSizeAvailable(product, size) : productAvailableStock(product);
+    if (quantity > available) return false;
   }
   cart.push(nextItem);
   updateCart();
@@ -619,7 +669,7 @@ document.addEventListener("click", async event => {
 });
 
 document.querySelector("[data-product-detail-add]").addEventListener("click", async () => {
-  if (!detailProduct || detailProduct.stock === 0) return;
+  if (!detailProduct || productAvailableStock(detailProduct) === 0) return;
   const size = needsSize(detailProduct) ? document.querySelector("[data-product-size]").value : null;
   await tryAddToCart(detailProduct, size);
 });

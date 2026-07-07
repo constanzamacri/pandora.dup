@@ -19,6 +19,7 @@ let promotions = [];
 let promotionRequirementsDirty = false;
 const editedImages = new WeakMap();
 let cropState = null;
+const PRODUCT_SIZES = ["16 cm", "17 cm", "18 cm", "19 cm", "20 cm", "21 cm", "23 cm"];
 
 const escapeHtml = value => String(value ?? "").replace(/[&<>"']/g, character => ({
   "&": "&amp;",
@@ -73,12 +74,52 @@ function renderProducts() {
   $("[data-metric-empty]").textContent = products.filter(product => getAdminAvailableStock(product) === 0).length;
   $("[data-metric-stock]").textContent = products
     .filter(product => product.product_type !== "composite")
-    .reduce((total, product) => total + product.stock, 0);
+    .reduce((total, product) => total + getAdminAvailableStock(product), 0);
+}
+
+function normalizedSizeStock(product = {}) {
+  const source = product.size_stock || product.available_size_stock || {};
+  return PRODUCT_SIZES.reduce((result, size) => {
+    result[size] = Math.max(0, Number(source?.[size]) || 0);
+    return result;
+  }, {});
+}
+
+function sizeStockTotal(product = {}) {
+  return Object.values(normalizedSizeStock(product)).reduce((total, value) => total + value, 0);
+}
+
+function usesSizeStock(product = {}) {
+  return product.product_type === "base" || product.category === "brazaletes";
+}
+
+function collectSizeStock(form) {
+  return PRODUCT_SIZES.reduce((result, size) => {
+    result[size] = Math.max(0, Number(form.elements[`size_stock_${size}`]?.value) || 0);
+    return result;
+  }, {});
+}
+
+function fillSizeStockFields(product = {}) {
+  const values = normalizedSizeStock(product);
+  PRODUCT_SIZES.forEach(size => {
+    const field = $("[data-product-form]").elements[`size_stock_${size}`];
+    if (field) field.value = values[size] || 0;
+  });
 }
 
 function getAdminAvailableStock(product) {
-  if (product.product_type !== "composite") return Number(product.stock) || 0;
+  if (product.product_type !== "composite") return usesSizeStock(product) ? sizeStockTotal(product) : Number(product.stock) || 0;
   if (!product.components?.length) return 0;
+  const baseComponent = product.components.find(component => {
+    const physicalProduct = products.find(item => item.id === component.component_product_id);
+    return physicalProduct?.product_type === "base" || physicalProduct?.category === "brazaletes";
+  });
+  if (baseComponent) {
+    const baseProduct = products.find(item => item.id === baseComponent.component_product_id);
+    const baseSizes = normalizedSizeStock(baseProduct);
+    return PRODUCT_SIZES.reduce((total, size) => total + Math.floor((baseSizes[size] || 0) / baseComponent.quantity), 0);
+  }
   return Math.min(...product.components.map(component => {
     const physicalProduct = products.find(item => item.id === component.component_product_id);
     return Math.floor((Number(physicalProduct?.stock) || 0) / component.quantity);
@@ -351,6 +392,7 @@ function openProduct(product = null) {
   form.elements.price.value = product?.price || "";
   form.elements.old_price.value = product?.old_price || "";
   form.elements.stock.value = product?.stock ?? 0;
+  fillSizeStockFields(product);
   form.elements.sort_order.value = product?.sort_order ?? 0;
   form.elements.image_url.value = product?.image_url || "";
   form.elements.gallery_urls.value = JSON.stringify(product?.gallery_urls || []);
@@ -368,7 +410,7 @@ function componentOptions(selectedId = "") {
   return products
     .filter(product => ["charm", "base"].includes(product.product_type) && product.id !== currentId)
     .map(product => `<option value="${product.id}" ${String(product.id) === String(selectedId) ? "selected" : ""}>
-      ${escapeHtml(product.name)} · ${product.product_type === "base" ? "Brazalete" : "Charm"} · Stock ${product.stock}
+      ${escapeHtml(product.name)} · ${product.product_type === "base" ? "Brazalete" : "Charm"} · Stock ${getAdminAvailableStock(product)}
     </option>`).join("");
 }
 
@@ -393,9 +435,11 @@ function renderComponentRows(components) {
 function updateProductTypeFields() {
   const form = $("[data-product-form]");
   const composite = form.elements.product_type.value === "composite";
+  const sized = !composite && (form.elements.product_type.value === "base" || form.elements.category.value === "brazaletes");
   $("[data-components-editor]").classList.toggle("hidden", !composite);
-  $("[data-product-stock-field]").classList.toggle("hidden", composite);
-  form.elements.stock.required = !composite;
+  $("[data-product-stock-field]").classList.toggle("hidden", composite || sized);
+  $("[data-size-stock-editor]").classList.toggle("hidden", !sized);
+  form.elements.stock.required = !composite && !sized;
   if (composite) form.elements.stock.value = 0;
 }
 
@@ -623,6 +667,7 @@ $("[data-product-form]").elements.product_type.addEventListener("change", () => 
   if ($("[data-product-form]").elements.product_type.value === "composite" &&
       !$("[data-component-list]").children.length) addComponentRow();
 });
+$("[data-product-form]").elements.category.addEventListener("change", updateProductTypeFields);
 $("[data-add-component]").addEventListener("click", () => addComponentRow());
 $("[data-component-list]").addEventListener("click", event => {
   const button = event.target.closest("[data-remove-component]");
@@ -752,6 +797,9 @@ $("[data-product-form]").addEventListener("submit", async event => {
         throw new Error("La pulsera solo puede incluir un brazalete y charms.");
       }
     }
+    const usesSizes = productType !== "composite" &&
+      (productType === "base" || form.elements.category.value === "brazaletes");
+    const sizeStock = usesSizes ? collectSizeStock(form) : {};
     let imageUrl = form.elements.image_url.value;
     const productImage = editedImages.get(form.elements.image) || form.elements.image.files[0];
     if (productImage) imageUrl = await uploadImage(productImage);
@@ -769,7 +817,8 @@ $("[data-product-form]").addEventListener("submit", async event => {
       badge: form.elements.badge.value.trim() || null,
       price: Number(form.elements.price.value),
       old_price: form.elements.old_price.value ? Number(form.elements.old_price.value) : null,
-      stock: productType === "composite" ? 0 : Number(form.elements.stock.value),
+      stock: productType === "composite" ? 0 : usesSizes ? sizeStockTotal({ size_stock: sizeStock }) : Number(form.elements.stock.value),
+      size_stock: sizeStock,
       product_type: productType,
       sort_order: Number(form.elements.sort_order.value || 0),
       image_url: imageUrl,

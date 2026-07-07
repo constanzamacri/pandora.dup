@@ -109,6 +109,16 @@ async function saveOrder(form, orderNumber) {
   }
   cart = cart.map(item => ({ ...item, ...(productMap.get(String(item.id)) || {}) }));
   groupedItems = groupCart(cart);
+  const { data: hasStock, error: stockError } = await client.rpc("validate_cart_stock", {
+    p_items: groupedItems.map(item => ({
+      id: item.id,
+      size: item.size || null,
+      quantity: item.quantity
+    }))
+  });
+  if (stockError || !hasStock) {
+    throw new Error("No hay stock suficiente para completar el pedido. Revisá la bolsa y volvé a intentar.");
+  }
   promotions = window.PromotionEngine.parse(promotionSetting?.value);
   promotionPricing = window.PromotionEngine.calculate(cart, currentProducts || [], promotions);
   subtotal = promotionPricing.total;

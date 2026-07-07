@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="admin.css?v=20260707-1">
+  <link rel="stylesheet" href="admin.css?v=20260707-2">
 </head>
 <body>
   <main class="admin-shell">
@@ -276,6 +276,21 @@
           <div data-component-list></div>
           <button class="secondary-action" type="button" data-add-component>+ AGREGAR COMPONENTE</button>
         </section>
+        <section class="size-stock-editor hidden" data-size-stock-editor>
+          <div>
+            <h3>Stock por talle</h3>
+            <p>Cargá la cantidad disponible para cada talle.</p>
+          </div>
+          <div class="size-stock-grid">
+            <label>16 cm<input name="size_stock_16 cm" type="number" min="0" step="1" value="0"></label>
+            <label>17 cm<input name="size_stock_17 cm" type="number" min="0" step="1" value="0"></label>
+            <label>18 cm<input name="size_stock_18 cm" type="number" min="0" step="1" value="0"></label>
+            <label>19 cm<input name="size_stock_19 cm" type="number" min="0" step="1" value="0"></label>
+            <label>20 cm<input name="size_stock_20 cm" type="number" min="0" step="1" value="0"></label>
+            <label>21 cm<input name="size_stock_21 cm" type="number" min="0" step="1" value="0"></label>
+            <label>23 cm<input name="size_stock_23 cm" type="number" min="0" step="1" value="0"></label>
+          </div>
+        </section>
         <label>Foto del producto<input name="image" type="file" accept="image/jpeg,image/png,image/webp"></label>
         <input name="image_url" type="hidden">
         <label>Fotos adicionales
@@ -316,6 +331,6 @@
     </section>
   </div>
 
-  <script type="module" src="admin.js?v=20260707-2"></script>
+  <script type="module" src="admin.js?v=20260707-4"></script>
 </body>
 </html>
