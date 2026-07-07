@@ -432,6 +432,16 @@ function openProduct(product = null) {
   $("[data-product-modal]").classList.remove("hidden");
 }
 
+function openNewProduct() {
+  try {
+    openProduct();
+  } catch (error) {
+    alert(`No se pudo abrir el formulario de producto: ${error.message}`);
+  }
+}
+
+window.openNewProductModal = openNewProduct;
+
 function componentOptions(selectedId = "") {
   const currentId = Number($("[data-product-form]").elements.id.value);
   return products
@@ -685,7 +695,7 @@ $("[data-order-list]").addEventListener("click", async event => {
   await loadOrders();
 });
 
-$("[data-new-product]").addEventListener("click", () => openProduct());
+$("[data-new-product]").addEventListener("click", openNewProduct);
 $("[data-product-list]").addEventListener("click", event => {
   const button = event.target.closest("[data-edit-product]");
   if (button) openProduct(products.find(product => product.id === Number(button.dataset.editProduct)));
