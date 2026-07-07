@@ -410,10 +410,11 @@ function updatePhotoPreview(field) {
 function openProduct(product = null) {
   const form = $("[data-product-form]");
   form.reset();
+  const defaultCategory = categories[0]?.id || form.elements.category.options[0]?.value || "";
   form.elements.id.value = product?.id || "";
   form.elements.name.value = product?.name || "";
-  form.elements.category.value = product?.category || "dijes";
-  form.elements.product_type.value = product?.product_type || "simple";
+  form.elements.category.value = product?.category || defaultCategory;
+  form.elements.product_type.value = product?.product_type || "charm";
   form.elements.badge.value = product?.badge || "";
   form.elements.price.value = product?.price || "";
   form.elements.old_price.value = product?.old_price || "";
@@ -601,10 +602,12 @@ async function verifyAdmin(user) {
   }
 }
 
-if (!isSupabaseConfigured) {
-  $("[data-setup-warning]").classList.remove("hidden");
-  $("[data-login-form] button").disabled = true;
-} else {
+async function initAdmin() {
+  if (!isSupabaseConfigured) {
+    $("[data-setup-warning]").classList.remove("hidden");
+    $("[data-login-form] button").disabled = true;
+    return;
+  }
   supabase = await createSupabaseClient();
   const { data: { session } } = await supabase.auth.getSession();
   if (session?.user) {
@@ -1015,4 +1018,9 @@ document.querySelectorAll("[data-content-section-form]").forEach(form => {
     const { error } = await supabase.from("site_content").upsert(records);
     sectionMessage(error ? error.message : "Cambios guardados.", Boolean(error));
   });
+});
+
+initAdmin().catch(error => {
+  showLogin();
+  message("[data-login-message]", error.message, true);
 });
