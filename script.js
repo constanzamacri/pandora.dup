@@ -408,8 +408,6 @@ async function loadStoreData() {
     updateCart();
   } catch (error) {
     console.warn("No se pudo cargar el catálogo administrable.", error);
-  } finally {
-    document.body.classList.remove("content-loading");
   }
 }
 
