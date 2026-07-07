@@ -108,6 +108,26 @@ function fillSizeStockFields(product = {}) {
   });
 }
 
+function isMissingSizeStockColumn(error) {
+  return /size_stock/i.test(error?.message || "") && /schema cache|column/i.test(error?.message || "");
+}
+
+async function saveProductRecord(record, id = "") {
+  const runSave = payload => {
+    const query = id
+      ? supabase.from("products").update(payload).eq("id", Number(id))
+      : supabase.from("products").insert(payload);
+    return query.select("id").single();
+  };
+  let result = await runSave(record);
+  if (result.error && isMissingSizeStockColumn(result.error)) {
+    const fallbackRecord = { ...record };
+    delete fallbackRecord.size_stock;
+    result = await runSave(fallbackRecord);
+  }
+  return result;
+}
+
 function getAdminAvailableStock(product) {
   if (product.product_type !== "composite") return usesSizeStock(product) ? sizeStockTotal(product) : Number(product.stock) || 0;
   if (!product.components?.length) return 0;
@@ -826,10 +846,7 @@ $("[data-product-form]").addEventListener("submit", async event => {
       published: form.elements.published.checked,
       updated_at: new Date().toISOString()
     };
-    const query = id
-      ? supabase.from("products").update(record).eq("id", Number(id))
-      : supabase.from("products").insert(record);
-    const { data: savedProduct, error } = await query.select("id").single();
+    const { data: savedProduct, error } = await saveProductRecord(record, id);
     if (error) throw error;
     const { error: componentsError } = await supabase.rpc("replace_product_components", {
       p_product_id: savedProduct.id,
