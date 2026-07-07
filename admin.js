@@ -424,10 +424,12 @@ const cropRatios = {
 function drawCrop() {
   if (!cropState) return;
   const canvas = $("[data-crop-canvas]");
+  const stage = $("[data-crop-stage]");
   const context = canvas.getContext("2d");
   const { image, ratio } = cropState;
   const outputWidth = ratio >= 1 ? 1200 : Math.round(1200 * ratio);
   const outputHeight = Math.round(outputWidth / ratio);
+  stage.style.aspectRatio = String(ratio);
   canvas.width = outputWidth;
   canvas.height = outputHeight;
 
@@ -455,6 +457,7 @@ function closeImageEditor(resetInput = false) {
   if (resetInput && cropState?.input) cropState.input.value = "";
   if (cropState?.objectUrl) URL.revokeObjectURL(cropState.objectUrl);
   cropState = null;
+  $("[data-crop-stage]").style.aspectRatio = "";
   $("[data-image-editor]").classList.add("hidden");
 }
 
@@ -920,7 +923,11 @@ document.querySelectorAll("[data-content-section-form]").forEach(form => {
         for (const key of imageKeys) {
           const input = form.elements[`${key}_file`];
           const file = editedImages.get(input) || input.files[0];
-          if (file) form.elements[key].value = await uploadImage(file, "site");
+          if (file) {
+            form.elements[key].value = await uploadImage(file, "site");
+            form.elements[`${key}_position_x`].value = "50";
+            form.elements[`${key}_position_y`].value = "50";
+          }
         }
       } catch (error) {
         sectionMessage(error.message, true);
