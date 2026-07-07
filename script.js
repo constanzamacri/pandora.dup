@@ -24,6 +24,15 @@ function renderAnnouncement(value) {
     .join("");
 }
 
+function renderMultilineContent(element, value) {
+  const lines = String(value ?? "").split(/\r?\n/);
+  element.replaceChildren();
+  lines.forEach((line, index) => {
+    if (index) element.append(document.createElement("br"));
+    element.append(line);
+  });
+}
+
 if (requestedCategory || requestedSearch) {
   document.body.classList.add("catalog-view");
   activeFilter = requestedCategory || "todos";
@@ -316,7 +325,10 @@ async function loadStoreData() {
           return;
         }
         const element = document.querySelector(`[data-content="${item.key}"]`);
-        if (element) element.textContent = item.value;
+        if (element) {
+          if (element.hasAttribute("data-multiline-content")) renderMultilineContent(element, item.value);
+          else element.textContent = item.value;
+        }
         const image = document.querySelector(`[data-content-image="${item.key}"]`);
         if (image) {
           image.style.backgroundImage = `url("${item.value}")`;
