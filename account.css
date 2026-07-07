@@ -15,11 +15,6 @@ h1 { margin: 0 0 28px; font-size: 36px; font-weight: 500; }
 .auth-tabs { margin-bottom: 28px; display: grid; grid-template-columns: 1fr 1fr; border-bottom: 1px solid var(--line); }
 .auth-tabs button { padding: 13px 5px; color: var(--muted); background: none; border: 0; border-bottom: 2px solid transparent; font-size: 10px; cursor: pointer; }
 .auth-tabs button.active { color: var(--ink); border-bottom-color: var(--ink); }
-.google-button { width: 100%; padding: 14px; display: flex; align-items: center; justify-content: center; gap: 11px; color: var(--ink); background: white; border: 1px solid var(--line); font-size: 10px; font-weight: 600; letter-spacing: .8px; cursor: pointer; }
-.google-button span { width: 21px; height: 21px; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 50%; font-weight: 700; }
-.auth-divider { margin: 22px 0; display: flex; align-items: center; gap: 12px; color: var(--muted); font-size: 8px; text-transform: uppercase; letter-spacing: .7px; }
-.auth-divider::before, .auth-divider::after { content: ""; height: 1px; flex: 1; background: var(--line); }
-.auth-divider span { white-space: nowrap; }
 form label { margin-bottom: 18px; display: flex; flex-direction: column; gap: 8px; font-size: 10px; font-weight: 600; }
 input { width: 100%; padding: 14px; color: var(--ink); background: white; border: 1px solid var(--line); outline: none; }
 input:focus { border-color: var(--ink); }

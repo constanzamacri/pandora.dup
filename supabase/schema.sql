@@ -464,6 +464,7 @@ insert into public.site_content (key, value) values
   ('hero_button_url', 'index.html?category=todos'),
   ('promotions_kicker', 'OPORTUNIDADES'),
   ('promotions_title', 'Promos para vos'),
+  ('promotions_description', 'Para aprovechar una promo, agregá al carrito todos los productos que indica la tarjeta. El descuento o regalo se aplica automáticamente al finalizar.'),
   ('products_kicker', 'NUESTROS FAVORITOS'),
   ('products_title', 'Elegidos para vos'),
   ('categories_kicker', 'ENCONTRÁ TU ESTILO'),

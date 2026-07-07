@@ -35,15 +35,6 @@ function showAuth() {
 const { data: { session } } = await supabase.auth.getSession();
 if (session?.user) await showProfile(session.user);
 
-$("[data-google-login]").addEventListener("click", async () => {
-  const redirectTo = new URL("account.html", window.location.href).href;
-  const { error } = await supabase.auth.signInWithOAuth({
-    provider: "google",
-    options: { redirectTo }
-  });
-  if (error) setMessage("[data-login-message]", error.message, true);
-});
-
 document.querySelectorAll("[data-auth-tab]").forEach(button => {
   button.addEventListener("click", () => {
     const login = button.dataset.authTab === "login";

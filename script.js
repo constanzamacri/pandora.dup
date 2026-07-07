@@ -6,6 +6,7 @@ let cart = [];
 let detailProduct = null;
 let storeClient = null;
 let currentUser = null;
+let authSubscription = null;
 let promotions = [];
 let storeCategories = [];
 const favoriteIds = new Set();
@@ -47,6 +48,7 @@ try {
   cart = [];
 }
 const money = value => new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS", maximumFractionDigits: 0 }).format(value);
+const itemKey = value => String(value);
 const needsSize = product => ["base", "composite"].includes(product?.product_type) || product?.category === "brazaletes";
 const cartItemKey = item => `${item.id}::${item.size || ""}`;
 const grid = document.querySelector("[data-products]");
@@ -185,7 +187,7 @@ function renderProducts() {
     (activeFilter === "todos" || product.category === activeFilter) &&
     (isCatalogView || product.stock > 0) &&
     product.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
-    (!requestedFavorites || favoriteIds.has(product.id))
+    (!requestedFavorites || favoriteIds.has(itemKey(product.id)))
   ).sort((a, b) => isCatalogView ? Number(a.stock === 0) - Number(b.stock === 0) : 0);
   grid.innerHTML = visible.map(product => `
     <article class="product-card">
@@ -196,9 +198,9 @@ function renderProducts() {
           : product.stock <= 2
             ? `<span class="product-badge low-stock">¡QUEDAN POCOS!</span>`
             : product.badge ? `<span class="product-badge">${product.badge}</span>` : ""}
-        <button class="favorite-button ${favoriteIds.has(product.id) ? "active" : ""}"
-          type="button" data-favorite="${product.id}" aria-label="${favoriteIds.has(product.id) ? "Quitar de" : "Agregar a"} favoritos">
-          <span aria-hidden="true">${favoriteIds.has(product.id) ? "♥" : "♡"}</span>
+        <button class="favorite-button ${favoriteIds.has(itemKey(product.id)) ? "active" : ""}"
+          type="button" data-favorite="${product.id}" aria-label="${favoriteIds.has(itemKey(product.id)) ? "Quitar de" : "Agregar a"} favoritos">
+          <span aria-hidden="true">${favoriteIds.has(itemKey(product.id)) ? "♥" : "♡"}</span>
         </button>
         <button class="quick-add" data-add="${product.id}" ${product.stock === 0 ? "disabled" : ""}>
           ${product.stock === 0 ? "SIN STOCK" : "AGREGAR A LA BOLSA +"}
@@ -211,6 +213,25 @@ function renderProducts() {
     </article>`).join("");
   grid.scrollLeft = 0;
   document.querySelector("[data-empty]").classList.toggle("visible", visible.length === 0);
+}
+
+async function refreshFavoriteState() {
+  if (!storeClient) return;
+  const { data: { session } } = await storeClient.auth.getSession();
+  currentUser = session?.user || null;
+  favoriteIds.clear();
+  if (requestedFavorites && !currentUser) {
+    window.location.href = "account.html?v=20260707-1";
+    return;
+  }
+  if (currentUser) {
+    const { data: savedFavorites } = await storeClient
+      .from("favorites")
+      .select("product_id")
+      .eq("user_id", currentUser.id);
+    (savedFavorites || []).forEach(item => favoriteIds.add(itemKey(item.product_id)));
+  }
+  renderProducts();
 }
 
 function showProductImage(url, selectedButton) {
@@ -267,19 +288,12 @@ async function loadStoreData() {
     const { createClient } = await import("https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm");
     const client = createClient(config.SUPABASE_URL, config.SUPABASE_PUBLISHABLE_KEY);
     storeClient = client;
-    const { data: { session } } = await client.auth.getSession();
-    currentUser = session?.user || null;
-    if (requestedFavorites && !currentUser) {
-      window.location.href = "account.html?v=20260627-15";
-      return;
+    if (!authSubscription) {
+      const { data } = client.auth.onAuthStateChange(() => refreshFavoriteState());
+      authSubscription = data.subscription;
     }
-    if (currentUser) {
-      const { data: savedFavorites } = await client
-        .from("favorites")
-        .select("product_id")
-        .eq("user_id", currentUser.id);
-      (savedFavorites || []).forEach(item => favoriteIds.add(Number(item.product_id)));
-    }
+    await refreshFavoriteState();
+    if (requestedFavorites && !currentUser) return;
     const [
       { data: remoteProducts, error: productsError },
       { data: content, error: contentError },
@@ -458,21 +472,22 @@ function openSearchView() {
 
 async function toggleFavorite(productId) {
   if (!currentUser || !storeClient) {
-    window.location.href = "account.html?v=20260627-15";
+    window.location.href = "account.html?v=20260707-1";
     return;
   }
-  if (favoriteIds.has(productId)) {
+  const key = itemKey(productId);
+  if (favoriteIds.has(key)) {
     const { error } = await storeClient
       .from("favorites")
       .delete()
       .eq("user_id", currentUser.id)
       .eq("product_id", productId);
-    if (!error) favoriteIds.delete(productId);
+    if (!error) favoriteIds.delete(key);
   } else {
     const { error } = await storeClient
       .from("favorites")
-      .insert({ user_id: currentUser.id, product_id: productId });
-    if (!error) favoriteIds.add(productId);
+      .upsert({ user_id: currentUser.id, product_id: productId }, { onConflict: "user_id,product_id" });
+    if (!error) favoriteIds.add(key);
   }
   renderProducts();
 }
@@ -609,7 +624,7 @@ document.addEventListener("click", async event => {
   if (favorite) {
     event.preventDefault();
     event.stopPropagation();
-    toggleFavorite(Number(favorite.dataset.favorite));
+    toggleFavorite(favorite.dataset.favorite);
     return;
   }
   const add = event.target.closest("[data-add]");
@@ -743,7 +758,10 @@ window.addEventListener("storage", event => {
     refreshProductAvailability();
   }
 });
-window.addEventListener("focus", refreshProductAvailability);
+window.addEventListener("focus", async () => {
+  await refreshFavoriteState();
+  await refreshProductAvailability();
+});
 
 renderProducts();
 updateCart();
