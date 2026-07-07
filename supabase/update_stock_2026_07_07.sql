@@ -7,6 +7,8 @@
 alter table public.products
   add column if not exists size_stock jsonb not null default '{}'::jsonb;
 
+notify pgrst, 'reload schema';
+
 begin;
 
 create temporary table desired_stock (
@@ -17,8 +19,8 @@ create temporary table desired_stock (
 ) on commit drop;
 
 insert into desired_stock (name, stock, size_stock, product_type) values
-  ('Pulsera Pandora Clasica', 2, '{"18 cm": 1, "19 cm": 1}'::jsonb, 'base'),
-  ('Pulsera Pandora Corazon', 4, '{"18 cm": 2, "19 cm": 2}'::jsonb, 'base'),
+  ('Pulsera Pandora Clasica', 2, '{"18 cm": 1, "19 cm": 1, "20 cm": 0}'::jsonb, 'base'),
+  ('Pulsera Pandora Corazon', 4, '{"18 cm": 2, "19 cm": 2, "20 cm": 0}'::jsonb, 'base'),
   ('Charm Mickey', 2, '{}'::jsonb, 'charm'),
   ('Charm Bola Pandora Shine', 1, '{}'::jsonb, 'charm'),
   ('Charm O Pandora', 1, '{}'::jsonb, 'charm'),

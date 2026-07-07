@@ -26,6 +26,8 @@ alter table public.products
 alter table public.products
   add column if not exists size_stock jsonb not null default '{}'::jsonb;
 
+notify pgrst, 'reload schema';
+
 alter table public.products
   add column if not exists product_type text not null default 'simple'
   check (product_type in ('simple', 'charm', 'base', 'composite'));

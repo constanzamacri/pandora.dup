@@ -49,7 +49,7 @@ try {
   cart = [];
 }
 const money = value => new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS", maximumFractionDigits: 0 }).format(value);
-const PRODUCT_SIZES = ["16 cm", "17 cm", "18 cm", "19 cm", "20 cm", "21 cm", "23 cm"];
+const PRODUCT_SIZES = ["18 cm", "19 cm", "20 cm"];
 const needsSize = product => ["base", "composite"].includes(product?.product_type) || product?.category === "brazaletes";
 const cartItemKey = item => `${item.id}::${item.size || ""}`;
 const grid = document.querySelector("[data-products]");

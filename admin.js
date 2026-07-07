@@ -19,7 +19,7 @@ let promotions = [];
 let promotionRequirementsDirty = false;
 const editedImages = new WeakMap();
 let cropState = null;
-const PRODUCT_SIZES = ["16 cm", "17 cm", "18 cm", "19 cm", "20 cm", "21 cm", "23 cm"];
+const PRODUCT_SIZES = ["18 cm", "19 cm", "20 cm"];
 
 const escapeHtml = value => String(value ?? "").replace(/[&<>"']/g, character => ({
   "&": "&amp;",
@@ -112,7 +112,7 @@ function isMissingSizeStockColumn(error) {
   return /size_stock/i.test(error?.message || "") && /schema cache|column/i.test(error?.message || "");
 }
 
-async function saveProductRecord(record, id = "") {
+async function saveProductRecord(record, id = "", options = {}) {
   const runSave = payload => {
     const query = id
       ? supabase.from("products").update(payload).eq("id", Number(id))
@@ -121,6 +121,12 @@ async function saveProductRecord(record, id = "") {
   };
   let result = await runSave(record);
   if (result.error && isMissingSizeStockColumn(result.error)) {
+    if (options.requireSizeStock) {
+      return {
+        data: null,
+        error: new Error("Para guardar stock por talle primero ejecutá el SQL de stock en Supabase. Si no, Supabase no tiene creada la columna size_stock.")
+      };
+    }
     const fallbackRecord = { ...record };
     delete fallbackRecord.size_stock;
     result = await runSave(fallbackRecord);
@@ -846,7 +852,9 @@ $("[data-product-form]").addEventListener("submit", async event => {
       published: form.elements.published.checked,
       updated_at: new Date().toISOString()
     };
-    const { data: savedProduct, error } = await saveProductRecord(record, id);
+    const { data: savedProduct, error } = await saveProductRecord(record, id, {
+      requireSizeStock: usesSizes
+    });
     if (error) throw error;
     const { error: componentsError } = await supabase.rpc("replace_product_components", {
       p_product_id: savedProduct.id,
