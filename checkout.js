@@ -92,10 +92,9 @@ ${notesLine}`;
 }
 
 async function saveOrder(form, orderNumber) {
-  const config = await import("./supabase-config.js");
-  if (!config.isSupabaseConfigured) return;
-  const { createClient } = await import("https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm");
-  const client = createClient(config.SUPABASE_URL, config.SUPABASE_PUBLISHABLE_KEY);
+  const { createSupabaseClient, isSupabaseConfigured } = await import("./supabase-client.js");
+  if (!isSupabaseConfigured) return;
+  const client = await createSupabaseClient();
   const [{ data: currentProducts, error: productsError }, { data: promotionSetting, error: promotionError }] =
     await Promise.all([
       client.rpc("get_store_products"),

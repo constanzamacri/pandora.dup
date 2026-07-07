@@ -1,9 +1,7 @@
-import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 import {
-  SUPABASE_URL,
-  SUPABASE_PUBLISHABLE_KEY,
+  createSupabaseClient,
   isSupabaseConfigured
-} from "./supabase-config.js";
+} from "./supabase-client.js";
 
 const $ = selector => document.querySelector(selector);
 const money = value => new Intl.NumberFormat("es-AR", {
@@ -534,7 +532,7 @@ if (!isSupabaseConfigured) {
   $("[data-setup-warning]").classList.remove("hidden");
   $("[data-login-form] button").disabled = true;
 } else {
-  supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+  supabase = await createSupabaseClient();
   const { data: { session } } = await supabase.auth.getSession();
   if (session?.user) {
     try {

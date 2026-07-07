@@ -1,7 +1,6 @@
-import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
-import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from "./supabase-config.js";
+import { createSupabaseClient } from "./supabase-client.js";
 
-const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+const supabase = await createSupabaseClient();
 const $ = selector => document.querySelector(selector);
 
 function setMessage(selector, text, error = false) {

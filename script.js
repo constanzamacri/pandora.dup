@@ -285,8 +285,8 @@ async function loadStoreData() {
   try {
     const config = await import("./supabase-config.js");
     if (!config.isSupabaseConfigured) return;
-    const { createClient } = await import("https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm");
-    const client = createClient(config.SUPABASE_URL, config.SUPABASE_PUBLISHABLE_KEY);
+    const { createSupabaseClient } = await import("./supabase-client.js");
+    const client = await createSupabaseClient();
     storeClient = client;
     if (!authSubscription) {
       const { data } = client.auth.onAuthStateChange(() => refreshFavoriteState());
