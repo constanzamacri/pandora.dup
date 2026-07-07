@@ -78,6 +78,7 @@ function renderProducts() {
 }
 
 function normalizedSizeStock(product = {}) {
+  product = product || {};
   const source = product.size_stock || product.available_size_stock || {};
   return PRODUCT_SIZES.reduce((result, size) => {
     result[size] = Math.max(0, Number(source?.[size]) || 0);
@@ -86,10 +87,12 @@ function normalizedSizeStock(product = {}) {
 }
 
 function sizeStockTotal(product = {}) {
+  product = product || {};
   return Object.values(normalizedSizeStock(product)).reduce((total, value) => total + value, 0);
 }
 
 function usesSizeStock(product = {}) {
+  product = product || {};
   return product.product_type === "base" || product.category === "brazaletes";
 }
 
@@ -101,6 +104,7 @@ function collectSizeStock(form) {
 }
 
 function fillSizeStockFields(product = {}) {
+  product = product || {};
   const values = normalizedSizeStock(product);
   PRODUCT_SIZES.forEach(size => {
     const field = $("[data-product-form]").elements[`size_stock_${size}`];
@@ -135,6 +139,7 @@ async function saveProductRecord(record, id = "", options = {}) {
 }
 
 function getAdminAvailableStock(product) {
+  product = product || {};
   if (product.product_type !== "composite") return usesSizeStock(product) ? sizeStockTotal(product) : Number(product.stock) || 0;
   if (!product.components?.length) return 0;
   const baseComponent = product.components.find(component => {

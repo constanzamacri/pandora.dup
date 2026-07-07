@@ -55,6 +55,7 @@ const cartItemKey = item => `${item.id}::${item.size || ""}`;
 const grid = document.querySelector("[data-products]");
 
 function normalizeSizeStock(source = {}) {
+  source = source || {};
   return PRODUCT_SIZES.reduce((result, size) => {
     result[size] = Math.max(0, Number(source?.[size]) || 0);
     return result;
@@ -62,16 +63,19 @@ function normalizeSizeStock(source = {}) {
 }
 
 function sizeStockTotal(source = {}) {
+  source = source || {};
   return Object.values(normalizeSizeStock(source)).reduce((total, value) => total + value, 0);
 }
 
 function productAvailableStock(product = {}) {
+  product = product || {};
   const sizedTotal = sizeStockTotal(product.available_size_stock || product.size_stock);
   if (!needsSize(product)) return Number(product.stock) || 0;
   return Math.min(sizedTotal, Number(product.stock) || sizedTotal);
 }
 
 function productSizeAvailable(product = {}, size = "") {
+  product = product || {};
   const sizes = normalizeSizeStock(product.available_size_stock || product.size_stock);
   const available = Math.max(0, Number(sizes[size]) || 0);
   return product.product_type === "composite"
