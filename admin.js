@@ -412,6 +412,22 @@ function updatePhotoPreview(field) {
     `${field.querySelector(`[name="${key}_position_x"]`).value}% ${field.querySelector(`[name="${key}_position_y"]`).value}%`;
 }
 
+function renderProductPhotoPreviews() {
+  const form = $("[data-product-form]");
+  const mainUrl = form.elements.image_url.value;
+  const galleryUrls = JSON.parse(form.elements.gallery_urls.value || "[]");
+  $("[data-main-image-preview]").innerHTML = mainUrl ? `
+    <article class="product-photo-thumbnail">
+      <img src="${escapeHtml(mainUrl)}" alt="Foto principal actual">
+      <button type="button" data-remove-main-image>ELIMINAR</button>
+    </article>` : `<p class="photo-preview-empty">No hay una foto principal guardada.</p>`;
+  $("[data-gallery-preview]").innerHTML = galleryUrls.length ? galleryUrls.map((url, index) => `
+    <article class="product-photo-thumbnail">
+      <img src="${escapeHtml(url)}" alt="Foto adicional ${index + 1}">
+      <button type="button" data-remove-gallery-image="${index}">ELIMINAR</button>
+    </article>`).join("") : `<p class="photo-preview-empty">No hay fotos adicionales guardadas.</p>`;
+}
+
 function openProduct(product = null) {
   const form = $("[data-product-form]");
   form.reset();
@@ -428,6 +444,7 @@ function openProduct(product = null) {
   form.elements.sort_order.value = product?.sort_order ?? 0;
   form.elements.image_url.value = product?.image_url || "";
   form.elements.gallery_urls.value = JSON.stringify(product?.gallery_urls || []);
+  renderProductPhotoPreviews();
   form.elements.published.checked = product?.published ?? true;
   renderComponentRows(product?.components || []);
   updateProductTypeFields();
@@ -446,6 +463,23 @@ function openNewProduct() {
 }
 
 window.openNewProductModal = openNewProduct;
+
+$("[data-main-image-preview]").addEventListener("click", event => {
+  if (!event.target.closest("[data-remove-main-image]")) return;
+  const form = $("[data-product-form]");
+  form.elements.image_url.value = "";
+  renderProductPhotoPreviews();
+});
+
+$("[data-gallery-preview]").addEventListener("click", event => {
+  const button = event.target.closest("[data-remove-gallery-image]");
+  if (!button) return;
+  const form = $("[data-product-form]");
+  const galleryUrls = JSON.parse(form.elements.gallery_urls.value || "[]");
+  galleryUrls.splice(Number(button.dataset.removeGalleryImage), 1);
+  form.elements.gallery_urls.value = JSON.stringify(galleryUrls);
+  renderProductPhotoPreviews();
+});
 
 function componentOptions(selectedId = "") {
   const currentId = Number($("[data-product-form]").elements.id.value);

@@ -13,7 +13,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="admin.css?v=20260707-2">
+  <link rel="stylesheet" href="admin.css?v=20260718-1">
   <script>
     window.openNewProductModal = function () {
       const modal = document.querySelector("[data-product-modal]");
@@ -306,11 +306,13 @@
         </section>
         <label>Foto del producto<input name="image" type="file" accept="image/jpeg,image/png,image/webp"></label>
         <input name="image_url" type="hidden">
+        <div class="product-photo-preview" data-main-image-preview></div>
         <label>Fotos adicionales
           <input name="gallery" type="file" accept="image/jpeg,image/png,image/webp" multiple data-no-editor>
           <small>Podés seleccionar varias fotos juntas.</small>
         </label>
         <input name="gallery_urls" type="hidden">
+        <div class="product-gallery-preview" data-gallery-preview></div>
         <label class="check-field"><input name="published" type="checkbox" checked> Producto publicado</label>
         <div class="form-actions">
           <button class="danger-action hidden" type="button" data-delete-product>ELIMINAR</button>
@@ -344,6 +346,6 @@
     </section>
   </div>
 
-  <script type="module" src="admin.js?v=20260718-1"></script>
+  <script type="module" src="admin.js?v=20260718-2"></script>
 </body>
 </html>
