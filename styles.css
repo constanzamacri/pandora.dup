@@ -110,12 +110,17 @@ h1 em, h2 em { font-weight: 400; color: #8f726a; }
 .product-card.just-added { animation: added-card 1.5s ease; }
 @keyframes added-overlay { 0% { opacity: 0; visibility: visible; } 18%, 68% { opacity: 1; visibility: visible; } 100% { opacity: 0; visibility: hidden; } }
 @keyframes added-card { 20% { transform: scale(.975); } 42% { transform: scale(1.015); } 100% { transform: none; } }
-.product-image img { width: 100%; height: 100%; object-fit: cover; transition: transform .6s; }
-.product-card:hover img { transform: scale(1.035); }
-.product-badge { position: absolute; top: 12px; left: 12px; padding: 7px 9px; background: var(--paper); font-size: 8px; letter-spacing: 1.3px; }
+.product-image img { width: 100%; height: 100%; object-fit: cover; transition: opacity .35s ease, transform .6s; }
+.product-image-secondary { position: absolute; inset: 0; opacity: 0; }
+@media (hover: hover) and (pointer: fine) {
+  .product-card:hover .product-image-primary { transform: scale(1.035); }
+  .product-card:hover .has-secondary-image .product-image-primary { opacity: 0; }
+  .product-card:hover .has-secondary-image .product-image-secondary { opacity: 1; transform: scale(1.035); }
+}
+.product-badge { position: absolute; z-index: 2; top: 12px; left: 12px; padding: 7px 9px; background: var(--paper); font-size: 8px; letter-spacing: 1.3px; }
 .product-badge.out-of-stock { color: #77736d; background: rgba(238,238,238,.96); font-weight: 600; }
 .product-badge.low-stock { color: #b3261e; background: rgba(251,250,246,.96); font-weight: 600; }
-.quick-add { position: absolute; left: 12px; right: 12px; bottom: 12px; min-height: 43px; border: 0; background: rgba(251,250,246,.94); font-size: 9px; letter-spacing: 1.2px; opacity: 0; transform: translateY(8px); transition: .3s; }
+.quick-add { position: absolute; z-index: 2; left: 12px; right: 12px; bottom: 12px; min-height: 43px; border: 0; background: rgba(251,250,246,.94); font-size: 9px; letter-spacing: 1.2px; opacity: 0; transform: translateY(8px); transition: .3s; }
 .product-card:hover .quick-add, .quick-add:focus { opacity: 1; transform: none; }
 .product-info { padding: 15px 2px; }
 .product-info h3 { margin: 0 0 7px; font-size: 13px; font-weight: 500; }
@@ -124,6 +129,15 @@ h1 em, h2 em { font-weight: 400; color: #8f726a; }
 .transfer { margin-top: 6px; color: #82726c; font-size: 9px; }
 .empty-state { display: none; padding: 50px; text-align: center; }
 .empty-state.visible { display: block; }
+.empty-state.load-error {
+  max-width: 620px;
+  margin: 32px auto;
+  padding: 20px 24px;
+  border: 1px solid #d9cbc4;
+  background: #fff8f4;
+  color: #6d332d;
+  line-height: 1.5;
+}
 .catalog-view .hero,
 .catalog-view .benefits,
 .catalog-view .promotions-section,

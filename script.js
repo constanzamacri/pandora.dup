@@ -227,10 +227,12 @@ function renderProducts() {
   ).sort((a, b) => isCatalogView ? Number(productAvailableStock(a) === 0) - Number(productAvailableStock(b) === 0) : 0);
   grid.innerHTML = visible.map(product => {
     const availableStock = productAvailableStock(product);
+    const secondaryImage = (product.gallery_urls || []).find(url => url && url !== product.image);
     return `
     <article class="product-card">
-      <div class="product-image" data-product-open="${product.id}">
-        <img src="${product.image}" alt="${product.name}" loading="lazy">
+      <div class="product-image${secondaryImage ? " has-secondary-image" : ""}" data-product-open="${product.id}">
+        <img class="product-image-primary" src="${escapeHtml(product.image)}" alt="${escapeHtml(product.name)}" loading="lazy">
+        ${secondaryImage ? `<img class="product-image-secondary" src="${escapeHtml(secondaryImage)}" alt="" loading="lazy">` : ""}
         ${availableStock === 0
           ? `<span class="product-badge out-of-stock">SIN STOCK</span>`
           : availableStock <= 2
@@ -313,18 +315,24 @@ async function loadStoreData() {
     const { createSupabaseClient } = await import("./supabase-client.js");
     const client = await createSupabaseClient();
     storeClient = client;
+    const storeRequest = Promise.all([
+      client.rpc("get_store_products"),
+      client.from("site_content").select("key,value"),
+      client.from("categories").select("*").eq("published", true).order("sort_order"),
+      client.from("menu_items").select("*").eq("published", true).order("sort_order").order("id")
+    ]);
+    const storeTimeout = new Promise((_, reject) => {
+      window.setTimeout(() => reject(new Error("La conexión con la tienda demoró demasiado.")), 8000);
+    });
     const [
       { data: remoteProducts, error: productsError },
       { data: content, error: contentError },
-      { data: categories },
+      { data: categories, error: categoriesError },
       { data: menuItems, error: menuError }
-    ] =
-      await Promise.all([
-        client.rpc("get_store_products"),
-        client.from("site_content").select("key,value"),
-        client.from("categories").select("*").eq("published", true).order("sort_order"),
-        client.from("menu_items").select("*").eq("published", true).order("sort_order").order("id")
-      ]);
+    ] = await Promise.race([storeRequest, storeTimeout]);
+    if (productsError && contentError && categoriesError && menuError) {
+      throw new Error("El servicio de la tienda no está disponible.");
+    }
     if (!productsError && remoteProducts?.length) {
       products = remoteProducts.map(normalizeStoreProduct);
       mixedProducts = mixProducts(products);
@@ -430,6 +438,10 @@ async function loadStoreData() {
     updateCart();
   } catch (error) {
     console.warn("No se pudo cargar el catálogo administrable.", error);
+    const emptyState = document.querySelector("[data-empty]");
+    emptyState.textContent = "No pudimos conectar con la tienda. Tus productos siguen guardados; volvé a intentar en unos minutos.";
+    emptyState.classList.add("visible", "load-error");
+    document.querySelector("[data-products]").setAttribute("aria-busy", "false");
   }
 }
 
@@ -688,7 +700,7 @@ document.querySelector("[data-cart-button]").addEventListener("click", async () 
 document.querySelectorAll("[data-cart-close]").forEach(button => button.addEventListener("click", () => toggleCart(false)));
 document.querySelector("[data-checkout-start]").addEventListener("click", () => {
   localStorage.setItem("pandoraCart", JSON.stringify(cart));
-  window.open("checkout.html?v=20260628-37", "_blank", "noopener");
+  window.open("checkout.html?v=20260718-1", "_blank", "noopener");
 });
 document.querySelector("[data-clear-cart]").addEventListener("click", () => {
   cart = [];

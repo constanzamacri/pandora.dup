@@ -1017,8 +1017,6 @@ document.querySelectorAll("[data-content-section-form]").forEach(form => {
           const file = editedImages.get(input) || input.files[0];
           if (file) {
             form.elements[key].value = await uploadImage(file, "site");
-            form.elements[`${key}_position_x`].value = "50";
-            form.elements[`${key}_position_y`].value = "50";
           }
         }
       } catch (error) {

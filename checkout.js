@@ -49,9 +49,21 @@ function renderSummary() {
 }
 
 function updatePayment(payment) {
-  selectedPayment = payment;
+  selectedPayment = payment || "";
   total = subtotal;
   document.querySelector("[data-total]").textContent = money(total);
+}
+
+function syncPaymentAvailability(delivery) {
+  const cashInput = document.querySelector('input[name="payment"][value="Efectivo"]');
+  const cashCard = document.querySelector("[data-cash-payment]");
+  const cashAvailable = delivery === STORE_PICKUP;
+  cashCard.classList.toggle("hidden", !cashAvailable);
+  cashInput.disabled = !cashAvailable;
+  if (!cashAvailable && cashInput.checked) {
+    cashInput.checked = false;
+    updatePayment("");
+  }
 }
 
 function buildReceipt(form, orderNumber) {
@@ -218,10 +230,12 @@ document.querySelectorAll('input[name="delivery"]').forEach(input => {
     ["address", "city", "postal_code"].forEach(name => {
       document.querySelector(`[name="${name}"]`).required = needsAddress;
     });
+    syncPaymentAvailability(input.value);
     updateStepButtons();
   });
 });
 
+syncPaymentAvailability(document.querySelector('input[name="delivery"]:checked')?.value);
 updateStepButtons();
 setTimeout(updateStepButtons, 400);
 setTimeout(updateStepButtons, 1200);

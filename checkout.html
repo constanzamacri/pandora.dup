@@ -74,7 +74,7 @@
               </div>
             </div>
             <div class="andreani-tools hidden" data-andreani-tools>
-              <p>Usá tu código postal y los datos del paquete para consultar el valor actualizado en el cotizador oficial.</p>
+              <p>Podés estimar el costo con tu código postal en el cotizador oficial. Usá un paquete de <strong>15 × 15 × 2 cm</strong> y <strong>100 g</strong>. Si tu pedido incluye caja, ingresá <strong>15 × 15 × 5 cm</strong>. El importe es estimativo y se confirma al coordinar el despacho.</p>
               <a href="https://www.andreani.com/?tab=cotizar-envio" target="_blank" rel="noopener">CALCULAR ENVÍO EN ANDREANI ↗</a>
             </div>
             <button class="continue-button" type="button" data-next-step="3" disabled>CONTINUAR A PAGO</button>
@@ -88,9 +88,9 @@
           </header>
           <div class="step-content hidden" data-step-content="3">
             <fieldset>
-              <label class="payment-card">
+              <label class="payment-card" data-cash-payment>
                 <input type="radio" name="payment" value="Efectivo" required>
-                <span><strong>Efectivo</strong><small>Abonás al recibir o retirar tu compra.</small></span>
+                <span><strong>Efectivo</strong><small>Abonás en efectivo al retirar tu compra.</small></span>
               </label>
               <label class="payment-card">
                 <input type="radio" name="payment" value="Transferencia" required>
@@ -134,7 +134,7 @@
       <span class="receipt-check">✓</span>
       <p class="eyebrow">COMPRA CONFIRMADA</p>
       <h1>¡Gracias por tu pedido!</h1>
-      <p>En breve nos estaremos comunicando por WhatsApp.</p>
+      <p>En breve nos estaremos comunicando por WhatsApp. Si no nos comunicamos con vos dentro de las próximas 24 horas, por favor escribinos.</p>
       <div class="receipt-summary" data-receipt-text aria-label="Resumen del pedido"></div>
       <div class="receipt-actions">
         <a href="index.html">VOLVER A LA TIENDA</a>
@@ -143,6 +143,6 @@
   </main>
 
   <script src="promotions.js?v=20260627-1"></script>
-  <script src="checkout.js?v=20260707-2"></script>
+  <script src="checkout.js?v=20260718-1"></script>
 </body>
 </html>

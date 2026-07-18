@@ -1,7 +1,7 @@
 import { createSupabaseClient } from "./supabase-client.js";
 
-const supabase = await createSupabaseClient();
 const $ = selector => document.querySelector(selector);
+let supabase;
 
 function setMessage(selector, text, error = false) {
   const element = $(selector);
@@ -31,8 +31,28 @@ function showAuth() {
   $("[data-auth-view]").classList.remove("hidden");
 }
 
-const { data: { session } } = await supabase.auth.getSession();
-if (session?.user) await showProfile(session.user);
+async function initializeAccount() {
+  try {
+    supabase = await createSupabaseClient();
+    const { data: { session }, error } = await supabase.auth.getSession();
+    if (error) throw error;
+    if (session?.user) await showProfile(session.user);
+    else showAuth();
+
+    supabase.auth.onAuthStateChange((_event, nextSession) => {
+      if (nextSession?.user) showProfile(nextSession.user);
+      else showAuth();
+    });
+  } catch (error) {
+    showAuth();
+    setMessage(
+      "[data-login-message]",
+      "No podemos conectar con tu cuenta en este momento. Tu usuario no se perdió; intentá nuevamente en unos minutos.",
+      true
+    );
+    console.warn("No se pudo iniciar el servicio de cuentas.", error);
+  }
+}
 
 document.querySelectorAll("[data-auth-tab]").forEach(button => {
   button.addEventListener("click", () => {
@@ -45,6 +65,10 @@ document.querySelectorAll("[data-auth-tab]").forEach(button => {
 
 $("[data-login-form]").addEventListener("submit", async event => {
   event.preventDefault();
+  if (!supabase) {
+    setMessage("[data-login-message]", "El servicio de cuentas no está disponible en este momento.", true);
+    return;
+  }
   const form = new FormData(event.currentTarget);
   setMessage("[data-login-message]", "Ingresando...");
   const { data, error } = await supabase.auth.signInWithPassword({
@@ -65,6 +89,10 @@ $("[data-login-form]").addEventListener("submit", async event => {
 
 $("[data-register-form]").addEventListener("submit", async event => {
   event.preventDefault();
+  if (!supabase) {
+    setMessage("[data-register-message]", "El servicio de cuentas no está disponible en este momento.", true);
+    return;
+  }
   const form = new FormData(event.currentTarget);
   if (form.get("password") !== form.get("password_confirmation")) {
     setMessage("[data-register-message]", "Las contraseñas no coinciden.", true);
@@ -88,6 +116,9 @@ $("[data-register-form]").addEventListener("submit", async event => {
 });
 
 $("[data-logout]").addEventListener("click", async () => {
+  if (!supabase) return;
   await supabase.auth.signOut();
   showAuth();
 });
+
+initializeAccount();
