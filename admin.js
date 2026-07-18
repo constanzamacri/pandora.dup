@@ -151,18 +151,12 @@ function getAdminAvailableStock(product) {
   product = product || {};
   if (product.product_type !== "composite") return usesSizeStock(product) ? sizeStockTotal(product) : Number(product.stock) || 0;
   if (!product.components?.length) return 0;
-  const baseComponent = product.components.find(component => {
-    const physicalProduct = products.find(item => item.id === component.component_product_id);
-    return physicalProduct?.product_type === "base" || isBraceletCategory(physicalProduct?.category);
-  });
-  if (baseComponent) {
-    const baseProduct = products.find(item => item.id === baseComponent.component_product_id);
-    const baseSizes = normalizedSizeStock(baseProduct);
-    return PRODUCT_SIZES.reduce((total, size) => total + Math.floor((baseSizes[size] || 0) / baseComponent.quantity), 0);
-  }
   return Math.min(...product.components.map(component => {
     const physicalProduct = products.find(item => item.id === component.component_product_id);
-    return Math.floor((Number(physicalProduct?.stock) || 0) / component.quantity);
+    const availableUnits = usesSizeStock(physicalProduct)
+      ? sizeStockTotal(physicalProduct)
+      : Number(physicalProduct?.stock) || 0;
+    return Math.floor(availableUnits / component.quantity);
   }));
 }
 

@@ -234,7 +234,27 @@ as $$
     p.gallery_urls, p.product_type, p.size_stock,
     case
       when p.product_type = 'composite' then coalesce((
-        select jsonb_object_agg(size_item.key, floor(coalesce((base_product.size_stock->>size_item.key)::numeric, 0) / base_recipe.quantity)::integer)
+        select jsonb_object_agg(
+          size_item.key,
+          least(
+            floor(coalesce((base_product.size_stock->>size_item.key)::numeric, 0) / base_recipe.quantity)::integer,
+            coalesce((
+              select min(floor((
+                case
+                  when other_component.size_stock <> '{}'::jsonb then (
+                    select coalesce(sum(value::integer), 0)
+                    from jsonb_each_text(other_component.size_stock)
+                  )
+                  else other_component.stock
+                end
+              )::numeric / other_recipe.quantity))::integer
+              from public.product_components other_recipe
+              join public.products other_component on other_component.id = other_recipe.component_product_id
+              where other_recipe.composite_product_id = p.id
+                and other_recipe.component_product_id <> base_recipe.component_product_id
+            ), floor(coalesce((base_product.size_stock->>size_item.key)::numeric, 0) / base_recipe.quantity)::integer)
+          )
+        )
         from public.product_components base_recipe
         join public.products base_product on base_product.id = base_recipe.component_product_id
         cross join jsonb_each_text(base_product.size_stock) as size_item(key, value)
