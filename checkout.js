@@ -137,7 +137,6 @@ async function saveOrder(form, orderNumber) {
   updatePayment(selectedPayment);
   renderSummary();
   const delivery = form.get("delivery");
-  const discount = 0;
   const { error } = await client.from("orders").insert({
     order_number: orderNumber,
     customer_name: `${form.get("name")} ${form.get("surname")}`.trim(),
@@ -150,9 +149,9 @@ async function saveOrder(form, orderNumber) {
     postal_code: delivery !== STORE_PICKUP ? form.get("postal_code") : null,
     payment_method: selectedPayment,
     notes: form.get("notes") || null,
-    subtotal,
-    discount,
-    total,
+    subtotal: promotionPricing.subtotal,
+    discount: promotionPricing.discount,
+    total: promotionPricing.total,
     items: groupedItems.map(item => ({
       id: item.id,
       name: item.name,
