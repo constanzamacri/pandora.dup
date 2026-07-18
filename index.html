@@ -13,7 +13,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=20260718-2">
+  <link rel="stylesheet" href="styles.css?v=20260718-3">
 </head>
 <body>
   <div class="announcement">
@@ -198,7 +198,6 @@
     </div>
     <div class="cart-body">
       <div class="cart-items" data-cart-items></div>
-      <div class="cart-promotions" data-cart-promotions></div>
       <div class="cart-empty" data-cart-empty>
         <div class="empty-pattern" aria-hidden="true">
           <span>CARRITO VACÍO</span><span>CARRITO VACÍO</span><span>CARRITO VACÍO</span>
@@ -212,7 +211,8 @@
       </div>
     </div>
     <div class="cart-footer" data-cart-footer>
-      <div><span>Subtotal</span><strong data-cart-subtotal>$0</strong></div>
+      <div class="cart-promotions" data-cart-promotions></div>
+      <div class="cart-summary-row"><span>Subtotal</span><strong data-cart-subtotal>$0</strong></div>
       <div class="cart-total"><span>TOTAL</span><strong data-cart-total>$0</strong></div>
       <button class="button button-dark" data-checkout-start>FINALIZAR COMPRA →</button>
       <button class="clear-cart" type="button" data-clear-cart>Vaciar carrito</button>
