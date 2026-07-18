@@ -168,19 +168,27 @@ function renderMainMenu(menuItems) {
 
 function promotionRequirementText(requirement) {
   const labels = {
-    base: "brazalete",
-    charm: "charm",
-    simple: "otro",
-    composite: "pulsera"
+    base: "Brazaletes",
+    charm: "Charms",
+    simple: "Otros",
+    composite: "Pulseras"
   };
   if (requirement.matcher === "product_type") {
-    return `${requirement.quantity} ${labels[requirement.value] || requirement.value}${requirement.quantity > 1 ? "s" : ""}`;
+    const category = labels[requirement.value] || requirement.value;
+    return `${requirement.quantity} ${requirement.quantity === 1 ? "artículo" : "artículos"} de la categoría ${category}`;
   }
   if (requirement.matcher === "category") {
-    return `${requirement.quantity} de ${requirement.value}`;
+    const category = storeCategories.find(item => String(item.id) === String(requirement.value));
+    const categoryName = category?.name || requirement.value;
+    return `${requirement.quantity} ${requirement.quantity === 1 ? "artículo" : "artículos"} de la categoría ${categoryName}`;
   }
   const product = products.find(item => String(item.id) === String(requirement.value));
-  return `${requirement.quantity} ${product?.name || "producto"}`;
+  return `${requirement.quantity} ${requirement.quantity === 1 ? "unidad" : "unidades"} de ${product?.name || "un producto específico"}`;
+}
+
+function joinPromotionRequirements(requirements) {
+  if (requirements.length < 2) return requirements[0] || "";
+  return `${requirements.slice(0, -1).join(", ")} y ${requirements.at(-1)}`;
 }
 
 function renderPromotionShowcase() {
@@ -191,7 +199,7 @@ function renderPromotionShowcase() {
     <article class="promotion-card">
       ${promotion.image_url ? `<img class="promotion-card-image" src="${escapeHtml(promotion.image_url)}" alt="">` : ""}
       <h3>${escapeHtml(promotion.name)}</h3>
-      <p>${promotion.requirements.map(promotionRequirementText).join(" + ")}</p>
+      <p>Agregá ${joinPromotionRequirements(promotion.requirements.map(promotionRequirementText))}.</p>
       <strong>${promotion.type === "gift" ? `${escapeHtml(promotion.gift)} de regalo` : money(promotion.price)}</strong>
       <a href="#productos">ELEGIR PRODUCTOS <span>→</span></a>
     </article>`).join("");
