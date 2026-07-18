@@ -50,14 +50,22 @@ try {
 }
 const money = value => new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS", maximumFractionDigits: 0 }).format(value);
 const PRODUCT_SIZES = ["18 cm", "19 cm", "20 cm"];
-const needsSize = product => ["base", "composite"].includes(product?.product_type) || product?.category === "brazaletes";
+const isBraceletCategory = value => /brazalet|pulsera/.test(String(value || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase());
+const needsSize = product => ["base", "composite"].includes(product?.product_type) || isBraceletCategory(product?.category);
 const cartItemKey = item => `${item.id}::${item.size || ""}`;
 const grid = document.querySelector("[data-products]");
 
 function normalizeSizeStock(source = {}) {
+  if (typeof source === "string") {
+    try { source = JSON.parse(source); } catch { source = {}; }
+  }
   source = source || {};
   return PRODUCT_SIZES.reduce((result, size) => {
-    result[size] = Math.max(0, Number(source?.[size]) || 0);
+    const centimeters = size.match(/\d+/)?.[0];
+    const matchingEntry = Object.entries(source).find(([key]) =>
+      String(key).replace(/\s|cm/gi, "") === centimeters
+    );
+    result[size] = Math.max(0, Number(source?.[size] ?? matchingEntry?.[1]) || 0);
     return result;
   }, {});
 }
@@ -67,17 +75,29 @@ function sizeStockTotal(source = {}) {
   return Object.values(normalizeSizeStock(source)).reduce((total, value) => total + value, 0);
 }
 
+function mergeSizeStock(product = {}, fallback = {}) {
+  const reported = normalizeSizeStock(product.size_stock);
+  return sizeStockTotal(reported) > 0 ? reported : normalizeSizeStock(fallback);
+}
+
+function resolvedSizeStock(product = {}) {
+  const available = normalizeSizeStock(product.available_size_stock);
+  return sizeStockTotal(available) > 0 ? available : normalizeSizeStock(product.size_stock);
+}
+
 function productAvailableStock(product = {}) {
   product = product || {};
-  const sizedTotal = sizeStockTotal(product.available_size_stock || product.size_stock);
+  const sizedTotal = sizeStockTotal(resolvedSizeStock(product));
   if (!needsSize(product)) return Number(product.stock) || 0;
+  if (sizedTotal === 0 && Number(product.stock) > 0) return Number(product.stock);
   return Math.min(sizedTotal, Number(product.stock) || sizedTotal);
 }
 
 function productSizeAvailable(product = {}, size = "") {
   product = product || {};
-  const sizes = normalizeSizeStock(product.available_size_stock || product.size_stock);
+  const sizes = resolvedSizeStock(product);
   const available = Math.max(0, Number(sizes[size]) || 0);
+  if (sizeStockTotal(sizes) === 0 && Number(product.stock) > 0) return Number(product.stock);
   return product.product_type === "composite"
     ? Math.min(available, Number(product.stock) || available)
     : available;
@@ -179,7 +199,7 @@ function renderPromotionShowcase() {
 
 function normalizeStoreProduct(product) {
   const sizeStock = normalizeSizeStock(product.size_stock);
-  const availableSizeStock = normalizeSizeStock(product.available_size_stock || product.size_stock);
+  const availableSizeStock = resolvedSizeStock(product);
   const availableStock = Number(product.available_stock ?? (sizeStockTotal(availableSizeStock) || product.stock || 0));
   return {
     ...product,
@@ -194,9 +214,16 @@ function normalizeStoreProduct(product) {
 
 async function refreshProductAvailability() {
   if (!storeClient) return;
-  const { data, error } = await storeClient.rpc("get_store_products");
+  const [{ data, error }, { data: sizeRows }] = await Promise.all([
+    storeClient.rpc("get_store_products"),
+    storeClient.from("products").select("id,size_stock")
+  ]);
   if (error) return;
-  products = (data || []).map(normalizeStoreProduct);
+  const sizesById = new Map((sizeRows || []).map(row => [String(row.id), row.size_stock]));
+  products = (data || []).map(product => normalizeStoreProduct({
+    ...product,
+    size_stock: mergeSizeStock(product, sizesById.get(String(product.id)))
+  }));
   mixedProducts = mixProducts(products);
   renderProducts();
   if (detailProduct) {
@@ -317,6 +344,7 @@ async function loadStoreData() {
     storeClient = client;
     const storeRequest = Promise.all([
       client.rpc("get_store_products"),
+      client.from("products").select("id,size_stock"),
       client.from("site_content").select("key,value"),
       client.from("categories").select("*").eq("published", true).order("sort_order"),
       client.from("menu_items").select("*").eq("published", true).order("sort_order").order("id")
@@ -326,6 +354,7 @@ async function loadStoreData() {
     });
     const [
       { data: remoteProducts, error: productsError },
+      { data: sizeRows },
       { data: content, error: contentError },
       { data: categories, error: categoriesError },
       { data: menuItems, error: menuError }
@@ -334,7 +363,11 @@ async function loadStoreData() {
       throw new Error("El servicio de la tienda no está disponible.");
     }
     if (!productsError && remoteProducts?.length) {
-      products = remoteProducts.map(normalizeStoreProduct);
+      const sizesById = new Map((sizeRows || []).map(row => [String(row.id), row.size_stock]));
+      products = remoteProducts.map(product => normalizeStoreProduct({
+        ...product,
+        size_stock: mergeSizeStock(product, sizesById.get(String(product.id)))
+      }));
       mixedProducts = mixProducts(products);
       renderProducts();
     }

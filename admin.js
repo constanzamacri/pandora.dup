@@ -18,6 +18,8 @@ let categoriesHaveImageColumn = true;
 let promotions = [];
 let promotionRequirementsDirty = false;
 const editedImages = new WeakMap();
+let editedGalleryFiles = [];
+let galleryEditQueue = [];
 let cropState = null;
 const PRODUCT_SIZES = ["18 cm", "19 cm", "20 cm"];
 
@@ -79,9 +81,10 @@ function renderProducts() {
 
 function normalizedSizeStock(product = {}) {
   product = product || {};
-  const source = product.size_stock || product.available_size_stock || {};
+  const saved = product.size_stock || {};
+  const available = product.available_size_stock || {};
   return PRODUCT_SIZES.reduce((result, size) => {
-    result[size] = Math.max(0, Number(source?.[size]) || 0);
+    result[size] = Math.max(0, Number(saved?.[size] ?? available?.[size]) || 0);
     return result;
   }, {});
 }
@@ -91,9 +94,15 @@ function sizeStockTotal(product = {}) {
   return Object.values(normalizedSizeStock(product)).reduce((total, value) => total + value, 0);
 }
 
+function isBraceletCategory(value = "") {
+  const category = categories.find(item => String(item.id) === String(value));
+  const text = `${value} ${category?.name || ""}`.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  return /brazalet|pulsera/.test(text);
+}
+
 function usesSizeStock(product = {}) {
   product = product || {};
-  return product.product_type === "base" || product.category === "brazaletes";
+  return product.product_type === "base" || isBraceletCategory(product.category);
 }
 
 function collectSizeStock(form) {
@@ -144,7 +153,7 @@ function getAdminAvailableStock(product) {
   if (!product.components?.length) return 0;
   const baseComponent = product.components.find(component => {
     const physicalProduct = products.find(item => item.id === component.component_product_id);
-    return physicalProduct?.product_type === "base" || physicalProduct?.category === "brazaletes";
+    return physicalProduct?.product_type === "base" || isBraceletCategory(physicalProduct?.category);
   });
   if (baseComponent) {
     const baseProduct = products.find(item => item.id === baseComponent.component_product_id);
@@ -268,6 +277,7 @@ function resetCategoryForm() {
   form.elements.original_id.value = "";
   form.elements.image_url.value = "";
   form.elements.published.checked = true;
+  $("[data-category-image-preview]").innerHTML = "";
   $("[data-category-form-title]").textContent = "Categorías";
   $("[data-cancel-category]").classList.add("hidden");
 }
@@ -368,6 +378,7 @@ function resetPromotionForm() {
   form.elements.active.checked = true;
   form.elements.exclusive.checked = false;
   form.elements.promotion_image_url.value = "";
+  $("[data-promotion-image-preview]").innerHTML = "";
   promotionRequirementsDirty = false;
   updatePromotionTypeFields();
   $("[data-promotion-form-title]").textContent = "Promociones automáticas";
@@ -433,9 +444,44 @@ function renderProductPhotoPreviews() {
     </article>`).join("") : `<p class="photo-preview-empty">No hay fotos adicionales guardadas.</p>`;
 }
 
+function destinationFrame(url, type, label) {
+  return url ? `<div class="destination-frame ${type}-frame"><img src="${escapeHtml(url)}" alt="Vista previa"><span>${label}</span></div>` : "";
+}
+
+function renderPendingUploadPreview(input, file = null) {
+  const url = file ? URL.createObjectURL(file) : "";
+  if (input.closest("[data-category-form]")) {
+    $("[data-category-image-preview]").innerHTML = destinationFrame(url || input.form.elements.image_url.value, "category", "ASÍ SE VERÁ EN CATEGORÍAS") + (file ? `<button class="adjust-upload-button" type="button" data-readjust-image>AJUSTAR FOTO</button>` : "");
+  } else if (input.name === "promotion_image") {
+    $("[data-promotion-image-preview]").innerHTML = destinationFrame(url || input.form.elements.promotion_image_url.value, "promotion", "ASÍ SE VERÁ EN PROMOCIONES") + (file ? `<button class="adjust-upload-button" type="button" data-readjust-image>AJUSTAR FOTO</button>` : "");
+  } else if (input.name === "image" && url) {
+    $("[data-main-image-preview]").innerHTML = `<article class="product-photo-thumbnail"><img src="${escapeHtml(url)}" alt="Vista previa de la foto principal"><span class="photo-order-label">ASÍ SE VERÁ</span><button class="adjust-upload-button" type="button" data-readjust-image>AJUSTAR FOTO</button></article>`;
+  }
+  const photoField = input.closest(".photo-field");
+  if (photoField && file) {
+    let button = photoField.querySelector("[data-readjust-image]");
+    if (!button) {
+      button = document.createElement("button");
+      button.type = "button";
+      button.className = "adjust-upload-button";
+      button.dataset.readjustImage = "";
+      button.textContent = "AJUSTAR FOTO";
+      photoField.querySelector(".photo-preview")?.after(button);
+    }
+  }
+}
+
+function renderPendingGalleryPreview() {
+  if (!editedGalleryFiles.length) return;
+  $("[data-gallery-preview]").innerHTML = editedGalleryFiles.map((file, index) => `
+    <article class="product-photo-thumbnail"><img src="${escapeHtml(URL.createObjectURL(file))}" alt="Vista previa de foto adicional ${index + 1}"><span class="photo-order-label">${index === 0 ? "SEGUNDA IMAGEN" : `FOTO ${index + 2}`}</span><button class="adjust-upload-button" type="button" data-readjust-gallery="${index}">AJUSTAR FOTO</button></article>`).join("");
+}
+
 function openProduct(product = null) {
   const form = $("[data-product-form]");
   form.reset();
+  editedGalleryFiles = [];
+  galleryEditQueue = [];
   const defaultCategory = categories[0]?.id || form.elements.category.options[0]?.value || "";
   form.elements.id.value = product?.id || "";
   form.elements.name.value = product?.name || "";
@@ -524,7 +570,7 @@ function renderComponentRows(components) {
 function updateProductTypeFields() {
   const form = $("[data-product-form]");
   const composite = form.elements.product_type.value === "composite";
-  const sized = !composite && (form.elements.product_type.value === "base" || form.elements.category.value === "brazaletes");
+  const sized = !composite && (form.elements.product_type.value === "base" || isBraceletCategory(form.elements.category.value));
   $("[data-components-editor]").classList.toggle("hidden", !composite);
   $("[data-product-stock-field]").classList.toggle("hidden", composite || sized);
   $("[data-size-stock-editor]").classList.toggle("hidden", !sized);
@@ -547,12 +593,15 @@ async function uploadImage(file, bucket = "products") {
   return supabase.storage.from(bucket).getPublicUrl(path).data.publicUrl;
 }
 
-const cropRatios = {
-  hero_image_file: 1.25,
-  editorial_main_image_file: 0.82,
-  editorial_small_image_file: 1.5,
-  image: 0.78
-};
+function cropConfig(input) {
+  if (input.name === "hero_image_file") return { ratio: 1.25, label: "Portada de inicio · encuadre principal" };
+  if (input.name === "editorial_main_image_file") return { ratio: 0.82, label: "Editorial principal" };
+  if (input.name === "editorial_small_image_file") return { ratio: 1.5, label: "Editorial secundaria" };
+  if (input.name === "promotion_image") return { ratio: 2.4, label: "Tarjeta de promoción" };
+  if (input.closest("[data-category-form]")) return { ratio: 0.58, label: "Tarjeta de categoría" };
+  if (input.name === "gallery") return { ratio: 0.78, label: "Galería de producto · tarjeta de catálogo" };
+  return { ratio: 0.78, label: "Producto · tarjeta de catálogo" };
+}
 
 function drawCrop() {
   if (!cropState) return;
@@ -587,23 +636,32 @@ function drawCrop() {
 }
 
 function closeImageEditor(resetInput = false) {
-  if (resetInput && cropState?.input) cropState.input.value = "";
+  if (resetInput && cropState?.input) {
+    cropState.input.value = "";
+    if (cropState.input.name === "gallery") {
+      editedGalleryFiles = [];
+      galleryEditQueue = [];
+    }
+  }
   if (cropState?.objectUrl) URL.revokeObjectURL(cropState.objectUrl);
   cropState = null;
   $("[data-crop-stage]").style.aspectRatio = "";
   $("[data-image-editor]").classList.add("hidden");
 }
 
-function openImageEditor(input, file) {
+function openImageEditor(input, file, galleryIndex = null) {
   const objectUrl = URL.createObjectURL(file);
   const image = new Image();
   image.onload = () => {
+    const config = cropConfig(input);
     cropState = {
       input,
       image,
       objectUrl,
-      ratio: cropRatios[input.name] || 1
+      galleryIndex,
+      ratio: config.ratio
     };
+    $("[data-crop-destination]").textContent = `Vista exacta: ${config.label}`;
     $("[data-crop-zoom]").value = "1";
     $("[data-crop-x]").value = "0";
     $("[data-crop-y]").value = "0";
@@ -618,10 +676,15 @@ function openImageEditor(input, file) {
   image.src = objectUrl;
 }
 
-document.querySelectorAll('input[type="file"][accept*="image"]:not([data-no-editor])').forEach(input => {
+document.querySelectorAll('input[type="file"][accept*="image"]').forEach(input => {
   input.addEventListener("change", () => {
-    const file = input.files[0];
-    if (file) openImageEditor(input, file);
+    const files = [...input.files];
+    if (!files.length) return;
+    if (input.name === "gallery") {
+      editedGalleryFiles = [];
+      galleryEditQueue = files.slice(1).map((file, index) => ({ file, index: index + 1 }));
+    }
+    openImageEditor(input, files[0], input.name === "gallery" ? 0 : null);
   });
 });
 document.querySelectorAll(".photo-field").forEach(field => {
@@ -648,8 +711,40 @@ $("[data-image-apply]").addEventListener("click", () => {
       photoField.dataset.previewUrl = URL.createObjectURL(file);
       updatePhotoPreview(photoField);
     }
+    if (input.name === "gallery") {
+      editedGalleryFiles[cropState.galleryIndex] = file;
+      if (galleryEditQueue.length) {
+        const next = galleryEditQueue.shift();
+        closeImageEditor();
+        openImageEditor(input, next.file, next.index);
+        return;
+      }
+      renderPendingGalleryPreview();
+    } else {
+      renderPendingUploadPreview(input, file);
+    }
     closeImageEditor();
   }, "image/webp", 0.9);
+});
+
+document.addEventListener("click", event => {
+  const galleryButton = event.target.closest("[data-readjust-gallery]");
+  if (galleryButton) {
+    const input = $("[data-product-form]").elements.gallery;
+    const index = Number(galleryButton.dataset.readjustGallery);
+    const original = input.files[index];
+    if (original) openImageEditor(input, original, index);
+    return;
+  }
+  const button = event.target.closest("[data-readjust-image]");
+  if (!button) return;
+  const field = button.closest(".photo-field");
+  const input = field?.querySelector('input[type="file"]')
+    || button.closest("[data-category-form]")?.elements.image
+    || button.closest("[data-promotion-form]")?.elements.promotion_image
+    || $("[data-product-form]").elements.image;
+  const original = input?.files[0];
+  if (original) openImageEditor(input, original);
 });
 
 async function verifyAdmin(user) {
@@ -824,6 +919,7 @@ $("[data-category-list]").addEventListener("click", event => {
   form.elements.original_id.value = String(category.id);
   form.elements.name.value = category.name;
   form.elements.image_url.value = category.image_url || "";
+  renderPendingUploadPreview(form.elements.image);
   form.elements.sort_order.value = category.sort_order;
   form.elements.published.checked = category.published;
   $("[data-category-form-title]").textContent = `Editar ${category.name}`;
@@ -889,16 +985,17 @@ $("[data-product-form]").addEventListener("submit", async event => {
       }
     }
     const usesSizes = productType !== "composite" &&
-      (productType === "base" || form.elements.category.value === "brazaletes");
+      (productType === "base" || isBraceletCategory(form.elements.category.value));
+    const storedProductType = usesSizes ? "base" : productType;
     const sizeStock = usesSizes ? collectSizeStock(form) : {};
     let imageUrl = form.elements.image_url.value;
     const productImage = editedImages.get(form.elements.image) || form.elements.image.files[0];
     if (productImage) imageUrl = await uploadImage(productImage);
     if (!imageUrl) throw new Error("Subí una foto o ingresá la URL de una imagen.");
     let galleryUrls = JSON.parse(form.elements.gallery_urls.value || "[]");
-    if (form.elements.gallery.files.length) {
+    if (editedGalleryFiles.length || form.elements.gallery.files.length) {
       const uploadedGallery = await Promise.all(
-        [...form.elements.gallery.files].map(file => uploadImage(file))
+        (editedGalleryFiles.length ? editedGalleryFiles : [...form.elements.gallery.files]).map(file => uploadImage(file))
       );
       galleryUrls = [...galleryUrls, ...uploadedGallery];
     }
@@ -910,7 +1007,7 @@ $("[data-product-form]").addEventListener("submit", async event => {
       old_price: form.elements.old_price.value ? Number(form.elements.old_price.value) : null,
       stock: productType === "composite" ? 0 : usesSizes ? sizeStockTotal({ size_stock: sizeStock }) : Number(form.elements.stock.value),
       size_stock: sizeStock,
-      product_type: productType,
+      product_type: storedProductType,
       sort_order: Number(form.elements.sort_order.value || 0),
       image_url: imageUrl,
       gallery_urls: galleryUrls,
@@ -993,7 +1090,7 @@ $("[data-promotion-form]").addEventListener("submit", async event => {
     requirements
   };
   try {
-    const imageFile = form.elements.promotion_image.files[0];
+    const imageFile = editedImages.get(form.elements.promotion_image) || form.elements.promotion_image.files[0];
     if (imageFile) promotion.image_url = await uploadImage(imageFile, "site");
     const index = promotions.findIndex(item => item.id === promotion.id);
     if (index >= 0) promotions[index] = promotion;
@@ -1018,6 +1115,7 @@ $("[data-promotion-list]").addEventListener("click", async event => {
     form.elements.price.value = promotion.price ?? "";
     form.elements.gift.value = promotion.gift || "";
     form.elements.promotion_image_url.value = promotion.image_url || "";
+    renderPendingUploadPreview(form.elements.promotion_image);
     updatePromotionTypeFields();
     form.elements.priority.value = promotion.priority || 0;
     form.elements.active.checked = promotion.active;
