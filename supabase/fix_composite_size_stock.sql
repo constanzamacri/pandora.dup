@@ -1,6 +1,10 @@
 -- Corrige el stock por talle de los combos.
 -- Un talle solo está disponible si también hay stock de todos los demás componentes.
 
+begin;
+
+drop function if exists public.get_store_products();
+
 create or replace function public.get_store_products()
 returns table (
   id bigint,
@@ -89,3 +93,5 @@ $$;
 
 revoke all on function public.get_store_products() from public;
 grant execute on function public.get_store_products() to anon, authenticated;
+
+commit;
