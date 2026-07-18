@@ -1,2 +1,4 @@
 .codex-preview-server.cjs
 supabase/.temp/
+.DS_Store
+Icon?
