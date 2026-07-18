@@ -1,0 +1,29 @@
+:root { --ink: #211e1a; --paper: #f8f6f2; --line: #ddd8d0; --muted: #77716a; }
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; color: var(--ink); background: var(--paper); font-family: "Montserrat", Arial, sans-serif; }
+.help-header { min-height: 84px; padding: 0 5vw; display: flex; align-items: center; justify-content: space-between; background: white; border-bottom: 1px solid var(--line); }
+.help-header > a:last-child { color: var(--ink); font-size: 9px; font-weight: 600; letter-spacing: 1px; text-decoration: none; }
+.help-brand span { width: 250px; height: 58px; display: block; background: url("pandora-dup-logo.png?v=3") center / 270px auto no-repeat; }
+.help-main { width: min(940px, 90vw); margin: 0 auto; padding: 90px 0 110px; }
+.help-intro { margin-bottom: 85px; }
+.help-intro p, .section-number { margin: 0 0 12px; color: var(--muted); font-size: 9px; font-weight: 600; letter-spacing: 2px; }
+h1 { max-width: 720px; margin: 0; font-size: clamp(40px, 7vw, 78px); font-weight: 400; line-height: 1.04; letter-spacing: -3px; }
+section { padding: 55px 0; display: grid; grid-template-columns: 90px 1fr; border-top: 1px solid var(--line); scroll-margin-top: 30px; }
+section > div { max-width: 680px; }
+h2 { margin: 0 0 32px; font-size: 30px; font-weight: 500; }
+h3 { margin: 30px 0 8px; font-size: 13px; font-weight: 600; }
+p, li { color: #514d47; font-size: 13px; line-height: 1.8; }
+ol { margin: 0; padding-left: 20px; }
+li { margin-bottom: 13px; padding-left: 8px; }
+.help-whatsapp { margin-top: 55px; padding: 18px 22px; display: inline-block; color: white; background: var(--ink); font-size: 10px; font-weight: 600; letter-spacing: 1px; text-decoration: none; }
+@media (max-width: 620px) {
+  .help-header { min-height: 70px; }
+  .help-header > a:last-child { display: none; }
+  .help-brand span { width: 205px; background-size: 220px auto; }
+  .help-main { padding: 65px 0 80px; }
+  .help-intro { margin-bottom: 55px; }
+  h1 { letter-spacing: -2px; }
+  section { grid-template-columns: 1fr; padding: 42px 0; }
+  .section-number { margin-bottom: 22px; }
+}

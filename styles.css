@@ -212,7 +212,7 @@ footer { padding: 70px 5vw 25px; display: grid; grid-template-columns: 2fr repea
 .footer-brand-logo { width: 290px; height: 72px; display: block; background: url("pandora-dup-logo.png?v=3") center 50% / 310px auto no-repeat; filter: invert(1); mix-blend-mode: screen; }
 footer div:not(.footer-brand) { display: flex; flex-direction: column; gap: 12px; }
 footer strong { margin-bottom: 9px; font-size: 9px; letter-spacing: 1.5px; }
-footer a { color: #bdb8ae; font-size: 11px; }
+footer a, footer div > span { color: #bdb8ae; font-size: 11px; }
 .copyright { grid-column: 1 / -1; padding-top: 45px; color: #77726a; border-top: 1px solid #44413c; font-size: 8px; letter-spacing: 1px; }
 
 .overlay { position: fixed; z-index: 50; inset: 0; background: rgba(24,22,19,.45); opacity: 0; pointer-events: none; transition: .35s; }
