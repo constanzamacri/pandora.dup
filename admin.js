@@ -424,7 +424,12 @@ function renderProductPhotoPreviews() {
   $("[data-gallery-preview]").innerHTML = galleryUrls.length ? galleryUrls.map((url, index) => `
     <article class="product-photo-thumbnail">
       <img src="${escapeHtml(url)}" alt="Foto adicional ${index + 1}">
-      <button type="button" data-remove-gallery-image="${index}">ELIMINAR</button>
+      <span class="photo-order-label">${index === 0 ? "SEGUNDA IMAGEN" : `FOTO ${index + 2}`}</span>
+      <div class="photo-order-actions">
+        <button type="button" data-move-gallery-image="${index}" data-direction="-1" ${index === 0 ? "disabled" : ""} aria-label="Mover foto a la izquierda">←</button>
+        <button type="button" data-move-gallery-image="${index}" data-direction="1" ${index === galleryUrls.length - 1 ? "disabled" : ""} aria-label="Mover foto a la derecha">→</button>
+        <button type="button" data-remove-gallery-image="${index}">ELIMINAR</button>
+      </div>
     </article>`).join("") : `<p class="photo-preview-empty">No hay fotos adicionales guardadas.</p>`;
 }
 
@@ -472,11 +477,19 @@ $("[data-main-image-preview]").addEventListener("click", event => {
 });
 
 $("[data-gallery-preview]").addEventListener("click", event => {
-  const button = event.target.closest("[data-remove-gallery-image]");
-  if (!button) return;
+  const removeButton = event.target.closest("[data-remove-gallery-image]");
+  const moveButton = event.target.closest("[data-move-gallery-image]");
+  if (!removeButton && !moveButton) return;
   const form = $("[data-product-form]");
   const galleryUrls = JSON.parse(form.elements.gallery_urls.value || "[]");
-  galleryUrls.splice(Number(button.dataset.removeGalleryImage), 1);
+  if (removeButton) {
+    galleryUrls.splice(Number(removeButton.dataset.removeGalleryImage), 1);
+  } else {
+    const from = Number(moveButton.dataset.moveGalleryImage);
+    const to = from + Number(moveButton.dataset.direction);
+    if (to < 0 || to >= galleryUrls.length) return;
+    [galleryUrls[from], galleryUrls[to]] = [galleryUrls[to], galleryUrls[from]];
+  }
   form.elements.gallery_urls.value = JSON.stringify(galleryUrls);
   renderProductPhotoPreviews();
 });
