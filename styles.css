@@ -225,7 +225,7 @@ footer a { color: #bdb8ae; font-size: 11px; }
 .cart-header button { padding: 5px; border: 0; background: none; font-size: 34px; font-weight: 300; line-height: 1; }
 .cart-body { min-height: 0; padding: 16px 18px; flex: 1; overflow-y: auto; }
 .cart-items { display: grid; gap: 12px; }
-.cart-promotions { display: grid; gap: 8px; margin-top: 12px; }
+.cart-promotions { display: grid; gap: 8px; margin-bottom: 18px; }
 .cart-promotion { padding: 14px 16px; color: #315b35; background: #edf5ea; border: 1px solid #cfe0cc; }
 .cart-promotion strong, .cart-promotion span { display: block; }
 .cart-promotion strong { margin-bottom: 5px; font-size: 11px; }
@@ -257,7 +257,8 @@ footer a { color: #bdb8ae; font-size: 11px; }
 .quantity-control button { width: 34px; height: 30px; padding: 0; background: white; border: 0; font-size: 19px; }
 .quantity-control span { min-width: 54px; text-align: center; font-size: 10px; font-weight: 600; }
 .cart-footer { padding: 23px 28px 28px; background: white; border-top: 1px solid #ddd; }
-.cart-footer > div { margin-bottom: 13px; display: flex; justify-content: space-between; font-size: 12px; }
+.cart-footer > .cart-summary-row,
+.cart-footer > .cart-total { margin-bottom: 13px; display: flex; justify-content: space-between; font-size: 12px; }
 .cart-footer .cart-total { margin: 20px 0; padding-top: 18px; align-items: center; border-top: 1px solid #222; font-size: 15px; }
 .cart-total strong { font-size: 20px; }
 .cart-footer .button { width: 100%; min-height: 48px; font-weight: 600; }

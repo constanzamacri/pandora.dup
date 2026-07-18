@@ -272,7 +272,7 @@ async function loadCategories() {
 
 function resetCategoryForm() {
   const form = $("[data-category-form]");
-  editedImages.delete(form.elements.image);
+  clearPendingImage(form.elements.image);
   form.reset();
   form.elements.original_id.value = "";
   form.elements.image_url.value = "";
@@ -373,6 +373,7 @@ function renderPromotions() {
 
 function resetPromotionForm() {
   const form = $("[data-promotion-form]");
+  clearPendingImage(form.elements.promotion_image);
   form.reset();
   form.elements.id.value = "";
   form.elements.active.checked = true;
@@ -477,8 +478,22 @@ function renderPendingGalleryPreview() {
     <article class="product-photo-thumbnail"><img src="${escapeHtml(URL.createObjectURL(file))}" alt="Vista previa de foto adicional ${index + 1}"><span class="photo-order-label">${index === 0 ? "SEGUNDA IMAGEN" : `FOTO ${index + 2}`}</span><button class="adjust-upload-button" type="button" data-readjust-gallery="${index}">AJUSTAR FOTO</button></article>`).join("");
 }
 
+function clearPendingImage(input) {
+  if (!input) return;
+  editedImages.delete(input);
+  input.value = "";
+  input.closest("label")?.classList.remove("image-ready");
+  const photoField = input.closest(".photo-field");
+  if (photoField?.dataset.previewUrl) {
+    URL.revokeObjectURL(photoField.dataset.previewUrl);
+    delete photoField.dataset.previewUrl;
+  }
+}
+
 function openProduct(product = null) {
   const form = $("[data-product-form]");
+  clearPendingImage(form.elements.image);
+  clearPendingImage(form.elements.gallery);
   form.reset();
   editedGalleryFiles = [];
   galleryEditQueue = [];
@@ -518,6 +533,7 @@ window.openNewProductModal = openNewProduct;
 $("[data-main-image-preview]").addEventListener("click", event => {
   if (!event.target.closest("[data-remove-main-image]")) return;
   const form = $("[data-product-form]");
+  clearPendingImage(form.elements.image);
   form.elements.image_url.value = "";
   renderProductPhotoPreviews();
 });
@@ -579,6 +595,11 @@ function updateProductTypeFields() {
 }
 
 function closeProduct() {
+  const form = $("[data-product-form]");
+  clearPendingImage(form.elements.image);
+  clearPendingImage(form.elements.gallery);
+  editedGalleryFiles = [];
+  galleryEditQueue = [];
   $("[data-product-modal]").classList.add("hidden");
 }
 
@@ -916,6 +937,7 @@ $("[data-category-list]").addEventListener("click", event => {
     return;
   }
   const form = $("[data-category-form]");
+  clearPendingImage(form.elements.image);
   form.elements.original_id.value = String(category.id);
   form.elements.name.value = category.name;
   form.elements.image_url.value = category.image_url || "";
@@ -1109,6 +1131,7 @@ $("[data-promotion-list]").addEventListener("click", async event => {
     const promotion = promotions.find(item => item.id === editButton.dataset.editPromotion);
     if (!promotion) return;
     const form = $("[data-promotion-form]");
+    clearPendingImage(form.elements.promotion_image);
     form.elements.id.value = promotion.id;
     form.elements.name.value = promotion.name;
     form.elements.promotion_type.value = promotion.type || "price";
