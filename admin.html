@@ -13,7 +13,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="admin.css?v=20260718-2">
+  <link rel="stylesheet" href="admin.css?v=20260718-4">
   <script>
     window.openNewProductModal = function () {
       const modal = document.querySelector("[data-product-modal]");
@@ -106,6 +106,7 @@
             <label>Orden<input name="sort_order" type="number" min="0" value="0" required></label>
             <label>Foto de la categoría<input name="image" type="file" accept="image/jpeg,image/png,image/webp"></label>
             <input name="image_url" type="hidden">
+            <div class="upload-destination-preview" data-category-image-preview></div>
             <label class="check-field"><input name="published" type="checkbox" checked> Publicada</label>
           </div>
           <div class="category-form-actions">
@@ -135,6 +136,7 @@
             <label class="hidden" data-promotion-gift-field>Regalo incluido<input name="gift" placeholder="Ej: Bolsa de terciopelo"></label>
             <label>Foto de la promoción<input name="promotion_image" type="file" accept="image/jpeg,image/png,image/webp"></label>
             <input name="promotion_image_url" type="hidden">
+            <div class="upload-destination-preview" data-promotion-image-preview></div>
             <label>Prioridad<input name="priority" type="number" min="0" value="0"></label>
             <label class="check-field"><input name="active" type="checkbox" checked> Promoción activa</label>
             <label class="check-field"><input name="exclusive" type="checkbox"> No combinar con otras promociones</label>
@@ -308,7 +310,7 @@
         <input name="image_url" type="hidden">
         <div class="product-photo-preview" data-main-image-preview></div>
         <label>Fotos adicionales
-          <input name="gallery" type="file" accept="image/jpeg,image/png,image/webp" multiple data-no-editor>
+          <input name="gallery" type="file" accept="image/jpeg,image/png,image/webp" multiple>
           <small>Podés seleccionar varias fotos juntas.</small>
         </label>
         <input name="gallery_urls" type="hidden">
@@ -330,7 +332,8 @@
         <div><p class="eyebrow">EDITAR FOTO</p><h2 id="image-editor-title">Ajustar imagen</h2></div>
         <button type="button" data-image-cancel aria-label="Cerrar">×</button>
       </div>
-      <p class="upload-help">Usá el zoom y los controles para elegir exactamente qué parte de la foto se verá.</p>
+      <p class="upload-help" data-crop-help>Usá el zoom y los controles para elegir exactamente qué parte de la foto se verá.</p>
+      <p class="crop-destination" data-crop-destination></p>
       <div class="crop-stage" data-crop-stage>
         <canvas data-crop-canvas></canvas>
       </div>
@@ -346,6 +349,6 @@
     </section>
   </div>
 
-  <script type="module" src="admin.js?v=20260718-3"></script>
+  <script type="module" src="admin.js?v=20260718-7"></script>
 </body>
 </html>
