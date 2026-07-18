@@ -4,7 +4,7 @@ html { scroll-behavior: smooth; }
 body { margin: 0; color: var(--ink); background: var(--paper); font-family: "Montserrat", Arial, sans-serif; }
 .help-header { min-height: 84px; padding: 0 5vw; display: flex; align-items: center; justify-content: space-between; background: white; border-bottom: 1px solid var(--line); }
 .help-header > a:last-child { color: var(--ink); font-size: 9px; font-weight: 600; letter-spacing: 1px; text-decoration: none; }
-.help-brand span { width: 250px; height: 58px; display: block; background: url("pandora-dup-logo.png?v=3") center / 270px auto no-repeat; }
+.help-brand span { width: 250px; height: 58px; display: block; background: url("../images/branding/pandora-dup-logo.png?v=3") center / 270px auto no-repeat; }
 .help-main { width: min(940px, 90vw); margin: 0 auto; padding: 90px 0 110px; }
 .help-intro { margin-bottom: 85px; }
 .help-intro p, .section-number { margin: 0 0 12px; color: var(--muted); font-size: 9px; font-weight: 600; letter-spacing: 2px; }
