@@ -75,6 +75,11 @@ function sizeStockTotal(source = {}) {
   return Object.values(normalizeSizeStock(source)).reduce((total, value) => total + value, 0);
 }
 
+function mergeSizeStock(product = {}, fallback = {}) {
+  const reported = normalizeSizeStock(product.size_stock);
+  return sizeStockTotal(reported) > 0 ? reported : normalizeSizeStock(fallback);
+}
+
 function resolvedSizeStock(product = {}) {
   const available = normalizeSizeStock(product.available_size_stock);
   return sizeStockTotal(available) > 0 ? available : normalizeSizeStock(product.size_stock);
@@ -217,7 +222,7 @@ async function refreshProductAvailability() {
   const sizesById = new Map((sizeRows || []).map(row => [String(row.id), row.size_stock]));
   products = (data || []).map(product => normalizeStoreProduct({
     ...product,
-    size_stock: product.size_stock || sizesById.get(String(product.id)) || {}
+    size_stock: mergeSizeStock(product, sizesById.get(String(product.id)))
   }));
   mixedProducts = mixProducts(products);
   renderProducts();
@@ -361,7 +366,7 @@ async function loadStoreData() {
       const sizesById = new Map((sizeRows || []).map(row => [String(row.id), row.size_stock]));
       products = remoteProducts.map(product => normalizeStoreProduct({
         ...product,
-        size_stock: product.size_stock || sizesById.get(String(product.id)) || {}
+        size_stock: mergeSizeStock(product, sizesById.get(String(product.id)))
       }));
       mixedProducts = mixProducts(products);
       renderProducts();
